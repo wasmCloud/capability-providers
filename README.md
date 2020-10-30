@@ -10,5 +10,6 @@ The waSCC NATS capability provider exposes publish and subscribe functionality t
 * `SUBSCRIPTION` - The subscription string. This can contain wildcards. Use a comma-separated list for multiple subscriptions.
 * `QUEUEGROUP_NAME` - If you want all instances of the same actor to share round-robin delivery of messages, then set a unique queue group name for them. This queue group name will apply to all configured subscriptions.
 * `URL` - The URL to initially connect with a server. Should use the `nats://` scheme prefix.
-* `CLIENT_JWT` - If not using anonymous authentication, this is the _signed user JWT_ used for client authentication against the NATS 2.x+ server.
-* `CLIENT_SEED` - If you have supplied a value for the client JWT, the seed is required for authentication. This should be the nats-style "nkeys" encoded string for the seed and NOT a raw binary value.
+* `CREDSFILE` - The path to a `.creds` file (which can be generated via NATS client(s)) containing the client JWT and the seed used to sign the nonce. If this value is not included in the binding, the provider will use _anonymous_ authentication.
+* `CLIENT_JWT` - Supported prior to 0.9, not _currently_ supported.
+* `CLIENT_SEED` - Supported prior to 0.9, not _currently_ supported.
