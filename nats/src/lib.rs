@@ -17,8 +17,8 @@ mod nats;
 #[macro_use]
 extern crate wascc_codec as codec;
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
 const REVISION: u32 = 2; // Increment for each crates publish
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[macro_use]
 extern crate log;
