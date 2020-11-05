@@ -34,8 +34,8 @@ pub const OP_LIST_DEL: &str = "ListItemDelete";
 
 pub const OP_SET_ADD: &str = "SetAdd";
 pub const OP_SET_REMOVE: &str = "SetRemove";
-pub const OP_SET_UNION: &str = "SetUnion";
 pub const OP_SET_INTERSECT: &str = "SetIntersection";
+pub const OP_SET_UNION: &str = "SetUnion";
 pub const OP_SET_QUERY: &str = "SetQuery";
 pub const OP_KEY_EXISTS: &str = "KeyExists";
 
