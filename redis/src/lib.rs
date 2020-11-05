@@ -25,8 +25,8 @@ use std::sync::RwLock;
 
 pub const OP_ADD: &str = "Add";
 pub const OP_DEL: &str = "Del";
-pub const OP_GET: &str = "Get";
 pub const OP_SET: &str = "Set";
+pub const OP_GET: &str = "Get";
 pub const OP_CLEAR: &str = "Clear";
 pub const OP_RANGE: &str = "Range";
 pub const OP_PUSH: &str = "Push";
