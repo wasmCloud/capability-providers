@@ -1,5 +1,7 @@
 name: Rust
 
+# TODO: For each provider, copy this file and adapt it for the provider. Delete this template afterwards
+
 on:
   push:
     branches: [ main ]
