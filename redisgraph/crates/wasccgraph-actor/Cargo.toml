@@ -1,18 +1,20 @@
 [package]
-name = "wasccgraph-actor"
-version = "0.0.3"
+name = "redisgraph-actor"
+version = "0.1.0"
 authors = ["Kevin Hoffman <alothien@gmail.com>"]
 edition = "2018"
-homepage = "https://wascc.dev"
-repository = "https://github.com/wascc/redisgraph"
-description = "waSCC Actor Support for graph database capability providers"
+homepage = "https://wasmcloud.dev"
+repository = "https://github.com/wasmcloud/capability-providers"
+description = "wasmCloud Actor Support for graph database capability providers"
 license = "Apache-2.0"
-documentation = "https://docs.rs/wasccgraph-actor"
+documentation = "https://docs.rs/redisgraph-actor"
 readme = "README.md"
-keywords = ["webassembly", "wasm", "graphdb", "graph", "wascc"]
+keywords = ["webassembly", "wasm", "graphdb", "graph", "wasmcloud"]
 categories = ["wasm", "api-bindings", "database"]
 
-
 [dependencies]
-wasccgraph-common = "0.0.2"
-wascc-actor = "0.7.2"
+serde = "1.0.111"
+serde_derive = "1.0.111"
+wascc-actor = "0.7.4"
+actor-graphdb = { git = "https://github.com/wasmCloud/actor-interfaces", branch = "graphdb"}
+actor-core = { git = "https://github.com/wasmCloud/actor-interfaces", branch = "main"}

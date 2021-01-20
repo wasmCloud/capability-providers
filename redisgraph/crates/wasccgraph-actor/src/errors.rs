@@ -1,11 +1,3 @@
-#[doc(hidden)]
-#[macro_export]
-macro_rules! client_type_error {
-    ($($arg:tt)*) => {
-        Err($crate::GraphError::ClientTypeError(format!($($arg)*)))
-    };
-}
-
 /// Common result type for this crate.
 pub type GraphResult<T> = Result<T, GraphError>;
 

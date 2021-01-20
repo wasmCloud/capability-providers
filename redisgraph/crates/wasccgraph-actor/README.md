@@ -1,6 +1,6 @@
-# waSCC Graph Actor API
+# wasmCloud Graph Actor API
 
-This crate provides [waSCC actors](https://github.com/wascc) with an API they can use to interact with a graph database. The exact implementation of the graph database (Neo4j, RedisGraph, etc) is immaterial to the actor developer using this API.
+This crate provides [wasmCloud actors](https://github.com/wasmcloud) with an API they can use to interact with a graph database. The exact implementation of the graph database (Neo4j, RedisGraph, etc) is immaterial to the actor developer using this API.
 
 The following illustrates an example of consuming the graph guest API:
 

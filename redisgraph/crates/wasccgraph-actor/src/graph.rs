@@ -1,11 +1,11 @@
+use crate::results::CAPID_GRAPHDB;
 use crate::FromTable;
-use common::CAPID_GRAPHDB;
-use wascc_actor::{
-    prelude::{deserialize, serialize},
-    untyped::{self, UntypedHostBinding},
+use actor_core::{deserialize, serialize};
+use actor_graphdb::{
+    generated::{DeleteGraphArgs, QueryGraphArgs, ResultSet},
+    OP_DELETE, OP_QUERY,
 };
-use wasccgraph_common::protocol::*;
-use wasccgraph_common::{ResultSet, Statistics};
+use wascc_actor::untyped::{self, UntypedHostBinding};
 
 #[doc(hidden)]
 pub struct GraphHostBindingBuilder {
@@ -46,7 +46,7 @@ pub fn default() -> GraphHostBindingBuilder {
 
 impl GraphHostBinding {
     /// Executes a query against the host graph. For this provider, we assume the query is a Cypher query
-    /// but it could be Gremlin or GraphQL, etc, depending on the capability provider satisfying `wascc:graphdb`. This
+    /// but it could be Gremlin or GraphQL, etc, depending on the capability provider satisfying `wasmcloud:graphdb`. This
     /// can be used to perform mutations if you also return data from the mutation query
     pub fn query<T: FromTable>(
         &self,
@@ -59,7 +59,7 @@ impl GraphHostBinding {
     pub fn query_with_statistics<T: FromTable>(
         &self,
         query: &str,
-    ) -> std::result::Result<(T, Statistics), Box<dyn std::error::Error>> {
+    ) -> std::result::Result<(T, Vec<String>), Box<dyn std::error::Error>> {
         let result_set = self.get_result_set(query).map_err(|e| format!("{}", e))?;
         let value = T::from_table(&result_set).map_err(|e| format!("{}", e))?;
         Ok((value, result_set.statistics))
@@ -76,7 +76,7 @@ impl GraphHostBinding {
     pub fn mutate_with_statistics(
         &mut self,
         query: &str,
-    ) -> std::result::Result<Statistics, Box<dyn std::error::Error>> {
+    ) -> std::result::Result<Vec<String>, Box<dyn std::error::Error>> {
         let result_set = self.get_result_set(query).map_err(|e| format!("{}", e))?;
         Ok(result_set.statistics)
     }
@@ -84,8 +84,8 @@ impl GraphHostBinding {
     /// Deletes the entire graph from the database.
     ///
     /// This is a potentially very destructive function. Use with care.    
-    pub fn delete(self) -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let delreq = DeleteRequest {
+    pub fn delete(self) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let delreq = DeleteGraphArgs {
             graph_name: self.graph_name.to_string(),
         };
         self.hostbinding
@@ -101,8 +101,8 @@ impl GraphHostBinding {
     fn get_result_set(
         &self,
         query: &str,
-    ) -> std::result::Result<ResultSet, Box<dyn std::error::Error>> {
-        let query = QueryRequest {
+    ) -> std::result::Result<ResultSet, Box<dyn std::error::Error + Send + Sync>> {
+        let query = QueryGraphArgs {
             graph_name: self.graph_name.to_string(),
             query: query.to_string(),
         };
