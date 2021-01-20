@@ -20,8 +20,7 @@ crate-type = ["cdylib", "rlib"]
 static_plugin = []
 
 [dependencies]
-actor-graphdb = { path = "../../actor-interfaces/rust/graphdb" }
-#actor-graphdb = { git = "https://github.com/wasmCloud/actor-interfaces", branch = "graphdb"}
+actor-graphdb = { git = "https://github.com/wasmCloud/actor-interfaces", branch = "graphdb"}
 actor-core = { git = "https://github.com/wasmCloud/actor-interfaces", branch = "main"}
 wascc-codec = "0.9.0"
 log = "0.4.13"
