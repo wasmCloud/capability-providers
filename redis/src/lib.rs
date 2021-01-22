@@ -1,20 +1,21 @@
-pub(crate) mod generated;
 mod kvredis;
 
 #[macro_use]
 extern crate wascc_codec as codec;
-
-#[macro_use]
-extern crate log;
-
-use crate::generated::core::{CapabilityConfiguration, HealthResponse};
-use crate::generated::keyvalue::*;
 use codec::capabilities::{
     CapabilityDescriptor, CapabilityProvider, Dispatcher, NullDispatcher, OperationDirection,
     OP_GET_CAPABILITY_DESCRIPTOR,
 };
 use codec::core::{OP_BIND_ACTOR, OP_HEALTH_REQUEST, OP_REMOVE_ACTOR};
-use codec::{deserialize, serialize};
+
+#[macro_use]
+extern crate log;
+
+extern crate actor_core as actorcore;
+use actorcore::{deserialize, serialize, CapabilityConfiguration, HealthCheckResponse};
+extern crate actor_keyvalue as actorkeyvalue;
+use actorkeyvalue::*;
+
 use redis::Connection;
 use redis::RedisResult;
 use redis::{self, Commands};
@@ -23,31 +24,15 @@ use std::error::Error;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-pub const OP_ADD: &str = "Add";
-pub const OP_DEL: &str = "Del";
-pub const OP_GET: &str = "Get";
-pub const OP_SET: &str = "Set";
-pub const OP_CLEAR: &str = "Clear";
-pub const OP_RANGE: &str = "Range";
-pub const OP_PUSH: &str = "Push";
-pub const OP_LIST_DEL: &str = "ListItemDelete";
-
-pub const OP_SET_ADD: &str = "SetAdd";
-pub const OP_SET_REMOVE: &str = "SetRemove";
-pub const OP_SET_INTERSECT: &str = "SetIntersection";
-pub const OP_SET_UNION: &str = "SetUnion";
-pub const OP_KEY_EXISTS: &str = "KeyExists";
-pub const OP_SET_QUERY: &str = "SetQuery";
-
-const CAPABILITY_ID: &str = "wascc:keyvalue";
+const CAPABILITY_ID: &str = "wasmcloud:keyvalue";
 const SYSTEM_ACTOR: &str = "system";
-const REVISION: u32 = 2; // Increment for each crates publish
+const REVISION: u32 = 3; // Increment for each crates publish
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg(not(feature = "static_plugin"))]
 capability_provider!(RedisKVProvider, RedisKVProvider::new);
 
-/// Redis implementation of the `wascc:keyvalue` specification
+/// Redis implementation of the `wasmcloud:keyvalue` specification
 #[derive(Clone)]
 pub struct RedisKVProvider {
     dispatcher: Arc<RwLock<Box<dyn Dispatcher>>>,
@@ -262,7 +247,7 @@ impl RedisKVProvider {
         Ok(serialize(
             CapabilityDescriptor::builder()
                 .id(CAPABILITY_ID)
-                .name("waSCC Default Key-Value Provider (Redis)")
+                .name("wasmCloud Default Key-Value Provider (Redis)")
                 .long_description("A key-value store capability provider built on Redis")
                 .version(VERSION)
                 .revision(REVISION)
@@ -353,7 +338,7 @@ impl CapabilityProvider for RedisKVProvider {
             OP_SET_INTERSECT => self.set_intersect(actor, deserialize(msg).unwrap()),
             OP_SET_QUERY => self.set_query(actor, deserialize(msg).unwrap()),
             OP_KEY_EXISTS => self.exists(actor, deserialize(msg).unwrap()),
-            OP_HEALTH_REQUEST if actor == SYSTEM_ACTOR => Ok(serialize(HealthResponse {
+            OP_HEALTH_REQUEST if actor == SYSTEM_ACTOR => Ok(serialize(HealthCheckResponse {
                 healthy: true,
                 message: "".to_string(),
             })
