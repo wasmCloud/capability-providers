@@ -5,33 +5,24 @@
 
 #[macro_use]
 extern crate wascc_codec as codec;
-
 #[macro_use]
 extern crate log;
-
-use codec::capabilities::{
-    CapabilityProvider, Dispatcher, NullDispatcher, OP_GET_CAPABILITY_DESCRIPTOR,
-};
-use codec::core::{OP_BIND_ACTOR, OP_REMOVE_ACTOR};
-use codec::{deserialize, serialize};
-
 use actor_core::CapabilityConfiguration;
-
 use actor_graphdb::{
     generated::{DeleteGraphArgs, QueryGraphArgs},
     OP_DELETE, OP_QUERY,
 };
-
+use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
+use codec::core::{OP_BIND_ACTOR, OP_REMOVE_ACTOR};
+use codec::{deserialize, serialize};
+use redis::Connection;
+use redis::RedisResult;
+use redisgraph::{Graph, RedisGraphResult, ResultSet};
 use std::error::Error;
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
 };
-
-use redis::Connection;
-use redis::RedisResult;
-use redisgraph::{Graph, RedisGraphResult, ResultSet};
-
 mod rgraph;
 
 const CAPABILITY_ID: &str = "wasmcloud:graphdb";
@@ -175,7 +166,6 @@ impl CapabilityProvider for RedisgraphProvider {
             OP_QUERY => self.query_graph(actor, deserialize(msg)?),
             OP_DELETE => self.delete_graph(actor, deserialize(msg)?),
             OP_REMOVE_ACTOR if actor == SYSTEM_ACTOR => self.deconfigure(actor),
-            OP_GET_CAPABILITY_DESCRIPTOR if actor == SYSTEM_ACTOR => Ok(vec![]), // Descriptors are no longer used
             _ => Err("bad dispatch".into()),
         }
     }
