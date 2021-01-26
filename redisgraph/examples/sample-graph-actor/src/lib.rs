@@ -21,10 +21,6 @@
 // The Cypher queries for this demo come from https://github.com/malte-v/redisgraph-rs
 // **
 
-// extern crate wascc_actor as actor;
-// use actor::prelude::*;
-// use wasccgraph_actor::graph;
-
 extern crate actor_graphdb;
 extern crate wapc_guest as guest;
 use actor_http_server as http;
