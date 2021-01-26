@@ -1,29 +1,22 @@
 #[macro_use]
 extern crate wascc_codec as codec;
-
 #[macro_use]
 extern crate log;
 
 extern crate actix_rt;
-
-use actor_core::{CapabilityConfiguration, HealthCheckResponse};
-
 use actix_web::dev::Body;
 use actix_web::dev::Server;
 use actix_web::http::{HeaderName, HeaderValue, StatusCode};
 use actix_web::web::Bytes;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer};
-use codec::capabilities::{
-    CapabilityDescriptor, CapabilityProvider, Dispatcher, NullDispatcher, OperationDirection,
-    OP_GET_CAPABILITY_DESCRIPTOR,
-};
-
 use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 use std::sync::RwLock;
-use wascc_codec::core::{OP_BIND_ACTOR, OP_HEALTH_REQUEST, OP_REMOVE_ACTOR};
-use wascc_codec::{deserialize, serialize};
+
+use actor_core::{deserialize, serialize, CapabilityConfiguration, HealthCheckResponse};
+use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
+use codec::core::{OP_BIND_ACTOR, OP_HEALTH_REQUEST, OP_REMOVE_ACTOR};
 
 const CAPABILITY_ID: &str = "wasmcloud:httpserver";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -105,24 +98,6 @@ impl HttpServerProvider {
             let _ = sys.run();
         });
     }
-
-    /// Obtains the capability provider descriptor
-    fn get_descriptor(&self) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-        Ok(serialize(
-            CapabilityDescriptor::builder()
-                .id(CAPABILITY_ID)
-                .name("Default waSCC HTTP Server Provider (Actix)")
-                .long_description("A fast, multi-threaded HTTP server for waSCC actors")
-                .version(VERSION)
-                .revision(REVISION)
-                .with_operation(
-                    OP_HANDLE_REQUEST,
-                    OperationDirection::ToActor,
-                    "Delivers an HTTP request to an actor and expects an HTTP response in return",
-                )
-                .build(),
-        )?)
-    }
 }
 
 impl Default for HttpServerProvider {
@@ -176,7 +151,6 @@ impl CapabilityProvider for HttpServerProvider {
                 healthy: true,
                 message: "".to_string(),
             })?),
-            OP_GET_CAPABILITY_DESCRIPTOR if actor == "system" => self.get_descriptor(),
             _ => Err("bad dispatch".into()),
         }
     }

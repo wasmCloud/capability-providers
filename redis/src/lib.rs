@@ -2,10 +2,7 @@ mod kvredis;
 
 #[macro_use]
 extern crate wascc_codec as codec;
-use codec::capabilities::{
-    CapabilityDescriptor, CapabilityProvider, Dispatcher, NullDispatcher, OperationDirection,
-    OP_GET_CAPABILITY_DESCRIPTOR,
-};
+use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
 use codec::core::{OP_BIND_ACTOR, OP_HEALTH_REQUEST, OP_REMOVE_ACTOR};
 
 #[macro_use]
@@ -241,49 +238,6 @@ impl RedisKVProvider {
             exists: result,
         })?)
     }
-
-    fn get_descriptor(&self) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-        use OperationDirection::ToProvider;
-        Ok(serialize(
-            CapabilityDescriptor::builder()
-                .id(CAPABILITY_ID)
-                .name("wasmCloud Default Key-Value Provider (Redis)")
-                .long_description("A key-value store capability provider built on Redis")
-                .version(VERSION)
-                .revision(REVISION)
-                .with_operation(OP_ADD, ToProvider, "Performs an atomic addition operation")
-                .with_operation(OP_DEL, ToProvider, "Deletes a key from the store")
-                .with_operation(OP_GET, ToProvider, "Gets the raw value for a key")
-                .with_operation(OP_CLEAR, ToProvider, "Clears a list")
-                .with_operation(
-                    OP_RANGE,
-                    ToProvider,
-                    "Selects items from a list within a range",
-                )
-                .with_operation(OP_PUSH, ToProvider, "Pushes a new item onto a list")
-                .with_operation(OP_SET, ToProvider, "Sets the value of a key")
-                .with_operation(OP_LIST_DEL, ToProvider, "Deletes an item from a list")
-                .with_operation(OP_SET_ADD, ToProvider, "Adds an item to a set")
-                .with_operation(OP_SET_REMOVE, ToProvider, "Remove an item from a set")
-                .with_operation(
-                    OP_SET_UNION,
-                    ToProvider,
-                    "Returns the union of multiple sets",
-                )
-                .with_operation(
-                    OP_SET_INTERSECT,
-                    ToProvider,
-                    "Returns the intersection of multiple sets",
-                )
-                .with_operation(OP_SET_QUERY, ToProvider, "Queries a set")
-                .with_operation(
-                    OP_KEY_EXISTS,
-                    ToProvider,
-                    "Returns a boolean indicating if a key exists",
-                )
-                .build(),
-        )?)
-    }
 }
 
 impl CapabilityProvider for RedisKVProvider {
@@ -323,7 +277,6 @@ impl CapabilityProvider for RedisKVProvider {
             OP_REMOVE_ACTOR if actor == SYSTEM_ACTOR => {
                 self.remove_actor(deserialize::<CapabilityConfiguration>(msg).unwrap())
             }
-            OP_GET_CAPABILITY_DESCRIPTOR if actor == SYSTEM_ACTOR => self.get_descriptor(),
             OP_ADD => self.add(actor, deserialize(msg).unwrap()),
             OP_DEL => self.del(actor, deserialize(msg).unwrap()),
             OP_GET => self.get(actor, deserialize(msg).unwrap()),

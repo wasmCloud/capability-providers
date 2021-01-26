@@ -35,5 +35,5 @@ env_logger = "0.7.1"
 crossbeam-channel = "0.4.2"
 crossbeam = "0.7.3"
 crossbeam-utils = "^0.7.0"
-actor-http-server = { path = "../../actor-interfaces/rust/http-server" }
-actor-core = { path = "../../actor-interfaces/rust/actor-core" }
+actor-http-server = { git = "https://github.com/wasmcloud/actor-interfaces", branch = "main" }
+actor-core = { git = "https://github.com/wasmcloud/actor-interfaces", branch = "main" }

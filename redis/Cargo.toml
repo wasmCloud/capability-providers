@@ -33,5 +33,5 @@ crossbeam-utils = "0.8.1"
 log = "0.4.11"
 wascc-codec = "0.9.0"
 redis = "0.17.0"
-actor-core = { path = "../../actor-interfaces/rust/actor-core" }
-actor-keyvalue = { path = "../../actor-interfaces/rust/keyvalue" }
+actor-core = { git = "https://github.com/wasmcloud/actor-interfaces", branch = "main" }
+actor-keyvalue = { git = "https://github.com/wasmcloud/actor-interfaces", branch = "main" }
