@@ -9,12 +9,11 @@ extern crate wascc_codec as codec;
 extern crate log;
 use actor_core::CapabilityConfiguration;
 use actor_graphdb::{
-    generated::{DeleteGraphArgs, QueryGraphArgs},
+    generated::{deserialize, serialize, DeleteGraphArgs, QueryGraphArgs},
     OP_DELETE, OP_QUERY,
 };
 use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
 use codec::core::{OP_BIND_ACTOR, OP_REMOVE_ACTOR};
-use codec::{deserialize, serialize};
 use redis::Connection;
 use redis::RedisResult;
 use redisgraph::{Graph, RedisGraphResult, ResultSet};
@@ -23,6 +22,7 @@ use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
 };
+mod conversions;
 mod rgraph;
 
 const CAPABILITY_ID: &str = "wasmcloud:graphdb";
@@ -123,17 +123,24 @@ impl RedisgraphProvider {
     }
 }
 
-// Force a serialization trip between the internal redisgraph::ResultSet type and
-// the shared common protocol ResultSet type. If this works, then we should be
-// reasonably confident the guest graph library can unpack this within the actor
+// Convert the redisgraph::ResultSet type to the common actor_graphdb::ResultSet
+// type. This ensures guests using the actor_graphdb library (e.g. Actors) can
+// interact with the common ResultSet type.
 // WARNING: this could fail if redisgraph is upgraded and changes the shape of its
 // ResultSet type
 fn to_common_resultset(
     rs: redisgraph::ResultSet,
-) -> Result<ResultSet, Box<dyn Error + Send + Sync>> {
-    let input = serialize(&rs)?;
-    let output: ResultSet = deserialize(&input)?;
-    Ok(output)
+) -> Result<actor_graphdb::generated::ResultSet, Box<dyn Error + Send + Sync>> {
+    let columns = rs
+        .columns
+        .into_iter()
+        .map(conversions::redisgraph_column_to_common)
+        .collect::<Vec<_>>();
+    let statistics = rs.statistics.0;
+    Ok(actor_graphdb::generated::ResultSet {
+        columns,
+        statistics,
+    })
 }
 
 impl CapabilityProvider for RedisgraphProvider {
@@ -171,4 +178,31 @@ impl CapabilityProvider for RedisgraphProvider {
     }
 
     fn stop(&self) {}
+}
+
+//TODO(brooksmtownsend): change this test, or remove. No functional use at the moment, just serves as debugging tool
+#[cfg(test)]
+mod test {
+    use super::RedisgraphProvider;
+    use actor_core::CapabilityConfiguration;
+    use actor_graphdb::generated::*;
+    use std::collections::HashMap;
+    use std::error::Error;
+    #[test]
+    fn can_open_graph() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let provider = RedisgraphProvider::new();
+        //RedisGraph must be accessible on redis://localhost:6379
+        let config = CapabilityConfiguration {
+            module: "test".to_string(),
+            values: HashMap::new(),
+        };
+        provider.configure(config)?;
+        let args = QueryGraphArgs {
+            graph_name: "MotoGP".to_string(),
+            query: "MATCH (r:Rider)-[:rides]->(t:Team) WHERE t.name = 'Yamaha' RETURN r.name, r.birth_year".to_string()
+        };
+        let res = provider.query_graph("test", args)?;
+        assert!(!res.is_empty());
+        Ok(())
+    }
 }
