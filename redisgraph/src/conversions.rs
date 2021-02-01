@@ -92,5 +92,5 @@ pub(crate) fn redisgraph_relation_to_common(
 }
 
 fn redisstring_to_string(rs: redisgraph::RedisString) -> String {
-    String::from_utf8(Vec::from(rs)).unwrap()
+    String::from_utf8(rs.into()).unwrap()
 }

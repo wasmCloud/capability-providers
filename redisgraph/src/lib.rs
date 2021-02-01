@@ -9,7 +9,7 @@ extern crate wascc_codec as codec;
 extern crate log;
 use actor_core::CapabilityConfiguration;
 use actor_graphdb::{
-    generated::{deserialize, serialize, DeleteGraphArgs, QueryGraphArgs},
+    deserialize, serialize, DeleteGraphArgs, DeleteResponse, QueryGraphArgs, QueryResponse,
     OP_DELETE, OP_QUERY,
 };
 use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
@@ -62,13 +62,17 @@ impl RedisgraphProvider {
 
     // Handles a request to query a graph, passing the query on to the RedisGraph client
     fn query_graph(&self, actor: &str, query: QueryGraphArgs) -> GraphHandlerResult {
-        trace!("Querying graph database: {:?}", query);
         let mut g = self
             .open_graph(actor, &query.graph_name)
             .map_err(|e| format!("{}", e))?;
         let rs: RedisGraphResult<ResultSet> = g.query(&query.query);
         match rs {
-            Ok(rs) => Ok(serialize(&to_common_resultset(rs)?)?),
+            Ok(rs) => {
+                let response = QueryResponse {
+                    result_set: to_common_resultset(rs)?,
+                };
+                Ok(serialize(response)?)
+            }
             Err(e) => Err(format!("Graph query failure: {:?}", e).into()),
         }
     }
@@ -80,7 +84,7 @@ impl RedisgraphProvider {
             .map_err(|e| format!("{}", e))?; // Ensure Graph exists
         let rs: RedisGraphResult<()> = g.delete();
         match rs {
-            Ok(_) => Ok(vec![]),
+            Ok(_) => Ok(serialize(DeleteResponse { success: true })?),
             Err(e) => Err(format!("Failed to delete graph: {:?}", e).into()),
         }
     }
@@ -130,14 +134,14 @@ impl RedisgraphProvider {
 // ResultSet type
 fn to_common_resultset(
     rs: redisgraph::ResultSet,
-) -> Result<actor_graphdb::generated::ResultSet, Box<dyn Error + Send + Sync>> {
+) -> Result<actor_graphdb::ResultSet, Box<dyn Error + Send + Sync>> {
     let columns = rs
         .columns
         .into_iter()
         .map(conversions::redisgraph_column_to_common)
         .collect::<Vec<_>>();
     let statistics = rs.statistics.0;
-    Ok(actor_graphdb::generated::ResultSet {
+    Ok(actor_graphdb::ResultSet {
         columns,
         statistics,
     })
@@ -178,31 +182,4 @@ impl CapabilityProvider for RedisgraphProvider {
     }
 
     fn stop(&self) {}
-}
-
-//TODO(brooksmtownsend): change this test, or remove. No functional use at the moment, just serves as debugging tool
-#[cfg(test)]
-mod test {
-    use super::RedisgraphProvider;
-    use actor_core::CapabilityConfiguration;
-    use actor_graphdb::generated::*;
-    use std::collections::HashMap;
-    use std::error::Error;
-    #[test]
-    fn can_open_graph() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let provider = RedisgraphProvider::new();
-        //RedisGraph must be accessible on redis://localhost:6379
-        let config = CapabilityConfiguration {
-            module: "test".to_string(),
-            values: HashMap::new(),
-        };
-        provider.configure(config)?;
-        let args = QueryGraphArgs {
-            graph_name: "MotoGP".to_string(),
-            query: "MATCH (r:Rider)-[:rides]->(t:Team) WHERE t.name = 'Yamaha' RETURN r.name, r.birth_year".to_string()
-        };
-        let res = provider.query_graph("test", args)?;
-        assert!(!res.is_empty());
-        Ok(())
-    }
 }

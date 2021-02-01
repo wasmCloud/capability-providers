@@ -21,8 +21,8 @@
 // The Cypher queries for this demo come from https://github.com/malte-v/redisgraph-rs
 // **
 
-extern crate actor_graphdb;
 extern crate wapc_guest as guest;
+use actor_graphdb as graph;
 use actor_http_server as http;
 use guest::prelude::*;
 
@@ -50,18 +50,20 @@ fn handle_http_request(req: http::Request) -> HandlerResult<http::Response> {
 // Execute a Cypher query to add data
 fn create_data() -> HandlerResult<http::Response> {
     info!("Creating graph data");
-    actor_graphdb::graph::default().graph("MotoGP").mutate("CREATE (:Rider {name: 'Valentino Rossi', birth_year: 1979})-[:rides]->(:Team {name: 'Yamaha'}), \
+    graph::default().query_graph("MotoGP".to_string(), "CREATE (:Rider {name: 'Valentino Rossi', birth_year: 1979})-[:rides]->(:Team {name: 'Yamaha'}), \
     (:Rider {name:'Dani Pedrosa', birth_year: 1985, height: 1.58})-[:rides]->(:Team {name: 'Honda'}), \
-    (:Rider {name:'Andrea Dovizioso', birth_year: 1986, height: 1.67})-[:rides]->(:Team {name: 'Ducati'})")?;
+    (:Rider {name:'Andrea Dovizioso', birth_year: 1986, height: 1.67})-[:rides]->(:Team {name: 'Ducati'})".to_string())?;
 
     Ok(http::Response::ok())
 }
 
 // Execute a Cypher query to return data values
 fn query_data() -> HandlerResult<http::Response> {
-    info!("Querying graph data");
-    let (name, birth_year): (String, u32) = actor_graphdb::graph::default().graph("MotoGP").query(
-        "MATCH (r:Rider)-[:rides]->(t:Team) WHERE t.name = 'Yamaha' RETURN r.name, r.birth_year",
+    info!("Querying graph data in actor");
+    let (name, birth_year): (String, u32) = graph::default().query_graph(
+        "MotoGP".to_string(),
+        "MATCH (r:Rider)-[:rides]->(t:Team) WHERE t.name = 'Yamaha' RETURN r.name, r.birth_year"
+            .to_string(),
     )?;
 
     let result = json!({
