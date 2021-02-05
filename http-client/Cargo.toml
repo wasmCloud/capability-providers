@@ -3,7 +3,7 @@ name = "wasmcloud-httpclient"
 version = "0.2.0"
 authors = ["wasmCloud Team"]
 edition = "2018"
-repository = "https://github.com/wasmcloud/http-client-provider"
+repository = "https://github.com/wasmcloud/capability-providers"
 description = "HTTP client capability provider for the wasmCloud wasm host runtime"
 license = "Apache-2.0"
 documentation = "https://docs.rs/wasmcloud-httpclient"
@@ -28,8 +28,8 @@ reqwest = { version = "0.11", features = ["json", "gzip", "brotli"] }
 tokio = { version = "1.1.1", features = ["rt-multi-thread", "net", "time", "macros", "signal"] }
 base64 = "0.13.0"
 serde_json = "1.0.61"
-actor-http-client = { git = "https://github.com/wasmcloud/actor-interfaces", branch = "main"}
-actor-core = { git = "https://github.com/wasmcloud/actor-interfaces", branch = "main"}
+wasmcloud-actor-http-client = "0.1.0"
+wasmcloud-actor-core = "0.2.0"
 
 [dev-dependencies]
 mockito = "0.29"

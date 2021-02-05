@@ -8,20 +8,19 @@ extern crate wascc_codec as codec;
 #[macro_use]
 extern crate log;
 
-extern crate actor_http_client as http;
-use actor_core::CapabilityConfiguration;
+extern crate wasmcloud_actor_http_client as http;
 use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
 use codec::core::{OP_BIND_ACTOR, OP_REMOVE_ACTOR};
 use codec::{deserialize, SYSTEM_ACTOR};
-use http::{Request, OP_PERFORM_REQUEST};
+use http::{RequestArgs, OP_PERFORM_REQUEST};
 use std::collections::HashMap;
 use std::error::Error;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
+use wasmcloud_actor_core::CapabilityConfiguration;
 
+#[allow(unused)]
 const CAPABILITY_ID: &str = "wasmcloud:httpclient";
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-const REVISION: u32 = 1;
 
 #[cfg(not(feature = "static_plugin"))]
 capability_provider!(HttpClientProvider, HttpClientProvider::new);
@@ -64,7 +63,7 @@ impl HttpClientProvider {
         };
 
         self.clients.write().unwrap().insert(
-            config.module.clone(),
+            config.module,
             reqwest::Client::builder()
                 .timeout(timeout)
                 .redirect(redirect_policy)
@@ -96,7 +95,11 @@ impl HttpClientProvider {
     }
 
     /// Make a HTTP request.
-    fn request(&self, actor: &str, msg: Request) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
+    fn request(
+        &self,
+        actor: &str,
+        msg: RequestArgs,
+    ) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
         let lock = self.clients.read().unwrap();
         let client = lock.get(actor).unwrap();
         self.runtime
@@ -157,20 +160,18 @@ impl CapabilityProvider for HttpClientProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actor_http_client::{Request, Response};
     use codec::deserialize;
     use mockito::mock;
+    use wasmcloud_actor_http_client::{RequestArgs, Response};
 
     #[test]
     fn test_request() {
         let _ = env_logger::try_init();
-        let request = Request {
+        let request = RequestArgs {
             method: "GET".to_string(),
             url: mockito::server_url(),
-            path: "/".to_string(),
-            header: HashMap::new(),
+            headers: HashMap::new(),
             body: vec![],
-            query_string: String::new(),
         };
 
         let _m = mock("GET", "/")

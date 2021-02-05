@@ -1,29 +1,25 @@
-extern crate actor_http_client as http;
-use http::{serialize, Request, Response};
+extern crate wasmcloud_actor_http_client as http;
+use http::{serialize, RequestArgs, Response};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Client, RequestBuilder};
 use std::collections::HashMap;
 use std::convert::TryInto;
 
-//TODO(brooksmtownsend): Ensure that return type conforms
 pub(crate) async fn request(
     client: &Client,
-    req: Request,
+    req: RequestArgs,
 ) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>> {
     let request = build_request(client, req)?;
     let result = request.send().await?;
 
     let status_code = result.status().as_u16() as u32;
-    let reason = match result.status().canonical_reason() {
-        Some(r) => r,
-        None => "",
-    };
+    let reason = result.status().canonical_reason().unwrap_or("");
     let headers = format_headers(result.headers());
     let resp_body = result.bytes().await?;
     let body_bytes: Vec<u8> = resp_body.into_iter().collect();
 
     serialize(Response {
-        status_code: status_code,
+        status_code,
         header: headers,
         status: reason.to_string(),
         body: body_bytes,
@@ -53,35 +49,28 @@ fn format_headers(h: &HeaderMap) -> HashMap<String, String> {
 
 fn build_request(
     client: &Client,
-    req: Request,
+    req: RequestArgs,
 ) -> Result<RequestBuilder, Box<dyn std::error::Error + Send + Sync>> {
-    let url = &format!("{}{}", req.url, req.path);
     let mut r = match req.method.as_str() {
         "GET" => {
-            // If query is not supplied, don't append a `/` to the URL
-            let query_string = if !req.query_string.is_empty() {
-                format!("/{}", req.query_string)
-            } else {
-                "".to_string()
-            };
-            let r = client.get(format!("{}{}", url, query_string).as_str());
+            let r = client.get(&req.url);
             Ok(r)
         }
         "POST" => {
-            let r = client.post(url).body(req.body);
+            let r = client.post(&req.url).body(req.body);
             Ok(r)
         }
-        "HEAD" => Ok(client.head(url)),
-        "PUT" => Ok(client.put(url)),
-        "DELETE" => Ok(client.delete(url)),
-        "PATCH" => Ok(client.patch(url)),
-        "OPTIONS" => Ok(client.request(reqwest::Method::OPTIONS, url)),
-        "CONNECT" => Ok(client.request(reqwest::Method::CONNECT, url)),
-        "TRACE" => Ok(client.request(reqwest::Method::TRACE, url)),
+        "HEAD" => Ok(client.head(&req.url)),
+        "PUT" => Ok(client.put(&req.url)),
+        "DELETE" => Ok(client.delete(&req.url)),
+        "PATCH" => Ok(client.patch(&req.url)),
+        "OPTIONS" => Ok(client.request(reqwest::Method::OPTIONS, &req.url)),
+        "CONNECT" => Ok(client.request(reqwest::Method::CONNECT, &req.url)),
+        "TRACE" => Ok(client.request(reqwest::Method::TRACE, &req.url)),
         m => Err(format!("{} {}", "unknown method: ", m)),
     }?;
 
-    let headers: HeaderMap = (&req.header).try_into().expect("invalid headers");
+    let headers: HeaderMap = (&req.headers).try_into().expect("invalid headers");
     r = r.headers(headers);
 
     Ok(r)
@@ -127,11 +116,10 @@ mod tests {
     #[test]
     fn test_get_request_builder() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let c = Client::new();
-        let req = Request {
+        let req = RequestArgs {
             method: "GET".to_string(),
-            url: "http://example.com".to_string(),
-            path: "/test".to_string(),
-            header: [
+            url: "http://example.com/test".to_string(),
+            headers: [
                 (
                     reqwest::header::ACCEPT.as_str().to_string(),
                     "application/json".to_string(),
@@ -145,7 +133,6 @@ mod tests {
             .cloned()
             .collect(),
             body: vec![],
-            query_string: String::new(),
         };
 
         let request = build_request(&c, req)?.build()?;
@@ -163,11 +150,10 @@ mod tests {
         let body = json!({
             "test": "some_value",
         });
-        let req = Request {
+        let req = RequestArgs {
             method: "POST".to_string(),
-            url: "http://example.com".to_string(),
-            path: "/test".to_string(),
-            header: [
+            url: "http://example.com/test".to_string(),
+            headers: [
                 (
                     reqwest::header::CONTENT_TYPE.as_str().to_string(),
                     "application/json".to_string(),
@@ -181,7 +167,6 @@ mod tests {
             .cloned()
             .collect(),
             body: serde_json::to_vec(&body)?,
-            query_string: String::new(),
         };
 
         let request = build_request(&c, req)?.build()?;
@@ -200,13 +185,11 @@ mod tests {
     #[test]
     fn bad_request() {
         let c = Client::new();
-        let req = Request {
+        let req = RequestArgs {
             method: "BROKEN".to_string(),
-            url: "http://example.com".to_string(),
-            path: "/test".to_string(),
-            header: HashMap::new(),
+            url: "http://example.com/test".to_string(),
+            headers: HashMap::new(),
             body: vec![],
-            query_string: String::new(),
         };
         assert!(build_request(&c, req).is_err(), true);
     }
@@ -216,13 +199,11 @@ mod tests {
         let _ = env_logger::try_init();
 
         let c = Client::new();
-        let req = Request {
+        let req = RequestArgs {
             method: "GET".to_string(),
             url: mockito::server_url(),
-            path: "/".to_string(),
-            header: HashMap::new(),
+            headers: HashMap::new(),
             body: vec![],
-            query_string: String::new(),
         };
 
         let _m = mock("GET", "/")
