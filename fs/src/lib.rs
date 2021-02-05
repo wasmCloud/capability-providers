@@ -24,17 +24,19 @@ mod chunks;
 #[cfg(not(feature = "static_plugin"))]
 capability_provider!(FileSystemProvider, FileSystemProvider::new);
 
+#[allow(unused)]
 const CAPABILITY_ID: &str = "wasmcloud:blobstore";
 const SYSTEM_ACTOR: &str = "system";
 const FIRST_SEQ_NBR: u64 = 0;
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-const REVISION: u32 = 4; // Increment for each crates publish
+
+/// Tuple of (expected sequence number, chunks)
+type SequencedChunk = (u64, Vec<FileChunk>);
 
 #[derive(Clone)]
 pub struct FileSystemProvider {
     dispatcher: Arc<RwLock<Box<dyn Dispatcher>>>,
     rootdir: Arc<RwLock<PathBuf>>,
-    upload_chunks: Arc<RwLock<HashMap<String, (u64, Vec<FileChunk>)>>>,
+    upload_chunks: Arc<RwLock<HashMap<String, SequencedChunk>>>,
 }
 
 impl Default for FileSystemProvider {
