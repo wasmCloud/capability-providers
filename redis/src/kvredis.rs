@@ -1,4 +1,4 @@
-use actor_core::CapabilityConfiguration;
+use wasmcloud_actor_core::CapabilityConfiguration;
 use std::error::Error;
 
 const ENV_REDIS_URL: &str = "URL";

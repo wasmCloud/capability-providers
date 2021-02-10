@@ -1,5 +1,5 @@
 use crate::FileUpload;
-use actor_core::CapabilityConfiguration;
+use wasmcloud_actor_core::CapabilityConfiguration;
 use futures::TryStreamExt;
 use rusoto_core::credential::{DefaultCredentialsProvider, StaticProvider};
 use rusoto_core::Region;
