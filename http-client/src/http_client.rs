@@ -52,16 +52,10 @@ fn build_request(
     req: RequestArgs,
 ) -> Result<RequestBuilder, Box<dyn std::error::Error + Send + Sync>> {
     let mut r = match req.method.as_str() {
-        "GET" => {
-            let r = client.get(&req.url);
-            Ok(r)
-        }
-        "POST" => {
-            let r = client.post(&req.url).body(req.body);
-            Ok(r)
-        }
+        "GET" => Ok(client.get(&req.url)),
+        "POST" => Ok(client.post(&req.url).body(req.body)),
         "HEAD" => Ok(client.head(&req.url)),
-        "PUT" => Ok(client.put(&req.url)),
+        "PUT" => Ok(client.put(&req.url).body(req.body)),
         "DELETE" => Ok(client.delete(&req.url)),
         "PATCH" => Ok(client.patch(&req.url)),
         "OPTIONS" => Ok(client.request(reqwest::Method::OPTIONS, &req.url)),

@@ -152,9 +152,7 @@ impl CapabilityProvider for HttpClientProvider {
         }
     }
 
-    fn stop(&self) {
-        todo!()
-    }
+    fn stop(&self) {}
 }
 
 #[cfg(test)]
