@@ -6,9 +6,8 @@ extern crate wasmcloud_actor_messaging as messaging;
 
 mod natsprov;
 
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const REVISION: u32 = 3; // Increment for each crates publish
-pub const CAPABILITY_ID: &str = "wasmcloud:messaging"; // used by the Makefile
+#[allow(unused)]
+const CAPABILITY_ID: &str = "wasmcloud:messaging"; // used by the Makefile
 
 #[macro_use]
 extern crate log;
