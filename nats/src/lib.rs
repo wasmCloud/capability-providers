@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate wascc_codec as codec;
 
-extern crate wasmcloud_actor_core as core;
+extern crate wasmcloud_actor_core as actorcore;
 extern crate wasmcloud_actor_messaging as messaging;
 
 mod natsprov;
@@ -22,7 +22,7 @@ pub const OP_PERFORM_REQUEST: &str = "Request";
 use codec::core::{OP_BIND_ACTOR, OP_HEALTH_REQUEST, OP_REMOVE_ACTOR};
 use messaging::{BrokerMessage, RequestArgs};
 
-use core::{CapabilityConfiguration, HealthCheckResponse};
+use actorcore::{CapabilityConfiguration, HealthCheckResponse};
 use std::collections::HashMap;
 use wascc_codec::{deserialize, serialize};
 

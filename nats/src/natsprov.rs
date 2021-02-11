@@ -166,7 +166,7 @@ fn get_connection(
             nats::Options::new()
         }
     };
-    opts = opts.with_name("waSCC NATS Provider");
+    opts = opts.with_name("wasmCloud NATS Provider");
     opts.connect(&nats_url)
         .map_err(|e| format!("NATS connection failure:{}", e).into())
 }
