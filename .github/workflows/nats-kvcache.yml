@@ -16,18 +16,25 @@ env:
 
 jobs:
   cargo_check:
+    services:
+      nats:
+        image: nats
+        ports:
+          - 6222:6222
+          - 4222:4222
+          - 8222:8222
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Build
       run: cargo build --verbose
-      working-directory: ${{env.working-directory}}
+      working-directory: ${{ env.working-directory }}
     - name: Run tests
       run: cargo test --verbose
-      working-directory: ${{env.working-directory}}
+      working-directory: ${{ env.working-directory }}
     - name: Check fmt
       run: cargo fmt -- --check
-      working-directory: ${{env.working-directory}}
+      working-directory: ${{ env.working-directory }}
 
   clippy_check:
     runs-on: ubuntu-latest

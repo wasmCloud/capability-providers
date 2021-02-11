@@ -17,6 +17,13 @@ env:
 
 jobs:
   cargo_check:
+    services:
+      nats:
+        image: nats
+        ports:
+          - 6222:6222
+          - 4222:4222
+          - 8222:8222
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
