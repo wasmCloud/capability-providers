@@ -7,7 +7,7 @@ use wascc_codec::capabilities::Dispatcher;
 
 use crate::OP_DELIVER_MESSAGE;
 use nats::Connection;
-use wascc_codec::serialize;
+use wascc_codec::{serialize,deserialize};
 
 use wascap::prelude::KeyPair;
 
@@ -102,8 +102,14 @@ fn create_subscription(
                     let buf = serialize(&dm).unwrap();
 
                     let d = dispatcher.read().unwrap();
-                    if let Err(e) = d.dispatch(&actor, OP_DELIVER_MESSAGE, &buf) {
+                    match d.dispatch(&actor,OP_DELIVER_MESSAGE, &buf){
+                      Ok(buf) =>{
+                        let broker_msg:BrokerMessage = deserialize(&buf).unwrap();
+                        msg.respond(broker_msg.body)?;
+                      },
+                      Err(e)=>{
                         error!("Dispatch failed: {}", e);
+                      }
                     }
                     Ok(())
                 })
@@ -115,8 +121,14 @@ fn create_subscription(
                 let dm = delivermessage_for_natsmessage(&msg);
                 let buf = serialize(&dm).unwrap();
                 let d = dispatcher.read().unwrap();
-                if let Err(e) = d.dispatch(&actor, OP_DELIVER_MESSAGE, &buf) {
+                match d.dispatch(&actor,OP_DELIVER_MESSAGE, &buf){
+                  Ok(buf) =>{
+                    let broker_msg:BrokerMessage = deserialize(&buf).unwrap();
+                    msg.respond(broker_msg.body)?;
+                  },
+                  Err(e)=>{
                     error!("Dispatch failed: {}", e);
+                  }
                 }
                 Ok(())
             })
