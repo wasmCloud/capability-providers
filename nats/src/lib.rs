@@ -14,7 +14,7 @@ extern crate log;
 
 use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
 
-pub const OP_DELIVER_MESSAGE: &str = "DeliverMessage";
+pub const OP_HANDLE_MESSAGE: &str = "HandleMessage";
 pub const OP_PUBLISH_MESSAGE: &str = "Publish";
 pub const OP_PERFORM_REQUEST: &str = "Request";
 

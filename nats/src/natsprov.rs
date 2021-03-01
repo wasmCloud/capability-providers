@@ -5,7 +5,7 @@ use std::sync::RwLock;
 use std::{collections::HashMap, time::Duration};
 use wascc_codec::capabilities::Dispatcher;
 
-use crate::OP_DELIVER_MESSAGE;
+use crate::OP_HANDLE_MESSAGE;
 use nats::Connection;
 use wascc_codec::{serialize,deserialize};
 
@@ -102,7 +102,7 @@ fn create_subscription(
                     let buf = serialize(&dm).unwrap();
 
                     let d = dispatcher.read().unwrap();
-                    match d.dispatch(&actor,OP_DELIVER_MESSAGE, &buf){
+                    match d.dispatch(&actor,OP_HANDLE_MESSAGE, &buf){
                       Ok(buf) =>{
                         let broker_msg:BrokerMessage = deserialize(&buf).unwrap();
                         msg.respond(broker_msg.body)?;
@@ -121,7 +121,7 @@ fn create_subscription(
                 let dm = delivermessage_for_natsmessage(&msg);
                 let buf = serialize(&dm).unwrap();
                 let d = dispatcher.read().unwrap();
-                match d.dispatch(&actor,OP_DELIVER_MESSAGE, &buf){
+                match d.dispatch(&actor,OP_HANDLE_MESSAGE, &buf){
                   Ok(buf) =>{
                     let broker_msg:BrokerMessage = deserialize(&buf).unwrap();
                     msg.respond(broker_msg.body)?;
