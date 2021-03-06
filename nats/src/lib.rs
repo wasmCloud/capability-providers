@@ -19,7 +19,7 @@ mod natsprov;
 #[allow(unused)] // used by the Makefile
 const CAPABILITY_ID: &str = "wasmcloud:messaging";
 
-pub const OP_DELIVER_MESSAGE: &str = "DeliverMessage";
+pub use messaging::OP_HANDLE_MESSAGE;
 pub const OP_PUBLISH_MESSAGE: &str = "Publish";
 pub const OP_PERFORM_REQUEST: &str = "Request";
 

@@ -1,5 +1,5 @@
 use crate::messaging::{BrokerMessage, PublishResponse, RequestArgs};
-use crate::OP_DELIVER_MESSAGE;
+use crate::OP_HANDLE_MESSAGE;
 use log::{error, info, trace};
 use nats::Connection;
 use std::error::Error;
@@ -101,7 +101,7 @@ fn create_subscription(
                     let buf = serialize(&dm).unwrap();
 
                     let d = dispatcher.read().unwrap();
-                    if let Err(e) = d.dispatch(&actor, OP_DELIVER_MESSAGE, &buf) {
+                    if let Err(e) = d.dispatch(&actor, OP_HANDLE_MESSAGE, &buf) {
                         error!("Dispatch failed: {}", e);
                     }
                     Ok(())
@@ -114,7 +114,7 @@ fn create_subscription(
                 let dm = delivermessage_for_natsmessage(&msg);
                 let buf = serialize(&dm).unwrap();
                 let d = dispatcher.read().unwrap();
-                if let Err(e) = d.dispatch(&actor, OP_DELIVER_MESSAGE, &buf) {
+                if let Err(e) = d.dispatch(&actor, OP_HANDLE_MESSAGE, &buf) {
                     error!("Dispatch failed: {}", e);
                 }
                 Ok(())
