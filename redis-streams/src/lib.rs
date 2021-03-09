@@ -65,6 +65,10 @@ impl RedisStreamsProvider {
         &self,
         config: CapabilityConfiguration,
     ) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
+        if self.clients.read().unwrap().contains_key(&config.module) {
+            return Ok(vec![]);
+        }
+
         let c = initialize_client(config.clone())?;
 
         self.clients.write().unwrap().insert(config.module, c);
