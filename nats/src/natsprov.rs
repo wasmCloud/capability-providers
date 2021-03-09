@@ -5,9 +5,9 @@ use std::sync::RwLock;
 use std::{collections::HashMap, time::Duration};
 use wascc_codec::capabilities::Dispatcher;
 
-use crate::OP_DELIVER_MESSAGE;
 use nats::Connection;
 use wascc_codec::serialize;
+use wasmcloud_actor_messaging::OP_HANDLE_MESSAGE;
 
 use wascap::prelude::KeyPair;
 
@@ -102,7 +102,7 @@ fn create_subscription(
                     let buf = serialize(&dm).unwrap();
 
                     let d = dispatcher.read().unwrap();
-                    if let Err(e) = d.dispatch(&actor, OP_DELIVER_MESSAGE, &buf) {
+                    if let Err(e) = d.dispatch(&actor, OP_HANDLE_MESSAGE, &buf) {
                         error!("Dispatch failed: {}", e);
                     }
                     Ok(())
@@ -115,7 +115,7 @@ fn create_subscription(
                 let dm = delivermessage_for_natsmessage(&msg);
                 let buf = serialize(&dm).unwrap();
                 let d = dispatcher.read().unwrap();
-                if let Err(e) = d.dispatch(&actor, OP_DELIVER_MESSAGE, &buf) {
+                if let Err(e) = d.dispatch(&actor, OP_HANDLE_MESSAGE, &buf) {
                     error!("Dispatch failed: {}", e);
                 }
                 Ok(())
