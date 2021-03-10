@@ -94,10 +94,15 @@ impl RedisStreamsProvider {
         event: Event,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let data = map_to_tuples(event.values);
-        let res: String = self.actor_con(actor)?.xadd(event.stream_id, "*", &data)?;
-        let ack = EventAck {
-            error: None,
-            event_id: Some(res),
+        let ack = match self.actor_con(actor)?.xadd(event.stream_id, "*", &data) {
+            Ok(res) => EventAck {
+                error: None,
+                event_id: Some(res),
+            },
+            Err(e) => EventAck {
+                error: Some(format!("{}", e)),
+                event_id: None,
+            },
         };
         Ok(serialize(ack)?)
     }
