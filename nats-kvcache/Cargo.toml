@@ -23,7 +23,6 @@ categories = [
 #crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["static_plugin"]
 # Enable if the provider will be statically compiled into a host
 static_plugin = []
 
