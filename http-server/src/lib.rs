@@ -1,22 +1,17 @@
-#[macro_use]
-extern crate wasmcloud_provider_core as codec;
-#[macro_use]
-extern crate log;
-
-extern crate actix_rt;
-use actix_web::dev::Body;
-use actix_web::dev::Server;
+use actix_rt;
+use actix_web::dev::{Body, Server};
 use actix_web::http::{HeaderName, HeaderValue, StatusCode};
 use actix_web::web::Bytes;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer};
 use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
 use codec::core::{OP_BIND_ACTOR, OP_HEALTH_REQUEST, OP_REMOVE_ACTOR};
+use log::{error, info, trace};
 use std::collections::HashMap;
 use std::error::Error;
-use std::sync::Arc;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use wasmcloud_actor_core::{deserialize, serialize, CapabilityConfiguration, HealthCheckResponse};
 use wasmcloud_actor_http_server::{Request, Response};
+use wasmcloud_provider_core as codec;
 
 #[allow(unused)]
 const CAPABILITY_ID: &str = "wasmcloud:httpserver";
@@ -77,14 +72,14 @@ impl HttpServerProvider {
         info!("Received HTTP Server configuration for {}", module_id);
         let servers = self.servers.clone();
 
+        let module = module_id.clone();
         std::thread::spawn(move || {
-            let module = module_id.clone();
-            let sys = actix_rt::System::new(&module);
+            let sys = actix_rt::System::new();
             let server = HttpServer::new(move || {
                 App::new()
                     .wrap(middleware::Logger::default())
                     .data(disp.clone())
-                    .data(module.clone())
+                    .data(module.to_string())
                     .default_service(web::route().to(request_handler))
             })
             .bind(bind_addr)
@@ -92,7 +87,7 @@ impl HttpServerProvider {
             .disable_signals()
             .run();
 
-            servers.write().unwrap().insert(module_id.clone(), server);
+            servers.write().unwrap().insert(module_id, server);
 
             let _ = sys.run();
         });
@@ -195,10 +190,10 @@ async fn request_handler(
                 if !r.header.is_empty() {
                     let headers = response.head_mut();
                     r.header.iter().for_each(|(key, val)| {
-                        headers.headers.insert(
+                        let _ = headers.headers.insert(
                             HeaderName::from_bytes(key.as_bytes()).unwrap(),
                             HeaderValue::from_str(val).unwrap(),
-                        )
+                        );
                     });
                 }
                 response
