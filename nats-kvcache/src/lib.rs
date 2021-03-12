@@ -68,7 +68,7 @@ type MessageHandlerResult = Result<Vec<u8>, Box<dyn Error + Send + Sync + 'stati
 
 #[doc(hidden)]
 #[cfg(not(feature = "static_plugin"))]
-capability_provider_async!(NatsReplicatedKVProvider, NatsReplicatedKVProvider::new);
+capability_provider!(NatsReplicatedKVProvider, NatsReplicatedKVProvider::new);
 
 const NATS_URL_CONFIG_KEY: &str = "NATS_URL";
 const CLIENT_SEED_CONFIG_KEY: &str = "CLIENT_SEED";
