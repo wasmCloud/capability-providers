@@ -1,6 +1,6 @@
 [package]
-name = "wascc-telnet"
-version = "0.1.0"
+name = "wasmcloud-telnet"
+version = "0.1.1"
 authors = ["Kevin Hoffman <alothien@gmail.com>"]
 edition = "2018"
 homepage = "https://wascc.dev"
@@ -22,7 +22,7 @@ static_plugin = []
 
 [dependencies]
 log = "0.4.14"
-env_logger = "0.7.1"
+env_logger = "0.8.3"
 telnet = "0.1.4"
 ansi-escapes = "0.1.0"
 uuid = { version = "0.8", features = ["serde", "v4"]}
