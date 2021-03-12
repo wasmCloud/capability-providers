@@ -23,11 +23,11 @@ static_plugin = []
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-env_logger = "0.8.2"
-rmp-serde = "0.14.4"
-serde = {version = "1.0.117", features = ["derive"] }
+env_logger = "0.8"
+rmp-serde = "0.15.4"
+serde = {version = "1.0.124", features = ["derive"] }
 log = "0.4.14"
-redis = "0.17.0"
+redis = "0.20.0"
 wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version="0.1.1" }
 wasmcloud-actor-core = "0.2.0"
 wasmcloud-actor-keyvalue = "0.2.0"
