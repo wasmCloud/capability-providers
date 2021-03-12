@@ -21,13 +21,13 @@ static_plugin = []
 
 
 [dependencies]
-wascc-codec = "0.7.0"
-log = "0.4.8"
+log = "0.4.14"
 env_logger = "0.7.1"
 telnet = "0.1.4"
 ansi-escapes = "0.1.0"
 uuid = { version = "0.8", features = ["serde", "v4"]}
-crossbeam = "0.7.3"
-crossbeam-channel = "0.4.2"
-serde = "1.0.111"
-serde_derive = "1.0.111"
+crossbeam = "0.8.0"
+crossbeam-channel = "0.5.0"
+serde = { version = "1.0", features = ["derive"] }
+wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version = "0.1.1" }
+wasmcloud-actor-core = "0.2.2"
