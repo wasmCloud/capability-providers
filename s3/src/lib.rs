@@ -92,7 +92,7 @@ impl S3Provider {
         actor: &str,
         container: Container,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(s3::create_bucket(
             &self.clients.read().unwrap()[actor],
             &container.id,
@@ -106,7 +106,7 @@ impl S3Provider {
         actor: &str,
         container: Container,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(s3::remove_bucket(
             &self.clients.read().unwrap()[actor],
             &container.id,
@@ -130,7 +130,7 @@ impl S3Provider {
             });
         let complete = self.uploads.read().unwrap()[&key].is_complete();
         if complete {
-            let mut rt = tokio::runtime::Runtime::new().unwrap();
+            let rt = tokio::runtime::Runtime::new().unwrap();
             rt.block_on(s3::complete_upload(
                 &self.clients.read().unwrap()[actor],
                 &self.uploads.read().unwrap()[&key],
@@ -165,7 +165,7 @@ impl S3Provider {
         actor: &str,
         blob: Blob,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(s3::remove_object(
             &self.clients.read().unwrap()[actor],
             &blob.container.id,
@@ -180,7 +180,7 @@ impl S3Provider {
         actor: &str,
         blob: Blob,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
         let info = rt.block_on(s3::head_object(
             &self.clients.read().unwrap()[actor],
             &blob.container.id,
@@ -209,7 +209,7 @@ impl S3Provider {
         actor: &str,
         container: Container,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
         let objects = rt.block_on(s3::list_objects(
             &self.clients.read().unwrap()[actor],
             &container.id,
@@ -244,7 +244,7 @@ impl S3Provider {
         let ctx = request.context.clone();
 
         let byte_size = {
-            let mut rt = tokio::runtime::Runtime::new().unwrap();
+            let rt = tokio::runtime::Runtime::new().unwrap();
             let info = rt.block_on(s3::head_object(&c, &container, &id)).unwrap();
             drop(rt);
             info.content_length.unwrap() as u64
@@ -254,7 +254,7 @@ impl S3Provider {
             let actor = actor.to_string();
 
             let chunk_count = expected_chunks(byte_size, chunk_size);
-            let mut rt = tokio::runtime::Runtime::new().unwrap();
+            let rt = tokio::runtime::Runtime::new().unwrap();
             rt.block_on(async {
                 for idx in 0..chunk_count {
                     dispatch_chunk(
