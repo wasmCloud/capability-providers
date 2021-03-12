@@ -23,8 +23,7 @@ static_plugin = []
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-wascc-codec = "0.9.0"
-log = "0.4.11"
+log = "0.4.14"
 env_logger = "0.7.1"
 rusoto_core = { version="0.45.0", default_features=false, features=["rustls"] }
 rusoto_s3 = { version="0.45.0", default_features=false, features=["rustls"] }
@@ -34,7 +33,8 @@ futures = "0.3"
 bytes = "0.5"
 wasmcloud-actor-core = "0.2.0"
 wasmcloud-actor-blobstore = "0.1.0"
+wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version = "0.1.1" }
 
 [dev-dependencies]
-crossbeam = "0.7.3"
-crossbeam-utils = "0.7.2"
+crossbeam = "0.8.0"
+crossbeam-utils = "0.8.3"
