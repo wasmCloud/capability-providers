@@ -28,12 +28,7 @@ serde = {version = "1.0.117", features = ["derive"] }
 wasmcloud-provider-core = { path="../../wasmcloud/crates/wasmcloud-provider-core", version="0.1.1"}
 actix-web = "4.0.0-beta.4"
 actix-rt = "2.1.0"
-actix-multipart = "0.4.0-beta.3"
-futures = "0.3.5"
 log = "0.4.14"
 env_logger = "0.7.1"
-crossbeam-channel = "0.5.0"
-crossbeam = "0.8.0"
-crossbeam-utils = "0.8.3"
 wasmcloud-actor-http-server = "0.1.0"
 wasmcloud-actor-core = "0.2.0"
