@@ -12,6 +12,8 @@ use std::sync::{Arc, RwLock};
 use wasmcloud_actor_core::{deserialize, serialize, CapabilityConfiguration, HealthCheckResponse};
 use wasmcloud_actor_http_server::{Request, Response};
 use wasmcloud_provider_core as codec;
+#[cfg(not(feature = "static_plugin"))]
+use wasmcloud_provider_core::capability_provider;
 
 #[allow(unused)]
 const CAPABILITY_ID: &str = "wasmcloud:httpserver";
