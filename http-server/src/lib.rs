@@ -103,7 +103,7 @@ impl HttpServerProvider {
             bind_addresses.push(format!("0.0.0.0:{}", port))
         }
         if bind_addresses.is_empty() {
-            bind_addresses.push("0.0.0.0:8080.".to_string())
+            bind_addresses.push("0.0.0.0:8080".to_string())
         }
         // The optional WORKERS parameter specifies the number of worker threads to spawn.
         // If not specified, actix_web uses the number of logical cpus.
