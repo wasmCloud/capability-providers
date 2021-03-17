@@ -29,5 +29,8 @@ uuid = { version = "0.8", features = ["serde", "v4"]}
 crossbeam = "0.8.0"
 crossbeam-channel = "0.5.0"
 serde = { version = "1.0", features = ["derive"] }
-wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version = "0.1.0" }
 wasmcloud-actor-core = "0.2.2"
+
+[dependencies.wasmcloud-provider-core]
+version = "0.1.0"
+#path = "../../wasmcloud/crates/wasmcloud-provider-core"
