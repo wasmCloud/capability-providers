@@ -98,10 +98,7 @@ pub struct NatsReplicatedKVProvider {
 
 impl Default for NatsReplicatedKVProvider {
     fn default() -> Self {
-        match env_logger::try_init() {
-            Ok(_) => {}
-            Err(_) => {}
-        };
+        if env_logger::try_init().is_err() { }
         NatsReplicatedKVProvider {
             dispatcher: Arc::new(RwLock::new(Box::new(NullDispatcher::new()))),
             cache: Arc::new(RwLock::new(CacheData::new(KeyValueStore::new()))),
@@ -169,24 +166,16 @@ impl NatsReplicatedKVProvider {
         let origin = self.id.to_string();
         let sub = nc.subscribe(&subject).await?;
         tokio::spawn(async move {
-            loop {
-                match sub.next().await {
-                    Some(msg) => match deserialize::<CacheEventWrapper>(&msg.data) {
-                        Err(e) => {
-                            // FIXME: log this
-                            let _err = std::io::Error::new(
-                                std::io::ErrorKind::Other,
-                                format!("Deserialization failure: {}", e),
-                            );
+            while let Some(msg) = sub.next().await {
+                match deserialize::<CacheEventWrapper>(&msg.data) {
+                    Err(e) => {
+                        error!("event deserialization failure (subject={}): {}",
+                               msg.subject, e.to_string());
+                    }
+                    Ok(evt) => {
+                        if evt.origin_id != origin {
+                            let _ = handle_state_event(&evt.event, cache.clone());
                         }
-                        Ok(evt) => {
-                            if evt.origin_id != origin {
-                                let _ = handle_state_event(&evt.event, cache.clone());
-                            }
-                        }
-                    },
-                    None => {
-                        break;
                     }
                 }
             }
@@ -196,17 +185,10 @@ impl NatsReplicatedKVProvider {
             .queue_subscribe(&replay_req_subject, &replay_req_subject)
             .await?;
         tokio::spawn(async move {
-            loop {
-                match sub.next().await {
-                    Some(msg) => {
-                        if let Err(e) = process_replay_request(msg, cache3.clone()).await {
-                            error!("process_replay_request returned {}", e);
-                            break;
-                        }
-                    }
-                    None => {
-                        break;
-                    }
+            while let Some(msg) = sub.next().await {
+                if let Err(e) = process_replay_request(msg, cache3.clone()).await {
+                    error!("process_replay_request returned {}", e);
+                    break;
                 }
             }
         });
@@ -223,7 +205,7 @@ impl NatsReplicatedKVProvider {
                 .unwrap(),
         );
         let c = cache2.clone();
-        let conn = nc2.clone();
+        let conn = nc2;
 
         let (term_s, term_r): (Sender<bool>, Receiver<bool>) = crossbeam_channel::bounded(1);
         {
@@ -426,14 +408,13 @@ impl NatsReplicatedKVProvider {
     }
 }
 
+const DEFAULT_NATS_URL:&str = "nats://0.0.0.0:4222";
+
 async fn nats_connection_from_values(
     values: HashMap<String, String>,
 ) -> Result<async_nats::Connection, Box<dyn std::error::Error + Sync + Send>> {
-    let nats_url = match values.get(NATS_URL_CONFIG_KEY) {
-        Some(v) => v,
-        None => "nats://0.0.0.0:4222",
-    }
-    .to_string();
+    let nats_url = values.get(NATS_URL_CONFIG_KEY).map(|v|v.as_str()).unwrap_or(
+        DEFAULT_NATS_URL);
     let mut opts = if let Some(seed) = values.get(CLIENT_SEED_CONFIG_KEY) {
         let jwt = values
             .get(CLIENT_JWT_CONFIG_KEY)
@@ -448,7 +429,7 @@ async fn nats_connection_from_values(
         async_nats::Options::new()
     };
     opts = opts.with_name("wasmCloud KV Cache Provider");
-    opts.connect(&nats_url)
+    opts.connect(nats_url)
         .await
         .map_err(|e| format!("NATS connection failure:{}", e).into())
 }
@@ -466,8 +447,7 @@ async fn process_replay_request(
         .await?;
     let start = history.len() - ack.events_to_expect as usize;
     let end = history.len();
-    for i in start..end {
-        let evt = history[i].clone();
+    for evt in history.iter().take(end).skip(start) {
         msg.respond(&serialize(evt).map_err(|e| gen_std_io_error(&format!("{}", e)))?)
             .await?;
     }
