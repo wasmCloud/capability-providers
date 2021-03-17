@@ -19,9 +19,6 @@ categories = [
     "wasm", "api-bindings",
 ]
 
-#[lib]
-#crate-type = ["cdylib", "rlib"]
-
 [features]
 # Enable if the provider will be statically compiled into a host
 static_plugin = []
@@ -30,7 +27,7 @@ static_plugin = []
 wasmcloud-actor-keyvalue = "0.2.0"
 wasmcloud-actor-core = "0.2.0"
 async-nats = "0.9.6"
-wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version = "0.1.1" }
+wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version = "0.1.0" }
 wascap = "0.6.0"
 env_logger = "0.8.2"
 uuid = { version = "0.8.1", features = ["v4"] }

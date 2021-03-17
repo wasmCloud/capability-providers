@@ -9,7 +9,7 @@ use codec::{
     core::{OP_BIND_ACTOR, OP_REMOVE_ACTOR},
 };
 use log::{trace, warn};
-use redis::{connection::Connection, RedisResult};
+use redis::{Connection, RedisResult};
 use redisgraph::{Graph, RedisGraphResult, ResultSet};
 use std::{
     collections::HashMap,

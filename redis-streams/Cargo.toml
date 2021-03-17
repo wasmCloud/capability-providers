@@ -20,7 +20,7 @@ crate-type = ["cdylib", "rlib"]
 static_plugin = []
 
 [dependencies]
-wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version = "0.1.1" }
+wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version = "0.1.0" }
 wasmcloud-actor-eventstreams = "0.2.0"
 wasmcloud-actor-core = "0.2.2"
 log = "0.4.14"

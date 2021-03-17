@@ -33,7 +33,7 @@ futures = "0.3"
 bytes = "1.0"
 wasmcloud-actor-core = "0.2.0"
 wasmcloud-actor-blobstore = "0.1.0"
-wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version = "0.1.1" }
+wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version = "0.1.0" }
 
 [dev-dependencies]
 crossbeam = "0.8.0"

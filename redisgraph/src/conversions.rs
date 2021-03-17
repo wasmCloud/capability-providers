@@ -38,7 +38,7 @@ pub(crate) fn redisgraph_column_to_common(
                 relations,
                 ..Default::default()
             }
-        } //_ => Column::default(),
+        }
     }
 }
 

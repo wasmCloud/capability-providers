@@ -25,7 +25,7 @@ pub(crate) fn initialize_client(
 }
 
 pub(crate) fn open_graph(
-    connection: redis::connection::Connection,
+    connection: redis::Connection,
     graph_name: &str,
 ) -> Result<Graph, Box<dyn Error>> {
     match Graph::open(connection, graph_name.to_string()) {

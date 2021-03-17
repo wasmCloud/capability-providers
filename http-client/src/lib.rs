@@ -3,7 +3,7 @@
 mod http_client;
 
 use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
-use codec::core::{OP_BIND_ACTOR, OP_REMOVE_ACTOR};
+use codec::core::{OP_BIND_ACTOR, OP_REMOVE_ACTOR, SYSTEM_ACTOR};
 use codec::{capability_provider, deserialize};
 use http::{RequestArgs, OP_PERFORM_REQUEST};
 use log::{info, warn};
@@ -141,8 +141,8 @@ impl CapabilityProvider for HttpClientProvider {
         msg: &[u8],
     ) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
         match op {
-            OP_BIND_ACTOR if actor == codec::SYSTEM_ACTOR => self.configure(deserialize(msg)?),
-            OP_REMOVE_ACTOR if actor == codec::SYSTEM_ACTOR => self.deconfigure(deserialize(msg)?),
+            OP_BIND_ACTOR if actor == SYSTEM_ACTOR => self.configure(deserialize(msg)?),
+            OP_REMOVE_ACTOR if actor == SYSTEM_ACTOR => self.deconfigure(deserialize(msg)?),
             OP_PERFORM_REQUEST => self.request(actor, deserialize(msg)?),
             _ => Err(format!("Unknown operation: {}", op).into()),
         }

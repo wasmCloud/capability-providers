@@ -28,7 +28,7 @@ base64 = "0.13.0"
 serde_json = "1.0.61"
 wasmcloud-actor-http-client = "0.1.0"
 wasmcloud-actor-core = "0.2.0"
-wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version="0.1.1" }
+wasmcloud-provider-core = { path = "../../wasmcloud/crates/wasmcloud-provider-core", version="0.1.0" }
 
 [dev-dependencies]
 mockito = "0.29"
