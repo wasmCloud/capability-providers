@@ -84,11 +84,10 @@ impl TelnetProvider {
     }
 
     fn health(&self) -> MessageHandlerResult {
-        let bytes = serialize(HealthCheckResponse {
+        Ok(serialize(HealthCheckResponse {
             healthy: true,
             message: "".to_string(),
-        })?;
-        Ok(bytes)
+        })?)
     }
 }
 
