@@ -15,7 +15,6 @@ use wasmcloud_actor_core::CapabilityConfiguration;
 use wasmcloud_actor_http_client as http;
 use wasmcloud_provider_core as codec;
 
-const SYSTEM_ACTOR: &str = "system";
 #[allow(unused)]
 const CAPABILITY_ID: &str = "wasmcloud:httpclient";
 
@@ -142,8 +141,8 @@ impl CapabilityProvider for HttpClientProvider {
         msg: &[u8],
     ) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
         match op {
-            OP_BIND_ACTOR if actor == SYSTEM_ACTOR => self.configure(deserialize(msg)?),
-            OP_REMOVE_ACTOR if actor == SYSTEM_ACTOR => self.deconfigure(deserialize(msg)?),
+            OP_BIND_ACTOR if actor == codec::SYSTEM_ACTOR => self.configure(deserialize(msg)?),
+            OP_REMOVE_ACTOR if actor == codec::SYSTEM_ACTOR => self.deconfigure(deserialize(msg)?),
             OP_PERFORM_REQUEST => self.request(actor, deserialize(msg)?),
             _ => Err(format!("Unknown operation: {}", op).into()),
         }
