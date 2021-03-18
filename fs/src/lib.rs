@@ -354,7 +354,7 @@ impl CapabilityProvider for FileSystemProvider {
         op: &str,
         msg: &[u8],
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-        info!("Received host call from {}, operation - {}", actor, op);
+        trace!("Received host call from {}, operation - {}", actor, op);
 
         match op {
             OP_BIND_ACTOR if actor == SYSTEM_ACTOR => self.configure(deserialize(msg)?),

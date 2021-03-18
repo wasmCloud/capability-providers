@@ -154,10 +154,7 @@ pub(crate) async fn complete_upload(
         ..Default::default()
     };
 
-    log::info!("putting object");
-    let res = client.put_object(put_request).await;
-    log::info!("putting object: {:?}", res);
-    res.unwrap();
+    client.put_object(put_request).await?;
     Ok(())
 }
 
