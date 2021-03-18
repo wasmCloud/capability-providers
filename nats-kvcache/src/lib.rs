@@ -23,9 +23,6 @@
 mod events;
 mod kvcache;
 
-pub mod util;
-use util::{next_with_timeout, SubscriptionNextResult};
-
 pub use events::CacheEvent;
 
 #[macro_use]
@@ -66,6 +63,8 @@ use wascap::prelude::KeyPair;
 
 type MessageHandlerResult = Result<Vec<u8>, Box<dyn Error + Send + Sync + 'static>>;
 
+const DEFAULT_NATS_URL:&str = "nats://0.0.0.0:4222";
+
 #[doc(hidden)]
 #[cfg(not(feature = "static_plugin"))]
 capability_provider!(NatsReplicatedKVProvider, NatsReplicatedKVProvider::new);
@@ -81,16 +80,13 @@ const DEFAULT_STATE_REPL_SUBJECT: &str = "lattice.state.events";
 const DEFAULT_REPLAY_REQ_SUBJECT: &str = "lattice.state.replay";
 const DEFAULT_REPLAY_HEARTBEAT_SECONDS: &str = "60";
 
-const TIMEOUT_CACHE_FIRST_RESPONSE_SEC: u64 = 2;
-const TIMEOUT_CACHE_NEXT_RESPONSE_SEC: u64 = 1;
-
 /// An instance of a `wasmcloud:keyvalue` capability provider that replicates changes to the
 /// cache by means of pub/sub over a NATS message broker
 #[derive(Clone)]
 pub struct NatsReplicatedKVProvider {
     dispatcher: Arc<RwLock<Box<dyn Dispatcher>>>,
     cache: Arc<RwLock<CacheData>>,
-    nc: Arc<RwLock<Option<async_nats::Connection>>>,
+    nc: Arc<RwLock<Option<nats::Connection>>>,
     event_subject: Arc<RwLock<String>>,
     id: String,
     terminator: Arc<RwLock<Option<Sender<bool>>>>,
@@ -115,9 +111,9 @@ impl NatsReplicatedKVProvider {
         Self::default()
     }
 
-    async fn configure(&self, config: CapabilityConfiguration) -> MessageHandlerResult {
+    fn configure(&self, config: CapabilityConfiguration) -> MessageHandlerResult {
         if config.values.contains_key(NATS_URL_CONFIG_KEY) {
-            match self.initialize_connection(config.values).await {
+            match self.initialize_connection(config.values) {
                 Ok(_) => {
                     info!("KV cache configured for {}", config.module);
                     Ok(vec![])
@@ -133,15 +129,15 @@ impl NatsReplicatedKVProvider {
         }
     }
 
-    async fn remove_actor(&self, _config: CapabilityConfiguration) -> MessageHandlerResult {
+    fn remove_actor(&self, _config: CapabilityConfiguration) -> MessageHandlerResult {
         let mut lock = self.nc.write().unwrap();
         if let Some(nc) = lock.take() {
-            nc.close().await?;
+            nc.close();
         }
         Ok(vec![])
     }
 
-    async fn initialize_connection(
+    fn initialize_connection(
         &self,
         values: HashMap<String, String>,
     ) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
@@ -162,36 +158,25 @@ impl NatsReplicatedKVProvider {
         let cache2 = self.cache.clone();
         let cache3 = self.cache.clone();
         // TODO: get authentication information from the values map
-        let nc = nats_connection_from_values(values.clone()).await?;
+        let nc = nats_connection_from_values(values.clone())?;
         let origin = self.id.to_string();
-        let sub = nc.subscribe(&subject).await?;
-        tokio::spawn(async move {
-            while let Some(msg) = sub.next().await {
-                match deserialize::<CacheEventWrapper>(&msg.data) {
-                    Err(e) => {
-                        error!("event deserialization failure (subject={}): {}",
-                               msg.subject, e.to_string());
-                    }
-                    Ok(evt) => {
-                        if evt.origin_id != origin {
-                            let _ = handle_state_event(&evt.event, cache.clone());
-                        }
-                    }
-                }
+        nc.subscribe(&subject)?.with_handler(move |msg| {
+            let evt: CacheEventWrapper = deserialize(&msg.data).map_err(|e| {
+                std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Deserialization failure: {}", e),
+                )
+            })?;
+            if evt.origin_id != origin {
+                let _ = handle_state_event(&evt.event, cache.clone());
             }
+            Ok(())
         });
-        regenerate_cache_from_replay(&nc, cache2.clone(), &replay_req_subject).await?;
-        let sub = nc
-            .queue_subscribe(&replay_req_subject, &replay_req_subject)
-            .await?;
-        tokio::spawn(async move {
-            while let Some(msg) = sub.next().await {
-                if let Err(e) = process_replay_request(msg, cache3.clone()).await {
-                    error!("process_replay_request returned {}", e);
-                    break;
-                }
-            }
-        });
+
+        regenerate_cache_from_replay(&nc, cache2.clone(), &replay_req_subject)?;
+
+        nc.queue_subscribe(&replay_req_subject, &replay_req_subject)?
+            .with_handler(move |msg| process_replay_request(msg, cache3.clone()));
 
         let nc2 = nc.clone();
         let mut lock = self.nc.write().unwrap();
@@ -204,7 +189,7 @@ impl NatsReplicatedKVProvider {
                 .parse()
                 .unwrap(),
         );
-        let c = cache2.clone();
+        let c = cache2;
         let conn = nc2;
 
         let (term_s, term_r): (Sender<bool>, Receiver<bool>) = crossbeam_channel::bounded(1);
@@ -229,14 +214,13 @@ impl NatsReplicatedKVProvider {
     }
 
     fn health(&self) -> MessageHandlerResult {
-        let bytes = serialize(HealthCheckResponse {
+        serialize(HealthCheckResponse {
             healthy: true,
             message: "".to_string(),
-        })?;
-        Ok(bytes)
+        })
     }
 
-    async fn add(&self, _actor: &str, req: AddArgs) -> MessageHandlerResult {
+    fn add(&self, _actor: &str, req: AddArgs) -> MessageHandlerResult {
         let evt = CacheEvent::AtomicAdd(req.key, req.value);
         handle_state_event(&evt, self.cache.clone())?;
         publish_state_event(
@@ -244,14 +228,11 @@ impl NatsReplicatedKVProvider {
             &self.event_subject.read().unwrap(),
             &evt,
             self.nc.clone(),
-        )
-        .await?;
-        let bytes = serialize(AddResponse::default())?;
-
-        Ok(bytes)
+        )?;
+        serialize(AddResponse::default())
     }
 
-    async fn del(&self, _actor: &str, req: DelArgs) -> MessageHandlerResult {
+    fn del(&self, _actor: &str, req: DelArgs) -> MessageHandlerResult {
         let evt = CacheEvent::KeyDelete(req.key);
         handle_state_event(&evt, self.cache.clone())?;
         publish_state_event(
@@ -259,10 +240,8 @@ impl NatsReplicatedKVProvider {
             &self.event_subject.read().unwrap(),
             &evt,
             self.nc.clone(),
-        )
-        .await?;
-        let bytes = serialize(DelResponse::default())?;
-        Ok(bytes)
+        )?;
+        serialize(DelResponse::default())
     }
 
     fn get(&self, _actor: &str, req: GetArgs) -> MessageHandlerResult {
@@ -277,10 +256,10 @@ impl NatsReplicatedKVProvider {
             },
             Err(e) => return Err(format!("Failed to retrieve value {}", e).into()),
         };
-        Ok(serialize(resp)?)
+        serialize(resp)
     }
 
-    async fn list_clear(&self, _actor: &str, req: ClearArgs) -> MessageHandlerResult {
+    fn list_clear(&self, _actor: &str, req: ClearArgs) -> MessageHandlerResult {
         let evt = CacheEvent::ListClear(req.key);
         handle_state_event(&evt, self.cache.clone())?;
         publish_state_event(
@@ -288,10 +267,8 @@ impl NatsReplicatedKVProvider {
             &self.event_subject.read().unwrap(),
             &evt,
             self.nc.clone(),
-        )
-        .await?;
-        let bytes = serialize(DelResponse::default())?;
-        Ok(bytes)
+        )?;
+        serialize(DelResponse::default())
     }
 
     fn list_range(&self, _actor: &str, req: RangeArgs) -> MessageHandlerResult {
@@ -304,10 +281,10 @@ impl NatsReplicatedKVProvider {
             Ok(v) => v,
             Err(e) => return Err(format!("Failed to get list range: {}", e).into()),
         };
-        Ok(serialize(ListRangeResponse { values: resp })?)
+        serialize(ListRangeResponse { values: resp })
     }
 
-    async fn list_push(&self, _actor: &str, req: PushArgs) -> MessageHandlerResult {
+    fn list_push(&self, _actor: &str, req: PushArgs) -> MessageHandlerResult {
         let evt = CacheEvent::ListPush(req.key, req.value);
         handle_state_event(&evt, self.cache.clone())?;
         publish_state_event(
@@ -315,12 +292,11 @@ impl NatsReplicatedKVProvider {
             &self.event_subject.read().unwrap(),
             &evt,
             self.nc.clone(),
-        )
-        .await?;
-        Ok(serialize(ListResponse::default())?)
+        )?;
+        serialize(ListResponse::default())
     }
 
-    async fn set(&self, _actor: &str, req: SetArgs) -> MessageHandlerResult {
+    fn set(&self, _actor: &str, req: SetArgs) -> MessageHandlerResult {
         let evt = CacheEvent::ScalarSet(req.key, req.value);
         handle_state_event(&evt, self.cache.clone())?;
         publish_state_event(
@@ -328,12 +304,11 @@ impl NatsReplicatedKVProvider {
             &self.event_subject.read().unwrap(),
             &evt,
             self.nc.clone(),
-        )
-        .await?;
-        Ok(serialize(SetResponse::default())?)
+        )?;
+        serialize(SetResponse::default())
     }
 
-    async fn list_del_item(&self, _actor: &str, req: ListItemDeleteArgs) -> MessageHandlerResult {
+    fn list_del_item(&self, _actor: &str, req: ListItemDeleteArgs) -> MessageHandlerResult {
         let evt = CacheEvent::ListRemoveItem(req.key, req.value);
         handle_state_event(&evt, self.cache.clone())?;
         publish_state_event(
@@ -341,12 +316,11 @@ impl NatsReplicatedKVProvider {
             &self.event_subject.read().unwrap(),
             &evt,
             self.nc.clone(),
-        )
-        .await?;
-        Ok(serialize(ListResponse::default())?)
+        )?;
+        serialize(ListResponse::default())
     }
 
-    async fn set_add(&self, _actor: &str, req: SetAddArgs) -> MessageHandlerResult {
+    fn set_add(&self, _actor: &str, req: SetAddArgs) -> MessageHandlerResult {
         let evt = CacheEvent::SetAdd(req.key, req.value);
         handle_state_event(&evt, self.cache.clone())?;
         publish_state_event(
@@ -354,12 +328,11 @@ impl NatsReplicatedKVProvider {
             &self.event_subject.read().unwrap(),
             &evt,
             self.nc.clone(),
-        )
-        .await?;
-        Ok(serialize(SetOperationResponse::default())?)
+        )?;
+        serialize(SetOperationResponse::default())
     }
 
-    async fn set_remove(&self, _actor: &str, req: SetRemoveArgs) -> MessageHandlerResult {
+    fn set_remove(&self, _actor: &str, req: SetRemoveArgs) -> MessageHandlerResult {
         let evt = CacheEvent::SetRemoveItem(req.key, req.value);
         handle_state_event(&evt, self.cache.clone())?;
         publish_state_event(
@@ -367,9 +340,8 @@ impl NatsReplicatedKVProvider {
             &self.event_subject.read().unwrap(),
             &evt,
             self.nc.clone(),
-        )
-        .await?;
-        Ok(serialize(SetOperationResponse::default())?)
+        )?;
+        serialize(SetOperationResponse::default())
     }
 
     fn set_union(&self, _actor: &str, req: SetUnionArgs) -> MessageHandlerResult {
@@ -377,7 +349,7 @@ impl NatsReplicatedKVProvider {
             Ok(v) => v,
             Err(e) => return Err(format!("Failed to perform set untion: {}", e).into()),
         };
-        Ok(serialize(SetQueryResponse { values: resp })?)
+        serialize(SetQueryResponse { values: resp })
     }
 
     fn set_intersect(&self, _actor: &str, req: SetIntersectionArgs) -> MessageHandlerResult {
@@ -385,7 +357,7 @@ impl NatsReplicatedKVProvider {
             Ok(v) => v,
             Err(e) => return Err(format!("Failed to perform set intersect: {}", e).into()),
         };
-        Ok(serialize(SetQueryResponse { values: resp })?)
+        serialize(SetQueryResponse { values: resp })
     }
 
     fn set_query(&self, _actor: &str, req: SetQueryArgs) -> MessageHandlerResult {
@@ -393,7 +365,7 @@ impl NatsReplicatedKVProvider {
             Ok(v) => v,
             Err(e) => return Err(format!("Failed to query set members: {}", e).into()),
         };
-        Ok(serialize(SetQueryResponse { values: resp })?)
+        serialize(SetQueryResponse { values: resp })
     }
 
     fn exists(&self, _actor: &str, req: KeyExistsArgs) -> MessageHandlerResult {
@@ -401,41 +373,37 @@ impl NatsReplicatedKVProvider {
             Ok(b) => b,
             Err(e) => return Err(format!("Unable to determine key existence: {}", e).into()),
         };
-        Ok(serialize(GetResponse {
+        serialize(GetResponse {
             value: "".to_string(),
             exists: resp,
-        })?)
+        })
     }
 }
 
-const DEFAULT_NATS_URL:&str = "nats://0.0.0.0:4222";
-
-async fn nats_connection_from_values(
+fn nats_connection_from_values(
     values: HashMap<String, String>,
-) -> Result<async_nats::Connection, Box<dyn std::error::Error + Sync + Send>> {
-    let nats_url = values.get(NATS_URL_CONFIG_KEY).map(|v|v.as_str()).unwrap_or(
-        DEFAULT_NATS_URL);
+) -> Result<nats::Connection, Box<dyn std::error::Error + Sync + Send>> {
+    let nats_url = values.get(NATS_URL_CONFIG_KEY).map(|v|v.as_str()).unwrap_or(DEFAULT_NATS_URL);
     let mut opts = if let Some(seed) = values.get(CLIENT_SEED_CONFIG_KEY) {
         let jwt = values
             .get(CLIENT_JWT_CONFIG_KEY)
             .unwrap_or(&"".to_string())
             .to_string();
         let kp = KeyPair::from_seed(seed)?;
-        async_nats::Options::with_jwt(
+        nats::Options::with_jwt(
             move || Ok(jwt.to_string()),
             move |nonce| kp.sign(nonce).unwrap(),
         )
     } else {
-        async_nats::Options::new()
+        nats::Options::new()
     };
     opts = opts.with_name("wasmCloud KV Cache Provider");
-    opts.connect(nats_url)
-        .await
+    opts.connect(&nats_url)
         .map_err(|e| format!("NATS connection failure:{}", e).into())
 }
 
-async fn process_replay_request(
-    msg: async_nats::Message,
+fn process_replay_request(
+    msg: nats::Message,
     cache: Arc<RwLock<CacheData>>,
 ) -> Result<(), std::io::Error> {
     let req: ReplayRequest =
@@ -443,13 +411,11 @@ async fn process_replay_request(
     let history = cache.read().unwrap().history();
 
     let ack = ack_from_request(req.hwm, history.len());
-    msg.respond(&serialize(&ack).map_err(|e| gen_std_io_error(&format!("{}", e)))?)
-        .await?;
+    msg.respond(&serialize(&ack).map_err(|e| gen_std_io_error(&format!("{}", e)))?)?;
     let start = history.len() - ack.events_to_expect as usize;
     let end = history.len();
     for evt in history.iter().take(end).skip(start) {
-        msg.respond(&serialize(evt).map_err(|e| gen_std_io_error(&format!("{}", e)))?)
-            .await?;
+        msg.respond(&serialize(evt).map_err(|e| gen_std_io_error(&format!("{}", e)))?)?;
     }
     Ok(())
 }
@@ -458,63 +424,36 @@ fn gen_std_io_error(msg: &str) -> std::io::Error {
     std::io::Error::new(std::io::ErrorKind::Other, msg)
 }
 
-async fn regenerate_cache_from_replay(
-    nc: &async_nats::Connection,
+fn regenerate_cache_from_replay(
+    nc: &nats::Connection,
     cache: Arc<RwLock<CacheData>>,
     replay_req_subject: &str,
 ) -> Result<(), Box<dyn Error + Sync + Send + 'static>> {
-    let sub = nc
-        .request_multi(
-            replay_req_subject,
-            serialize(ReplayRequest {
-                hwm: cache.read().unwrap().history().len() as u64,
-            })?,
-        )
-        .await?;
+    let sub = nc.request_multi(
+        replay_req_subject,
+        serialize(ReplayRequest {
+            hwm: cache.read().unwrap().history().len() as u64,
+        })?,
+    )?;
 
-    //let first = sub.next_timeout(Duration::from_secs(2));
-    let ack: ReplayRequestAck = match next_with_timeout(
-        &sub,
-        Duration::from_secs(TIMEOUT_CACHE_FIRST_RESPONSE_SEC),
-    )
-    .await
-    {
-        SubscriptionNextResult::Item(item) => item,
-        SubscriptionNextResult::Err(s) => {
-            let err = format!("cache may be corrupt - state replication failed: {}", s);
-            error!("{}", &err);
-            return Err(Box::new(gen_std_io_error(&err)));
-        }
-        // No one is listening for replay requests. That's not necessarily fatal
-        _ => return Ok(()),
-    };
-    for i in 0..ack.events_to_expect {
-        let evt: CacheEvent = match next_with_timeout(
-            &sub,
-            Duration::from_secs(TIMEOUT_CACHE_NEXT_RESPONSE_SEC),
-        )
-        .await
-        {
-            SubscriptionNextResult::Item(item) => item,
-            SubscriptionNextResult::Timeout | SubscriptionNextResult::Cancelled => {
-                let err = format!("Did not receive an expected state replication reply ({}/{}). Cache should now be considered invalid.",
-                    (i+1), ack.events_to_expect);
-                error!("{}", &err);
-                return Err(Box::new(gen_std_io_error(&err)));
+    let first = sub.next_timeout(Duration::from_secs(2));
+    if first.is_err() {
+        return Ok(()); // No one is listening for replay requests. That's not necessarily fatal
+    }
+    let first = first.unwrap();
+
+    let ack: ReplayRequestAck = deserialize(&first.data)?;
+    for _i in 0..ack.events_to_expect {
+        if let Ok(msg) = sub.next_timeout(Duration::from_secs(1)) {
+            let evt: CacheEvent = deserialize(&msg.data)?;
+            if let Err(e) = handle_state_event(&evt, cache.clone()) {
+                error!(
+                    "Failed processing cache state event: {}. Cache should be considered invalid.",
+                    e
+                );
             }
-            SubscriptionNextResult::Err(s) => {
-                let err = format!("Corrupt message on cache state replication: {}", s);
-                error!("{}", &err);
-                return Err(Box::new(gen_std_io_error(&err)));
-            }
-        };
-        if let Err(e) = handle_state_event(&evt, cache.clone()) {
-            let err = format!(
-                "Failed processing cache state event: {}. Cache should be considered invalid.",
-                e
-            );
-            error!("{}", &err);
-            return Err(Box::new(gen_std_io_error(&err)));
+        } else {
+            error!("Did not receive an expected state replication reply. Cache should now be considered invalid.");
         }
     }
     Ok(())
@@ -536,18 +475,18 @@ fn handle_state_event(
     Ok(())
 }
 
-async fn publish_state_event(
+fn publish_state_event(
     origin: &str,
     subject: &str,
     evt: &CacheEvent,
-    nc: Arc<RwLock<Option<async_nats::Connection>>>,
+    nc: Arc<RwLock<Option<nats::Connection>>>,
 ) -> Result<(), Box<dyn Error + Sync + Send + 'static>> {
     if let Some(ref conn) = *nc.read().unwrap() {
         let wrapper = CacheEventWrapper {
             origin_id: origin.to_string(),
             event: evt.clone(),
         };
-        conn.publish(subject, serialize(wrapper)?).await?;
+        conn.publish(subject, serialize(wrapper)?)?;
     }
     Ok(())
 }
@@ -571,35 +510,27 @@ impl CapabilityProvider for NatsReplicatedKVProvider {
         msg: &[u8],
     ) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>> {
         trace!("Received host call from {}, operation - {}", actor, op);
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()?
-            .block_on(async move {
-                match op {
-                    OP_BIND_ACTOR if actor == SYSTEM_ACTOR => {
-                        self.configure(deserialize(msg)?).await
-                    }
-                    OP_REMOVE_ACTOR if actor == SYSTEM_ACTOR => {
-                        self.remove_actor(deserialize(msg)?).await
-                    }
-                    OP_HEALTH_REQUEST if actor == SYSTEM_ACTOR => self.health(),
-                    keyvalue::OP_ADD => self.add(actor, deserialize(msg)?).await,
-                    keyvalue::OP_DEL => self.del(actor, deserialize(msg)?).await,
-                    keyvalue::OP_GET => self.get(actor, deserialize(msg)?),
-                    keyvalue::OP_CLEAR => self.list_clear(actor, deserialize(msg)?).await,
-                    keyvalue::OP_RANGE => self.list_range(actor, deserialize(msg)?),
-                    keyvalue::OP_PUSH => self.list_push(actor, deserialize(msg)?).await,
-                    keyvalue::OP_SET => self.set(actor, deserialize(msg)?).await,
-                    keyvalue::OP_LIST_DEL => self.list_del_item(actor, deserialize(msg)?).await,
-                    keyvalue::OP_SET_ADD => self.set_add(actor, deserialize(msg)?).await,
-                    keyvalue::OP_SET_REMOVE => self.set_remove(actor, deserialize(msg)?).await,
-                    keyvalue::OP_SET_UNION => self.set_union(actor, deserialize(msg)?),
-                    keyvalue::OP_SET_INTERSECT => self.set_intersect(actor, deserialize(msg)?),
-                    keyvalue::OP_SET_QUERY => self.set_query(actor, deserialize(msg)?),
-                    keyvalue::OP_KEY_EXISTS => self.exists(actor, deserialize(msg)?),
-                    _ => Err("bad dispatch".into()),
-                }
-            })
+
+        match op {
+            OP_BIND_ACTOR if actor == SYSTEM_ACTOR => self.configure(deserialize(msg)?),
+            OP_REMOVE_ACTOR if actor == SYSTEM_ACTOR => self.remove_actor(deserialize(msg)?),
+            OP_HEALTH_REQUEST if actor == SYSTEM_ACTOR => self.health(),
+            keyvalue::OP_ADD => self.add(actor, deserialize(msg)?),
+            keyvalue::OP_DEL => self.del(actor, deserialize(msg)?),
+            keyvalue::OP_GET => self.get(actor, deserialize(msg)?),
+            keyvalue::OP_CLEAR => self.list_clear(actor, deserialize(msg)?),
+            keyvalue::OP_RANGE => self.list_range(actor, deserialize(msg)?),
+            keyvalue::OP_PUSH => self.list_push(actor, deserialize(msg)?),
+            keyvalue::OP_SET => self.set(actor, deserialize(msg)?),
+            keyvalue::OP_LIST_DEL => self.list_del_item(actor, deserialize(msg)?),
+            keyvalue::OP_SET_ADD => self.set_add(actor, deserialize(msg)?),
+            keyvalue::OP_SET_REMOVE => self.set_remove(actor, deserialize(msg)?),
+            keyvalue::OP_SET_UNION => self.set_union(actor, deserialize(msg)?),
+            keyvalue::OP_SET_INTERSECT => self.set_intersect(actor, deserialize(msg)?),
+            keyvalue::OP_SET_QUERY => self.set_query(actor, deserialize(msg)?),
+            keyvalue::OP_KEY_EXISTS => self.exists(actor, deserialize(msg)?),
+            _ => Err("bad dispatch".into()),
+        }
     }
 
     fn stop(&self) {
