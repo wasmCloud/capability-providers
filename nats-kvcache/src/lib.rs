@@ -63,7 +63,7 @@ use wascap::prelude::KeyPair;
 
 type MessageHandlerResult = Result<Vec<u8>, Box<dyn Error + Send + Sync + 'static>>;
 
-const DEFAULT_NATS_URL:&str = "nats://0.0.0.0:4222";
+const DEFAULT_NATS_URL: &str = "nats://0.0.0.0:4222";
 
 #[doc(hidden)]
 #[cfg(not(feature = "static_plugin"))]
@@ -94,7 +94,7 @@ pub struct NatsReplicatedKVProvider {
 
 impl Default for NatsReplicatedKVProvider {
     fn default() -> Self {
-        if env_logger::try_init().is_err() { }
+        if env_logger::try_init().is_err() {}
         NatsReplicatedKVProvider {
             dispatcher: Arc::new(RwLock::new(Box::new(NullDispatcher::new()))),
             cache: Arc::new(RwLock::new(CacheData::new(KeyValueStore::new()))),
@@ -383,7 +383,10 @@ impl NatsReplicatedKVProvider {
 fn nats_connection_from_values(
     values: HashMap<String, String>,
 ) -> Result<nats::Connection, Box<dyn std::error::Error + Sync + Send>> {
-    let nats_url = values.get(NATS_URL_CONFIG_KEY).map(|v|v.as_str()).unwrap_or(DEFAULT_NATS_URL);
+    let nats_url = values
+        .get(NATS_URL_CONFIG_KEY)
+        .map(|v| v.as_str())
+        .unwrap_or(DEFAULT_NATS_URL);
     let mut opts = if let Some(seed) = values.get(CLIENT_SEED_CONFIG_KEY) {
         let jwt = values
             .get(CLIENT_JWT_CONFIG_KEY)
