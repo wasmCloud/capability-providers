@@ -86,7 +86,10 @@ impl FileSystemProvider {
         let container = sanitize_container(&container);
         let cdir = self.container_to_path(&container);
         std::fs::remove_dir(cdir)?;
-        Ok(vec![])
+        serialize(BlobstoreResult {
+            success: true,
+            error: None,
+        })
     }
 
     fn start_upload(
@@ -100,10 +103,17 @@ impl FileSystemProvider {
             container: blob.container,
         };
         let blob = sanitize_blob(&blob);
-        info!("Starting upload: {}/{}", blob.container.id, blob.id);
         let bfile = self.blob_to_path(&blob);
-        std::fs::write(bfile, &[])?;
-        Ok(vec![])
+        serialize(match std::fs::write(bfile, &[]) {
+            Ok(_) => BlobstoreResult {
+                success: true,
+                error: None,
+            },
+            Err(e) => BlobstoreResult {
+                success: false,
+                error: Some(e.to_string()),
+            },
+        })
     }
 
     fn remove_object(
@@ -113,8 +123,16 @@ impl FileSystemProvider {
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let blob = sanitize_blob(&blob);
         let bfile = self.blob_to_path(&blob);
-        std::fs::remove_file(&bfile)?;
-        Ok(vec![])
+        serialize(match std::fs::remove_file(&bfile) {
+            Ok(_) => BlobstoreResult {
+                success: true,
+                error: None,
+            },
+            Err(e) => BlobstoreResult {
+                success: false,
+                error: Some(e.to_string()),
+            },
+        })
     }
 
     fn get_object_info(
@@ -212,7 +230,10 @@ impl FileSystemProvider {
             upload_chunks.remove(&key);
         }
 
-        Ok(vec![])
+        serialize(BlobstoreResult {
+            success: true,
+            error: None,
+        })
     }
 
     fn start_download(
@@ -252,7 +273,10 @@ impl FileSystemProvider {
             });
         });
 
-        Ok(vec![])
+        serialize(BlobstoreResult {
+            success: true,
+            error: None,
+        })
     }
 
     fn blob_to_path(&self, blob: &Blob) -> PathBuf {
@@ -330,7 +354,7 @@ impl CapabilityProvider for FileSystemProvider {
         op: &str,
         msg: &[u8],
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-        trace!("Received host call from {}, operation - {}", actor, op);
+        info!("Received host call from {}, operation - {}", actor, op);
 
         match op {
             OP_BIND_ACTOR if actor == SYSTEM_ACTOR => self.configure(deserialize(msg)?),
