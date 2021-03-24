@@ -47,13 +47,12 @@ pub(crate) fn client_for_config(
                 .get("TOKEN_VALID_FOR")
                 .map(|t| t.parse::<i64>().unwrap()),
         );
-        let http_proxy = config.values["HTTP_PROXY"].to_string();
-        let connector: HttpConnector = if http_proxy.is_empty() {
-            ProxyConnector::new(HttpsConnector::new())?
-        } else {
+        let connector: HttpConnector = if let Some(proxy) = config.values.get("HTTP_PROXY") {
             info!("Proxy enabled for S3 client");
-            let proxy = Proxy::new(Intercept::All, http_proxy.parse::<Uri>()?);
+            let proxy = Proxy::new(Intercept::All, proxy.parse::<Uri>()?);
             ProxyConnector::from_proxy(hyper_tls::HttpsConnector::new(), proxy)?
+        } else {
+            ProxyConnector::new(HttpsConnector::new())?
         };
         let mut hyper_builder: hyper::client::Builder = Client::builder();
         // disabling due to connection closed issue
