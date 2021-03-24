@@ -104,16 +104,16 @@ impl FileSystemProvider {
         };
         let blob = sanitize_blob(&blob);
         let bfile = self.blob_to_path(&blob);
-        serialize(match std::fs::write(bfile, &[]) {
-            Ok(_) => BlobstoreResult {
-                success: true,
-                error: None,
-            },
-            Err(e) => BlobstoreResult {
+        serialize(std::fs::write(bfile, &[]).map_or_else(
+            |e| BlobstoreResult {
                 success: false,
                 error: Some(e.to_string()),
             },
-        })
+            |_| BlobstoreResult {
+                success: true,
+                error: None,
+            },
+        ))
     }
 
     fn remove_object(
@@ -123,16 +123,16 @@ impl FileSystemProvider {
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let blob = sanitize_blob(&blob);
         let bfile = self.blob_to_path(&blob);
-        serialize(match std::fs::remove_file(&bfile) {
-            Ok(_) => BlobstoreResult {
-                success: true,
-                error: None,
-            },
-            Err(e) => BlobstoreResult {
+        serialize(std::fs::remove_file(&bfile).map_or_else(
+            |e| BlobstoreResult {
                 success: false,
                 error: Some(e.to_string()),
             },
-        })
+            |_| BlobstoreResult {
+                success: true,
+                error: None,
+            },
+        ))
     }
 
     fn get_object_info(

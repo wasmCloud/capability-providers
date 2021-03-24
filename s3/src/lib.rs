@@ -108,19 +108,20 @@ impl S3Provider {
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let rt = tokio::runtime::Runtime::new().unwrap();
         serialize(
-            match rt.block_on(s3::remove_bucket(
+            rt.block_on(s3::remove_bucket(
                 &self.clients.read().unwrap()[actor],
                 &container.id,
-            )) {
-                Ok(_) => BlobstoreResult {
-                    success: true,
-                    error: None,
-                },
-                Err(e) => BlobstoreResult {
+            ))
+            .map_or_else(
+                |e| BlobstoreResult {
                     success: false,
                     error: Some(e.to_string()),
                 },
-            },
+                |_| BlobstoreResult {
+                    success: true,
+                    error: None,
+                },
+            ),
         )
     }
 
@@ -179,20 +180,21 @@ impl S3Provider {
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let rt = tokio::runtime::Runtime::new().unwrap();
         serialize(
-            match rt.block_on(s3::remove_object(
+            rt.block_on(s3::remove_object(
                 &self.clients.read().unwrap()[actor],
                 &blob.container.id,
                 &blob.id,
-            )) {
-                Ok(_) => BlobstoreResult {
-                    success: true,
-                    error: None,
-                },
-                Err(e) => BlobstoreResult {
+            ))
+            .map_or_else(
+                |e| BlobstoreResult {
                     success: false,
                     error: Some(e.to_string()),
                 },
-            },
+                |_| BlobstoreResult {
+                    success: true,
+                    error: None,
+                },
+            ),
         )
     }
 
