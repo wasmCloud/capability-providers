@@ -418,19 +418,22 @@ mod test {
     fn test_create_and_remove_bucket() {
         let provider = S3Provider::new();
         provider.configure(gen_config("testar")).unwrap();
-        let container = Container {
+        let container_args = CreateContainerArgs {
             id: "addremovebucket".to_string(),
         };
         let res = provider.handle_call(
             "testar",
             OP_CREATE_CONTAINER,
-            &serialize(&container).unwrap(),
+            &serialize(&container_args).unwrap(),
         );
         assert!(res.is_ok());
+        let remove_args = RemoveContainerArgs {
+            id: container_args.id,
+        };
         let res2 = provider.handle_call(
             "testar",
             OP_REMOVE_CONTAINER,
-            &serialize(container).unwrap(),
+            &serialize(remove_args).unwrap(),
         );
         assert!(res2.is_ok());
     }
@@ -443,13 +446,13 @@ mod test {
         let dispatcher = Box::new(TestDispatcher::new(wg.clone(), expected_chunks(10427, 100)));
         provider.configure_dispatch(dispatcher).unwrap();
 
-        let container = Container {
+        let container_args = CreateContainerArgs {
             id: "updownbucket".to_string(),
         };
         let _res = provider.handle_call(
             "testupanddown",
             OP_CREATE_CONTAINER,
-            &serialize(&container).unwrap(),
+            &serialize(&container_args).unwrap(),
         );
 
         let mut data: Vec<u8> = Vec::new();
@@ -494,10 +497,10 @@ mod test {
                 .handle_call("testupanddown", OP_UPLOAD_CHUNK, &serialize(chunk).unwrap())
                 .unwrap();
         }
-        let req = StreamRequest {
+        let req = StartDownloadArgs {
             chunk_size: 100,
-            container: Container::new("updownbucket".to_string()),
-            id: "updowntestfile".to_string(),
+            container_id: "updownbucket".to_string(),
+            blob_id: "updowntestfile".to_string(),
             context: Some("test1".to_string()),
         };
         let _ = provider
@@ -517,13 +520,13 @@ mod test {
         let provider = S3Provider::new();
         provider.configure(gen_config("testupload")).unwrap();
 
-        let container = Container {
+        let container_args = CreateContainerArgs {
             id: "uploadbucket".to_string(),
         };
         let _res = provider.handle_call(
             "testupload",
             OP_CREATE_CONTAINER,
-            &serialize(&container).unwrap(),
+            &serialize(&container_args).unwrap(),
         );
 
         let mut data: Vec<u8> = Vec::new();
@@ -565,36 +568,54 @@ mod test {
             let _ = provider.handle_call("testupload", OP_UPLOAD_CHUNK, &serialize(chunk).unwrap());
         }
 
+        let list_objects = ListObjectsArgs {
+            container_id: container_args.id,
+        };
+
         let list = provider
             .handle_call(
                 "testupload",
                 OP_LIST_OBJECTS,
-                &serialize(&container).unwrap(),
+                &serialize(&list_objects).unwrap(),
             )
             .unwrap();
         let object_list: BlobList = deserialize(&list).unwrap();
         assert_eq!(1, object_list.blobs.len());
         assert_eq!("testfile", object_list.blobs[0].id);
 
-        let blob = Blob {
-            container: Container::new("uploadbucket".to_string()),
-            id: "testfile".to_string(),
-            byte_size: 0,
+        let get_info_args = GetObjectInfoArgs {
+            container_id: "uploadbucket".to_string(),
+            blob_id: "testfile".to_string(),
         };
 
         let info = provider
-            .handle_call("testupload", OP_GET_OBJECT_INFO, &serialize(&blob).unwrap())
+            .handle_call(
+                "testupload",
+                OP_GET_OBJECT_INFO,
+                &serialize(&get_info_args).unwrap(),
+            )
             .unwrap();
         let objinfo: Blob = deserialize(&info).unwrap();
         assert_eq!(10427, objinfo.byte_size);
+        let remove_args = RemoveObjectArgs {
+            id: get_info_args.blob_id,
+            container_id: get_info_args.container_id,
+        };
         let _ = provider
-            .handle_call("testupload", OP_REMOVE_OBJECT, &serialize(&blob).unwrap())
+            .handle_call(
+                "testupload",
+                OP_REMOVE_OBJECT,
+                &serialize(&remove_args).unwrap(),
+            )
             .unwrap();
+        let remove_container_args = RemoveContainerArgs {
+            id: remove_args.container_id,
+        };
         let _ = provider
             .handle_call(
                 "testupload",
                 OP_REMOVE_CONTAINER,
-                &serialize(&container).unwrap(),
+                &serialize(&remove_container_args).unwrap(),
             )
             .unwrap();
     }
