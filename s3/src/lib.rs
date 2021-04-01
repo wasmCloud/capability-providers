@@ -41,7 +41,7 @@ impl FileUpload {
     }
 }
 
-/// AWS S3 implementation of the `wascc:blobstore` specification
+/// AWS S3 implementation of the `wasmcloud:blobstore` specification
 #[derive(Clone)]
 pub struct S3Provider {
     dispatcher: Arc<RwLock<Box<dyn Dispatcher>>>,
