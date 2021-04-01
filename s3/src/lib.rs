@@ -90,27 +90,27 @@ impl S3Provider {
     fn create_container(
         &self,
         actor: &str,
-        container: Container,
+        args: CreateContainerArgs,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(s3::create_bucket(
             &self.clients.read().unwrap()[actor],
-            &container.id,
+            &args.id,
         ))?;
 
-        serialize(container)
+        serialize(Container::new(args.id))
     }
 
     fn remove_container(
         &self,
         actor: &str,
-        container: Container,
+        args: RemoveContainerArgs,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let rt = tokio::runtime::Runtime::new().unwrap();
         serialize(
             rt.block_on(s3::remove_bucket(
                 &self.clients.read().unwrap()[actor],
-                &container.id,
+                &args.id,
             ))
             .map_or_else(
                 |e| BlobstoreResult {
@@ -138,8 +138,7 @@ impl S3Provider {
             .and_modify(|u| {
                 u.chunks.push(chunk);
             });
-        let complete = self.uploads.read().unwrap()[&key].is_complete();
-        if complete {
+        if self.uploads.read().unwrap()[&key].is_complete() {
             let rt = tokio::runtime::Runtime::new().unwrap();
             rt.block_on(s3::complete_upload(
                 &self.clients.read().unwrap()[actor],
@@ -176,14 +175,14 @@ impl S3Provider {
     fn remove_object(
         &self,
         actor: &str,
-        blob: Blob,
+        args: RemoveObjectArgs,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let rt = tokio::runtime::Runtime::new().unwrap();
         serialize(
             rt.block_on(s3::remove_object(
                 &self.clients.read().unwrap()[actor],
-                &blob.container.id,
-                &blob.id,
+                &args.container_id,
+                &args.id,
             ))
             .map_or_else(
                 |e| BlobstoreResult {
@@ -201,70 +200,66 @@ impl S3Provider {
     fn get_object_info(
         &self,
         actor: &str,
-        blob: Blob,
+        args: GetObjectInfoArgs,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let rt = tokio::runtime::Runtime::new().unwrap();
         let info = rt.block_on(s3::head_object(
             &self.clients.read().unwrap()[actor],
-            &blob.container.id,
-            &blob.id,
+            &args.container_id,
+            &args.blob_id,
         ));
 
-        let blob = if let Ok(ob) = info {
-            Blob {
-                id: blob.id.to_string(),
-                container: blob.container,
-                byte_size: ob.content_length.unwrap() as u64,
-            }
-        } else {
-            Blob {
+        serialize(&info.map_or_else(
+            |_| Blob {
                 id: "none".to_string(),
                 container: Container::new("none".to_string()),
                 byte_size: 0,
-            }
-        };
-
-        serialize(&blob)
+            },
+            |ob| Blob {
+                id: args.blob_id.to_string(),
+                container: Container::new(args.container_id),
+                byte_size: ob.content_length.unwrap() as u64,
+            },
+        ))
     }
 
     fn list_objects(
         &self,
         actor: &str,
-        container: Container,
+        args: ListObjectsArgs,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let rt = tokio::runtime::Runtime::new().unwrap();
         let objects = rt.block_on(s3::list_objects(
             &self.clients.read().unwrap()[actor],
-            &container.id,
+            &args.container_id,
         ))?;
         let blobs = if let Some(v) = objects {
             v.iter()
                 .map(|ob| Blob {
                     id: ob.key.clone().unwrap(),
-                    container: container.clone(),
+                    container: Container::new(args.container_id.clone()),
                     byte_size: ob.size.unwrap() as u64,
                 })
                 .collect()
         } else {
             vec![]
         };
-        let bloblist = BlobList { blobs };
-        serialize(&bloblist)
+        serialize(&BlobList { blobs })
     }
 
     fn start_download(
         &self,
         actor: &str,
-        request: StreamRequest,
+        args: StartDownloadArgs,
     ) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         let actor = actor.to_string();
 
         let d = self.dispatcher.clone();
         let c = self.clients.read().unwrap()[&actor].clone();
-        let container = request.container.id.to_string();
-        let chunk_size = request.chunk_size;
-        let id = request.id.to_string();
-        let ctx = request.context.clone();
+        let container = args.container_id.to_string();
+        let chunk_size = args.chunk_size;
+        let id = args.blob_id.to_string();
+        let ctx = args.context.clone();
 
         let byte_size = {
             let rt = tokio::runtime::Runtime::new().unwrap();
