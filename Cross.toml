@@ -21,3 +21,6 @@ image = "criticalstack/cross:x86_64-apple-darwin"
 
 [target.x86_64-unknown-linux-gnu]
 image = "criticalstack/cross:x86_64-unknown-linux-gnu"
+
+[target.aarch64-apple-darwin]
+image = "criticalstack/cross:aarch64-apple-darwin"
