@@ -22,7 +22,7 @@ static_plugin = []
 [dependencies]
 log = "0.4.14"
 env_logger = "0.7.1"
-wasmcloud-actor-blobstore = "0.2.0"
+wasmcloud-actor-blobstore = "0.2.2"
 wasmcloud-actor-core = "0.2.0"
 
 [dependencies.wasmcloud-provider-core]
