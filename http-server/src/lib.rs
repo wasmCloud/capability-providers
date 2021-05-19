@@ -145,7 +145,7 @@ impl HttpServerProvider {
             let mut server = HttpServer::new(move || {
                 App::new()
                     .wrap(middleware::Logger::default())
-                    .wrap(cors)
+                    .wrap(Arc::new(RwLock::new(cors)))
                     .data(disp.clone())
                     .data(module.clone())
                     .default_service(web::route().to(request_handler))
