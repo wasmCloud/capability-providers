@@ -120,6 +120,7 @@ impl HttpServerProvider {
             },
             None => None,
         };
+
         let (stop_tx, stop_rx) = oneshot::channel();
         let disp = self.dispatcher.clone();
         let module = module_id.clone();
@@ -128,25 +129,15 @@ impl HttpServerProvider {
             let sys = actix_rt::System::new();
 
             let mut server = HttpServer::new(move || {
-
-
-
                 // The optional CORS_ALLOWED_ORIGINS parameter specifies origins for which CORS is allowed.
                 // It should be a comma separated list.
                 // If not provided, CORS is disabled.
-                let mut allowed_origins = Vec::new();
-                if let Some(origins) = cfg_clone.values.get("CORS_ALLOWED_ORIGINS") {
-                    for origin in origins.split(',') {
-                        allowed_origins.push(origin)
-                    }
-                }
-
-                let cors = match &allowed_origins[..] {
-                    [] => Cors::default(),
-                    _ => allowed_origins.iter().fold(
+                let cors = match cfg_clone.values.get("CORS_ALLOWED_ORIGINS") {
+                    Some(origins) => origins.split(',').collect::<Vec<&str>>().iter().fold(
                         Cors::default().allow_any_method().allow_any_header(),
-                        |c, o| c.allowed_origin(o),
+                        |cors_result, origin| cors_result.allowed_origin(origin),
                     ),
+                    _ => Cors::default(),
                 };
 
                 App::new()
