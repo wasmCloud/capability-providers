@@ -107,16 +107,6 @@ impl HttpServerProvider {
             bind_addresses.push("0.0.0.0:8080".to_string())
         }
 
-        // The optional CORS_ALLOWED_ORIGINS parameter specifies origins for which CORS is allowed.
-        // It should be a comma separated list.
-        // If not provided, CORS is disabled.
-        let mut allowed_origins = Vec::new();
-        if let Some(origins) = cfgvals.values.get("CORS_ALLOWED_ORIGINS") {
-            for origin in origins.split(',') {
-                allowed_origins.push(origin)
-            }
-        }
-
         // The optional WORKERS parameter specifies the number of worker threads to spawn.
         // If not specified, actix_web uses the number of logical cpus.
         // If the parameter is not a valid integer, the default will be used.
@@ -133,9 +123,24 @@ impl HttpServerProvider {
         let (stop_tx, stop_rx) = oneshot::channel();
         let disp = self.dispatcher.clone();
         let module = module_id.clone();
+        let cfg_clone = cfgvals.clone();
         std::thread::spawn(move || {
             let sys = actix_rt::System::new();
+
             let mut server = HttpServer::new(move || {
+
+
+
+                // The optional CORS_ALLOWED_ORIGINS parameter specifies origins for which CORS is allowed.
+                // It should be a comma separated list.
+                // If not provided, CORS is disabled.
+                let mut allowed_origins = Vec::new();
+                if let Some(origins) = cfg_clone.values.get("CORS_ALLOWED_ORIGINS") {
+                    for origin in origins.split(',') {
+                        allowed_origins.push(origin)
+                    }
+                }
+
                 let cors = match &allowed_origins[..] {
                     [] => Cors::default(),
                     _ => allowed_origins.iter().fold(
