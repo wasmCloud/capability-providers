@@ -25,3 +25,6 @@ The following capability providers are included automatically in every host runt
 | **N/A** | [`wasmcloud:builtin:logging`](https://github.com/wasmCloud/interfaces/tree/main/logging) | Basic level-categorized text logging capability |
 
 While neither of these providers requires a _link definition_, to use either of them your actors _must_ be signed with their contract IDs.
+
+## Additional Examples
+Additional capability provider examples and sample code can be found in the [wasmCloud examples](https://github.com/wasmCloud/examples) repository.

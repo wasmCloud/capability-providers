@@ -1,6 +1,6 @@
 # wasmCloud HTTP Server Provider
 
-This executable is an implementation of the `wasmcloud:httpserver` capability. Only actors signed with this capability contract ID will be allowed to use it. 
+This capability provider implements the `wasmcloud:httpserver` capability contract, and enables an actor to accept incoming HTTP(s) requests. It is implemented in Rust with the [warp](https://docs.rs/warp/) web server framework and the fast and scalable [hyper](https://docs.rs/hyper/) http implementation.
 
 For more information on the operations supported by this provider, please check out its corresponding [interface](https://github.com/wasmCloud/interfaces/blob/main/httpserver/httpserver.smithy).
 
