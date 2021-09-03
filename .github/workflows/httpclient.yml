@@ -1,17 +1,23 @@
-# Replace all occurrences of "PROVIDER" with the provider name (e.g. HTTPCLIENT)
-# Replace all occurrences of "provider" with the folder name of the provider (e.g. `provider`, `httpclient`, etc)
-name: PROVIDER-RELEASE
+# Replace workflow triggers with provider with the provider name, should be the same as the folder path
+name: HTTPCLIENT
 
 on:
   push:
+    branches: [ main ]
+    paths:
+    - "httpclient/**"
     tags:
-    - 'provider-v*'
+    - 'httpclient-v*'
+  pull_request:
+    branches: [ main ]
+    paths:
+    - "httpclient/**"
 
 env:
   CARGO_TERM_COLOR: always
-  working-directory: ./provider
+  working-directory: ./httpclient
   WASH_ISSUER_KEY: ${{ secrets.WASMCLOUD_ACCOUNT_OFFICIAL }}
-  WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_PROVIDER }}
+  WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_HTTPCLIENT }}
   WASH_REG_USER:  ${{ secrets.AZURECR_PUSH_USER }}
   WASH_REG_PASSWORD:  ${{ secrets.AZURECR_PUSH_PASSWORD }}
   REVISION: ${{ github.run_number }}
@@ -27,6 +33,7 @@ jobs:
         working-directory: ${{ env.working-directory }}
 
   github_release:
+    if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     needs: rust_check
     runs-on: ubuntu-latest
     steps:
@@ -43,6 +50,7 @@ jobs:
 
   artifact_release:
     needs: github_release
+    if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
