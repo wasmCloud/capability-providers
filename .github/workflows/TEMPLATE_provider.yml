@@ -48,10 +48,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: wasmcloud/common-actions/install-tooling@main
-        with:
-          wash: true
-          cross: true
+      - uses: wasmcloud/common-actions/install-wash@main
+      - uses: wasmcloud/common-actions/install-cross@main
       - name: Build full provider archive
         run: make par-full
         working-directory: ${{ env.working-directory }}
