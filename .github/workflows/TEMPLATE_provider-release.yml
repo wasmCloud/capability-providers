@@ -1,5 +1,5 @@
-# Replace all occurrences of "PROVIDER" with the provider name
-# Replace all occurrences of "provider" with the folder name of the provider (e.g. `provider`, `http-client`, etc)
+# Replace all occurrences of "PROVIDER" with the provider name (e.g. HTTPCLIENT)
+# Replace all occurrences of "provider" with the folder name of the provider (e.g. `provider`, `httpclient`, etc)
 name: PROVIDER-RELEASE
 
 on:
@@ -17,30 +17,17 @@ env:
   REVISION: ${{ github.run_number }}
 
 jobs:
-  cargo_check:
+  rust_check:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --verbose
-      working-directory: ${{ env.working-directory }}
-    - name: Run tests
-      run: cargo test --verbose -- --nocapture
-      working-directory: ${{ env.working-directory }}
-    - name: Check fmt
-      run: cargo fmt -- --check
-      working-directory: ${{ env.working-directory }}
-
-  clippy_check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: rustup component add clippy
-      - name: Run cargo clippy
-        run: cargo clippy --all-features
+    - id: rust-check-action
+      uses: wasmcloud/common-actions/rust-check@main
+      with:
         working-directory: ${{ env.working-directory }}
 
   github_release:
+    needs: rust_check
     runs-on: ubuntu-latest
     steps:
     - name: Create Release
@@ -54,38 +41,24 @@ jobs:
         draft: false
         prerelease: true
 
-  crates_release:
-    needs: github_release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-      - name: Cargo login
-        env:
-          CRATES_TOKEN: ${{ secrets.CRATES_PUBLISH_TOKEN }}
-        run: cargo login ${{ env.CRATES_TOKEN }}
-      - name: Cargo publish
-        run: cargo publish --no-verify
-        working-directory: ${{ env.working-directory }}
-
   artifact_release:
     needs: github_release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: |
-          curl -s https://packagecloud.io/install/repositories/wasmCloud/core/script.deb.sh | sudo bash
-          sudo apt install wash
-      - run: cargo install --git https://github.com/ChrisRx/cross --branch add-darwin-target --force # Installing from feature branch until PR merged
-      - name: build-par
-        run: make par
+      - uses: wasmcloud/common-actions/install-tooling@main
+        with:
+          wash: true
+          cross: true
+      - name: Build full provider archive
+        run: make par-full
         working-directory: ${{ env.working-directory }}
       # Push artifact to https://AZURECR/provider:VERSION
-      - name: push-par
+      - name: Push provider archive to AzureCR
         run: |
           VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')
           NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')
-          TAGNAME=$(echo $NAME | sed 's/wasmcloud-//')
+          TAGNAME=$(echo $NAME | sed 's/wasmcloud-provider-//')
           URL=${{secrets.AZURECR_PUSH_URL}}/$TAGNAME:$VERSION
-          wash reg push $URL $NAME.par.gz
+          wash reg push $URL build/$NAME.par.gz
         working-directory: ${{ env.working-directory }}

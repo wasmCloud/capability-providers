@@ -1,5 +1,5 @@
-# Replace all occurrences of "PROVIDER" with the provider name
-# Replace all occurrences of "provider" with the folder name of the provider (e.g. `nats`, `http-client`, etc)
+# Replace all occurrences of "PROVIDER" with the provider name (e.g. `HTTPCLIENT`)
+# Replace all occurrences of "provider" with the folder name of the provider (e.g. `nats`, `httpclient`, etc)
 name: PROVIDER
 
 on:
@@ -17,25 +17,11 @@ env:
   working-directory: ./provider
 
 jobs:
-  cargo_check:
+  rust_check:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --verbose
-      working-directory: ${{env.working-directory}}
-    - name: Run tests
-      run: cargo test --verbose -- --nocapture
-      working-directory: ${{env.working-directory}}
-    - name: Check fmt
-      run: cargo fmt -- --check
-      working-directory: ${{env.working-directory}}
-
-  clippy_check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: rustup component add clippy
-      - name: Run cargo clippy
-        run: cargo clippy --all-features
-        working-directory: ${{env.working-directory}}
+    - id: rust-check-action
+      uses: wasmcloud/common-actions/rust-check@main
+      with:
+        working-directory: ${{ env.working-directory }}
