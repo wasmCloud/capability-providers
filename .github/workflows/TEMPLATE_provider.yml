@@ -1,6 +1,6 @@
 # Replace all occurrences of "PROVIDER" with the provider name (e.g. HTTPCLIENT)
 # Replace workflow triggers with provider with the provider name, should be the same as the folder path
-name: PROVIDER-RELEASE
+name: PROVIDER
 
 on:
   push:

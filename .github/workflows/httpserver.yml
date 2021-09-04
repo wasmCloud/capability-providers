@@ -1,4 +1,4 @@
-name: HTTPSERVER-RELEASE
+name: HTTPSERVER
 
 on:
   push:

@@ -1,4 +1,3 @@
-# Replace workflow triggers with provider with the provider name, should be the same as the folder path
 name: HTTPCLIENT
 
 on:
