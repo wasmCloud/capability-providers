@@ -4,8 +4,15 @@ name: PROVIDER-RELEASE
 
 on:
   push:
+    branches: [ main ]
+    paths:
+    - "provider/**"
     tags:
     - 'provider-v*'
+  pull_request:
+    branches: [ main ]
+    paths:
+    - "provider/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -18,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    # If your integration tests require nats or redis, run them here
     - id: rust-check-action
       uses: wasmcloud/common-actions/rust-check@main
       with:

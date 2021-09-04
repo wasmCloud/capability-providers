@@ -1,23 +1,22 @@
-# Replace workflow triggers with provider with the provider name, should be the same as the folder path
-name: HTTPCLIENT
+name: KVREDIS-RELEASE
 
 on:
   push:
     branches: [ main ]
     paths:
-    - "httpclient/**"
+    - "kvredis/**"
     tags:
-    - 'httpclient-v*'
+    - 'kvredis-v*'
   pull_request:
     branches: [ main ]
     paths:
-    - "httpclient/**"
+    - "kvredis/**"
 
 env:
   CARGO_TERM_COLOR: always
-  working-directory: ./httpclient
+  working-directory: ./kvredis
   WASH_ISSUER_KEY: ${{ secrets.WASMCLOUD_ACCOUNT_OFFICIAL }}
-  WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_HTTPCLIENT }}
+  WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_REDIS }}
 
 jobs:
   rust_check:
@@ -26,6 +25,9 @@ jobs:
     - uses: actions/checkout@v2
     - id: run-nats
       uses: wasmcloud/common-actions/run-nats@main
+    - id: run-redis
+      uses: wasmcloud/common-actions/run-redis@main
+    # If your integration tests require nats or redis, run them here
     - id: rust-check-action
       uses: wasmcloud/common-actions/rust-check@main
       with:
@@ -46,7 +48,7 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: false
         prerelease: true
-    
+
   build_artifact:
     needs: github_release
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push

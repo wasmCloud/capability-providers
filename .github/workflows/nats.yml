@@ -1,23 +1,24 @@
+# Replace all occurrences of "NATS" with the provider name (e.g. HTTPCLIENT)
 # Replace workflow triggers with provider with the provider name, should be the same as the folder path
-name: HTTPCLIENT
+name: NATS-RELEASE
 
 on:
   push:
     branches: [ main ]
     paths:
-    - "httpclient/**"
+    - "nats/**"
     tags:
-    - 'httpclient-v*'
+    - 'nats-v*'
   pull_request:
     branches: [ main ]
     paths:
-    - "httpclient/**"
+    - "nats/**"
 
 env:
   CARGO_TERM_COLOR: always
-  working-directory: ./httpclient
+  working-directory: ./nats
   WASH_ISSUER_KEY: ${{ secrets.WASMCLOUD_ACCOUNT_OFFICIAL }}
-  WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_HTTPCLIENT }}
+  WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_NATS }}
 
 jobs:
   rust_check:
@@ -46,7 +47,7 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: false
         prerelease: true
-    
+
   build_artifact:
     needs: github_release
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push

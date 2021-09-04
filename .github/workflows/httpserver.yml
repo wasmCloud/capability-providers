@@ -1,23 +1,22 @@
-# Replace workflow triggers with provider with the provider name, should be the same as the folder path
-name: HTTPCLIENT
+name: HTTPSERVER-RELEASE
 
 on:
   push:
     branches: [ main ]
     paths:
-    - "httpclient/**"
+    - "httpserver-rs/**"
     tags:
-    - 'httpclient-v*'
+    - 'httpserver-v*'
   pull_request:
     branches: [ main ]
     paths:
-    - "httpclient/**"
+    - "httpserver-rs/**"
 
 env:
   CARGO_TERM_COLOR: always
-  working-directory: ./httpclient
+  working-directory: ./httpserver-rs
   WASH_ISSUER_KEY: ${{ secrets.WASMCLOUD_ACCOUNT_OFFICIAL }}
-  WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_HTTPCLIENT }}
+  WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_HTTPSERVER }}
 
 jobs:
   rust_check:
@@ -46,7 +45,7 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: false
         prerelease: true
-    
+
   build_artifact:
     needs: github_release
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push
