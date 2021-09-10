@@ -36,7 +36,7 @@ jobs:
         working-directory: ${{ env.working-directory }}
 
       - name: debug
-        run: ls -lahR ${{ env.working-directory }}/build
+        run: ls -lahR ${{ env.working-directory }}
       
       - name: Upload provider archive to GH Actions
         uses: actions/upload-artifact@v2
