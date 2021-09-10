@@ -32,7 +32,7 @@ jobs:
       - name: Build full provider archive
         run: |
           mkdir -p ${{ env.working-directory }}/build
-          touch ${{ env.working-directory }}/build/httpfoo.par.gz
+          echo "heehaw" > ${{ env.working-directory }}/build/httpclient.par.gz
         working-directory: ${{ env.working-directory }}
       
       - name: Upload provider archive to GH Actions
