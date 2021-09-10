@@ -32,7 +32,7 @@ jobs:
       - name: Build full provider archive
         run: |
           mkdir -p ${{ env.working-directory }}/build
-          echo "heehaw" > ${{ env.working-directory }}/build/httpclient.par.gz
+          wash reg pull wasmcloud.azurecr.io/httpserver:0.13.1 --destination ${{ env.working-directory }}/build/http.par.gz -o json
         working-directory: ${{ env.working-directory }}
       
       - name: Upload provider archive to GH Actions
