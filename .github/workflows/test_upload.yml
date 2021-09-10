@@ -30,7 +30,9 @@ jobs:
       # - uses: wasmcloud/common-actions/install-cross@main
 
       - name: Build full provider archive
-        run: touch ${{ env.working-directory }}/build/httpfoo.par.gz
+        run: |
+          mkdir -p ${{ env.working-directory }}/build
+          touch ${{ env.working-directory }}/build/httpfoo.par.gz
         working-directory: ${{ env.working-directory }}
       
       - name: Upload provider archive to GH Actions
