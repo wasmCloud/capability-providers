@@ -33,11 +33,7 @@ jobs:
         run: |
           mkdir -p ${{ env.working-directory }}/build
           wash reg pull wasmcloud.azurecr.io/httpserver:0.13.1 --destination ${{ env.working-directory }}/build/http.par.gz -o json
-        working-directory: ${{ env.working-directory }}
 
-      - name: debug
-        run: ls -lahR ${{ env.working-directory }}
-      
       - name: Upload provider archive to GH Actions
         uses: actions/upload-artifact@v2
         with:
