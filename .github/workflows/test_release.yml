@@ -1,0 +1,86 @@
+name: TEST_RELEASE
+
+on:
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+  working-directory: ./provider
+
+jobs:
+  rust_check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    # If your integration tests require nats or redis, run them here
+    # - id: rust-check-action
+    #   uses: wasmcloud/common-actions/rust-check@main
+    #   with:
+    #     working-directory: ${{ env.working-directory }}
+
+  build_artifact:
+    needs: rust_check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: wasmcloud/common-actions/install-wash@main
+
+      - name: Build full provider archive
+        run: |
+          wash reg pull wasmcloud.azurecr.io/httpclient:0.3.0 -o json --destination build/httpclient.par.gz
+        working-directory: ${{ env.working-directory }}
+      
+      - name: Upload provider archive to GH Actions
+        uses: actions/upload-artifact@v2
+        with:
+          name: provider-archive
+          path: ${{ env.working-directory }}/build/*.par.gz
+
+  github_release:
+    needs: build_artifact
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download provider archive
+      uses: actions/download-artifact@v2
+      with:
+        name: provider-archive
+        path: ${{ env.working-directory }}/build
+
+    - name: Release
+      run: |
+        echo "woo we're going to release"
+        ls -lahR ${{ env.working-directory }}/build
+
+  artifact_release:
+    needs: build_artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download provider archive
+        uses: actions/download-artifact@v2
+        with:
+          name: provider-archive
+          path: ${{ env.working-directory }}/build
+
+      - name: Determine artifact metadata
+        run: |
+          echo "oci-repository=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name' | sed 's/wasmcloud-provider-//')" >> $GITHUB_ENV
+          echo "oci-version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].version')" >> $GITHUB_ENV
+        working-directory: ${{ env.working-directory }}
+
+      - name: Release
+        run: |
+          echo "woo we're going to release"
+          echo "looking for ${{ env.working-directory }}/build/${{ env.oci-repository }}.par.gz"
+          ls -lahR ${{ env.working-directory }}/build
+
+      - name: Push provider archive to AzureCR
+        uses: wasmcloud/common-actions/oci-artifact-release@main
+        with:
+          artifact-path: ${{ env.working-directory }}/build/${{ env.oci-repository }}.par.gz
+          oci-url: notreal
+          oci-repository: nopenope
+          oci-version: ${{ env.oci-version }}
+          oci-username: dontpush
+          oci-password: dontdoit
