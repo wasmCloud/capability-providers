@@ -28,6 +28,7 @@ jobs:
 
       - name: Build full provider archive
         run: |
+          mkdir -p build
           wash reg pull wasmcloud.azurecr.io/httpclient:0.3.0 -o json --destination build/httpclient.par.gz
         working-directory: ${{ env.working-directory }}
       
