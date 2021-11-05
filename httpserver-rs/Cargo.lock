@@ -3025,9 +3025,9 @@ dependencies = [
 
 [[package]]
 name = "wasmbus-rpc"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8875f45e1c7a1b75a0a9dc66a570524ead1b298f9919ec3b7a768941974e4524"
+checksum = "d238193debd435b1ed2b465e8f005204ab036993269513de51b58e8a70346b14"
 dependencies = [
  "async-trait",
  "base64",
