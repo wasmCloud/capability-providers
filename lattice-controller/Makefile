@@ -10,5 +10,5 @@ oci_url  = localhost:5000/v2/$(PROJECT):$(VERSION)
 include ../build/makefiles/provider.mk
 
 test:
-	killall target/debug/lattice-controller || true
-	RUST_BACKTRACE=1 cargo test -- --nocapture
+	cargo test -- --nocapture
+
