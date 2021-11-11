@@ -1,6 +1,6 @@
 # capability-provider/lattice-controller/Makefile
 
-PROJECT = lattice-controller
+PROJECT = lattice_controller
 CAPABILITY_ID = wasmcloud:latticecontrol
 VENDOR   = "wasmCloud"
 VERSION  = $(shell cargo metadata --no-deps --format-version 1 | jq -r '.packages[] .version' | head -1)
