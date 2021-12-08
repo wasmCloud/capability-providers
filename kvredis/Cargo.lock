@@ -1235,7 +1235,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d6ec902eedf729792bd1ebe43e757691f956165c6db429deb26640925054de9"
 dependencies = [
  "half",
- "minicbor-derive",
+ "minicbor-derive 0.7.1",
+]
+
+[[package]]
+name = "minicbor"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e65793a7836177614428b01e00d7089af2f308e8ad2fae92f324b2ee3c5d3bd9"
+dependencies = [
+ "half",
+ "minicbor-derive 0.8.0",
 ]
 
 [[package]]
@@ -1243,6 +1253,17 @@ name = "minicbor-derive"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "355264ec26c23aae1d8d4599356cbd7e84134182b8feb9573acbd6d68c09c73e"
+dependencies = [
+ "proc-macro2 1.0.32",
+ "quote 1.0.10",
+ "syn 1.0.81",
+]
+
+[[package]]
+name = "minicbor-derive"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58f79d5d3fb4f93c77ef7b97065fb65efe6abe670795ad8bc5be9c0e12005290"
 dependencies = [
  "proc-macro2 1.0.32",
  "quote 1.0.10",
@@ -1331,6 +1352,37 @@ dependencies = [
  "rustls-native-certs",
  "serde",
  "serde_json",
+ "webpki",
+ "winapi",
+]
+
+[[package]]
+name = "nats"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d777a1844c3c5f4148df755a978fd99bb27c898d9bf016de723cf3ffcea5f5d"
+dependencies = [
+ "base64",
+ "base64-url",
+ "blocking",
+ "chrono",
+ "crossbeam-channel",
+ "fastrand",
+ "itoa",
+ "json",
+ "libc",
+ "log",
+ "memchr",
+ "nkeys",
+ "nuid",
+ "once_cell",
+ "parking_lot",
+ "regex",
+ "rustls",
+ "rustls-native-certs",
+ "serde",
+ "serde_json",
+ "url",
  "webpki",
  "winapi",
 ]
@@ -2850,8 +2902,42 @@ dependencies = [
  "data-encoding",
  "futures 0.3.17",
  "log",
- "minicbor",
- "nats",
+ "minicbor 0.11.4",
+ "nats 0.13.1",
+ "once_cell",
+ "pin-utils",
+ "ratsio_fork_040",
+ "ring",
+ "rmp-serde",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-timer",
+ "toml",
+ "uuid",
+ "wascap",
+ "wasmbus-macros",
+ "weld-codegen",
+]
+
+[[package]]
+name = "wasmbus-rpc"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "408aa0284ccf21dceee06ee2dff52ac4260aa492995f83ad597b8df712cd8ba5"
+dependencies = [
+ "async-trait",
+ "base64",
+ "cfg-if 1.0.0",
+ "chrono",
+ "crossbeam",
+ "data-encoding",
+ "futures 0.3.17",
+ "log",
+ "minicbor 0.12.0",
+ "nats 0.16.0",
  "once_cell",
  "pin-utils",
  "ratsio_fork_040",
@@ -2872,16 +2958,16 @@ dependencies = [
 
 [[package]]
 name = "wasmcloud-interface-keyvalue"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "786f9ff29ec10628624a8363e57b8b52e44c1d0900fb41415cb0465bf7c23aa5"
+checksum = "4017afbf25cd670646ddaadccdb062163e233d82554ffa4510eb4303850828b6"
 dependencies = [
  "async-trait",
  "log",
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.6.0",
  "weld-codegen",
 ]
 
@@ -2896,7 +2982,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.5.3",
  "weld-codegen",
 ]
 
@@ -2921,7 +3007,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.6.0",
  "wasmcloud-interface-keyvalue",
  "wasmcloud-test-util",
 ]
@@ -2944,7 +3030,7 @@ dependencies = [
  "tokio",
  "toml",
  "wascap",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.5.3",
  "wasmcloud-interface-testing",
 ]
 
@@ -2986,7 +3072,7 @@ dependencies = [
  "handlebars",
  "lazy_static",
  "lexical-sort",
- "minicbor",
+ "minicbor 0.11.4",
  "reqwest",
  "rustc-hash",
  "serde",
