@@ -27,7 +27,7 @@ wasmcloud-control-interface = "0.7.1"
 nats = "0.16"
 # test dependencies
 [dev-dependencies]
-wasmcloud-test-util = "0.2.1"
+wasmcloud-test-util = "0.1.9"
 
 
 

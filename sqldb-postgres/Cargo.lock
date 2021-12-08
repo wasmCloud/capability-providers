@@ -1385,36 +1385,6 @@ dependencies = [
 
 [[package]]
 name = "nats"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33f47fab79b62a75d2bf97663f049bfd1ade8c9c5fdae1512ec65a66d0b6c282"
-dependencies = [
- "base64",
- "base64-url",
- "blocking",
- "chrono",
- "crossbeam-channel",
- "fastrand",
- "itoa",
- "json",
- "libc",
- "log",
- "memchr",
- "nkeys",
- "nuid",
- "once_cell",
- "parking_lot",
- "regex",
- "rustls",
- "rustls-native-certs",
- "serde",
- "serde_json",
- "webpki",
- "winapi",
-]
-
-[[package]]
-name = "nats"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d777a1844c3c5f4148df755a978fd99bb27c898d9bf016de723cf3ffcea5f5d"
@@ -3017,40 +2987,6 @@ dependencies = [
 
 [[package]]
 name = "wasmbus-rpc"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8875f45e1c7a1b75a0a9dc66a570524ead1b298f9919ec3b7a768941974e4524"
-dependencies = [
- "async-trait",
- "base64",
- "cfg-if 1.0.0",
- "chrono",
- "crossbeam",
- "data-encoding",
- "futures 0.3.17",
- "log",
- "minicbor 0.11.4",
- "nats 0.13.1",
- "once_cell",
- "pin-utils",
- "ratsio_fork_040",
- "ring",
- "rmp-serde",
- "serde",
- "serde_bytes",
- "serde_json",
- "thiserror",
- "tokio",
- "tokio-timer",
- "toml",
- "uuid",
- "wascap",
- "wasmbus-macros",
- "weld-codegen",
-]
-
-[[package]]
-name = "wasmbus-rpc"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "408aa0284ccf21dceee06ee2dff52ac4260aa492995f83ad597b8df712cd8ba5"
@@ -3064,7 +3000,7 @@ dependencies = [
  "futures 0.3.17",
  "log",
  "minicbor 0.12.0",
- "nats 0.16.0",
+ "nats",
  "once_cell",
  "pin-utils",
  "ratsio_fork_040",
@@ -3095,28 +3031,28 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc 0.6.0",
+ "wasmbus-rpc",
  "weld-codegen",
 ]
 
 [[package]]
 name = "wasmcloud-interface-testing"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdc16ad3b26d695de9d3fa0486f1f88b80f5bce24d16c3ea0ed5035a5c838bd1"
+checksum = "fce471a0da171e8bf9f76af6ae8b295c510d34ef45ddf1ab7a235bda627510e4"
 dependencies = [
  "async-trait",
  "regex",
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc 0.5.2",
+ "wasmbus-rpc",
  "weld-codegen",
 ]
 
 [[package]]
 name = "wasmcloud-provider-sqldb-postgres"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "async-trait",
  "base64",
@@ -3139,16 +3075,16 @@ dependencies = [
  "tokio-postgres",
  "toml",
  "uuid",
- "wasmbus-rpc 0.6.0",
+ "wasmbus-rpc",
  "wasmcloud-interface-sqldb",
  "wasmcloud-test-util",
 ]
 
 [[package]]
 name = "wasmcloud-test-util"
-version = "0.1.8"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe93a280c17eda592e3d3809a82cbc56faaba4a963564c3d8aad0bbfc0aeaff2"
+checksum = "8c50d01ff3b125f956441b4d7c257673703be0ddb757a17f72a01c680ef52816"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3162,7 +3098,7 @@ dependencies = [
  "tokio",
  "toml",
  "wascap",
- "wasmbus-rpc 0.5.2",
+ "wasmbus-rpc",
  "wasmcloud-interface-testing",
 ]
 

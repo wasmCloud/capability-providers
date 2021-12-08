@@ -28,7 +28,7 @@ wasmbus-rpc = "0.6"
 assert_matches = "1.5"
 blake2 = "0.9"
 reqwest = { version = "0.11", features = ["json"]}
-wasmcloud-test-util = "0.2.1"
+wasmcloud-test-util = "0.1.9"
 
 [lib]
 name = "wasmcloud_provider_httpserver"
