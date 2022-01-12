@@ -4,12 +4,12 @@
 use std::{collections::HashMap, convert::Infallible, sync::Arc, time::Duration};
 use tokio::sync::RwLock;
 
+use log::info;
 use nats::asynk::{self, Connection};
 use serde::{Deserialize, Serialize};
 use wascap::prelude::KeyPair;
 use wasmbus_rpc::provider::prelude::*;
 use wasmcloud_control_interface::*;
-use log::info;
 
 const DEFAULT_NATS_URI: &str = "0.0.0.0:4222";
 const ENV_NATS_URI: &str = "URI";
