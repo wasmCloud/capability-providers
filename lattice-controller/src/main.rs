@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use wascap::prelude::KeyPair;
 use wasmbus_rpc::provider::prelude::*;
 use wasmcloud_control_interface::*;
+use log::info;
 
 const DEFAULT_NATS_URI: &str = "0.0.0.0:4222";
 const ENV_NATS_URI: &str = "URI";
@@ -330,6 +331,7 @@ impl LatticeController for LatticeControllerProvider {
             .scale_actor(
                 &arg.host_id,
                 &arg.actor_ref,
+                &arg.actor_id,
                 arg.count,
                 arg.annotations.clone(),
             )
