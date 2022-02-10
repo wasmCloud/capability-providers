@@ -2,7 +2,7 @@
 
 PROJECT = sqldb-postgres
 CAPABILITY_ID = "wasmcloud:sqldb"
-NAME = "SqlDb-Postgres"
+NAME = "SqlDb Postgres"
 VENDOR = "wasmcloud"
 VERSION = 0.1.0
 REVISION = 0
