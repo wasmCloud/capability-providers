@@ -53,7 +53,7 @@ async fn get_request(_opt: &TestOptions) -> RpcResult<()> {
 
     let body = String::from_utf8_lossy(&resp.body);
     assert!(
-        body.contains("DOCTYPE html"),
+        body.contains("doctype html"),
         "expected to get html doc: {}",
         &body
     );
