@@ -46,7 +46,7 @@ async fn get_request(_opt: &TestOptions) -> RpcResult<()> {
     let ctx = Context::default();
 
     let resp = client
-        .request(&ctx, &HttpRequest::get("https://1.1.1.1/"))
+        .request(&ctx, &HttpRequest::get("https://google.com/"))
         .await?;
     assert_eq!(resp.status_code, 200, "status code");
     assert!(resp.header.get("content-type").is_some());
