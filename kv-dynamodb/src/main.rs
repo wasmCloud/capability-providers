@@ -18,7 +18,7 @@ use wasmcloud_interface_keyvalue::{
     ListRangeRequest, SetAddRequest, SetDelRequest, SetRequest, StringList,
 };
 
-use kv_dynamodb_lib::{AwsDynamoConfig, DynamoDbClient};
+use kv_dynamodb_lib::{AwsConfig, DynamoDbClient};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // handle lattice control messages and forward rpc to the provider dispatch
@@ -63,7 +63,7 @@ impl ProviderHandler for KvDynamoProvider {
     /// including setting up per-actor resources, and checking authorization.
     /// If the link is allowed, return true, otherwise return false to deny the link.
     async fn put_link(&self, ld: &LinkDefinition) -> RpcResult<bool> {
-        let config = AwsDynamoConfig::from_values(&ld.values)?;
+        let config = AwsConfig::from_values(&ld.values)?;
         let link = DynamoDbClient::new(config, Some(ld.clone())).await;
 
         let mut update_map = self.actors.write().await;
@@ -138,27 +138,7 @@ impl KeyValue for KvDynamoProvider {
         arg: &TS,
     ) -> RpcResult<GetResponse> {
         let client = self.client(ctx).await?;
-        match client.client
-            .get_item()
-            .table_name(client.table_name)
-            .key(client.key_attribute, AttributeValue::S(arg.to_string()))
-            .send()
-            .await {
-
-            Ok(response) => {
-                let v = response.clone().item
-                    .map(|i| i.get(client.value_attribute.as_str())
-                        .map(|a| a.as_s().unwrap().to_string())).unwrap();
-
-                Ok(GetResponse {
-                    value: v.clone().unwrap_or("".to_string()),
-                    exists: v.clone().is_some()
-                })
-            }
-            Err(e) => Err(RpcError::Other(e.to_string()))
-        }
-
-
+        unimplemented!()
     }
 
     /// Append a value onto the end of a list. Returns the new list size

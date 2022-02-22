@@ -9,7 +9,7 @@
 //! settings fom `sts_config` will be used to create a session for the assumed role
 //!
 use aws_types::{
-    config::Config as AwsConfig, credentials::SharedCredentialsProvider, region::Region,
+    config::Config, credentials::SharedCredentialsProvider, region::Region,
 };
 use serde::Deserialize;
 use std::{collections::HashMap, env};
@@ -20,9 +20,15 @@ const DEFAULT_STS_SESSION: &str = "kv_dynamodb_provider";
 /// Configuration for connecting to AWS.
 ///
 #[derive(Clone, Default, Deserialize)]
-pub struct AwsDynamoConfig {
+pub struct AwsConfig {
+    /// name of the DynamoDB Table to be used
     pub table_name: String,
+    /// name of the attribute within the table that is treated as the key
+    /// MUST be the partition key of the table
+    /// ONLY keys of type STRING are supported at time of writing
     pub key_attribute: String,
+    /// name of the attribute within the table that is treated as the value
+    /// ONLY values of type STRING are supported at time of writing
     pub value_attribute: String,
     /// AWS_ACCESS_KEY_ID, can be specified from environment
     pub access_key_id: Option<String>,
@@ -51,20 +57,20 @@ pub struct StsAssumeRoleConfig {
     pub external_id: Option<String>,
 }
 
-impl AwsDynamoConfig {
+impl AwsConfig {
     /// initialize from linkdef values
-    pub fn from_values(values: &HashMap<String, String>) -> RpcResult<AwsDynamoConfig> {
+    pub fn from_values(values: &HashMap<String, String>) -> RpcResult<AwsConfig> {
         let mut config = if let Some(config_b64) = values.get("config_b64") {
             let bytes = base64::decode(config_b64.as_bytes()).map_err(|e| {
                 RpcError::InvalidParameter(format!("invalid base64 encoding: {}", e))
             })?;
-            serde_json::from_slice::<AwsDynamoConfig>(&bytes)
+            serde_json::from_slice::<AwsConfig>(&bytes)
                 .map_err(|e| RpcError::InvalidParameter(format!("corrupt config_b64: {}", e)))?
         } else if let Some(config) = values.get("config_json") {
-            serde_json::from_str::<AwsDynamoConfig>(config)
+            serde_json::from_str::<AwsConfig>(config)
                 .map_err(|e| RpcError::InvalidParameter(format!("corrupt config_json: {}", e)))?
         } else {
-            AwsDynamoConfig::default()
+            AwsConfig::default()
         };
         if let Ok(arn) = env::var("AWS_ASSUME_ROLE_ARN") {
             let mut sts_config = config.sts_config.unwrap_or_default();
@@ -83,7 +89,7 @@ impl AwsDynamoConfig {
         Ok(config)
     }
 
-    pub async fn configure_aws(self) -> AwsConfig {
+    pub async fn configure_aws(self) -> Config {
         use aws_config::{
             default_provider::{credentials::DefaultCredentialsChain, region::DefaultRegionChain},
             sts::AssumeRoleProvider,
