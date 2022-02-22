@@ -8,6 +8,7 @@ use log::debug;
 use serde::Deserialize;
 use wasmbus_rpc::core::LinkDefinition;
 use wasmbus_rpc::error::{RpcError, RpcResult};
+use wasmbus_rpc::RpcError::Rpc;
 use wasmcloud_interface_keyvalue::GetResponse;
 
 pub use config::AwsConfig;
@@ -51,6 +52,7 @@ impl DynamoDbClient {
     }
 
     pub async fn get<TS: ToString + ?Sized + Sync>(&self, arg: &TS) -> RpcResult<GetResponse> {
+        let &attribute_value = &self.value_attribute.as_str();
         match self.client.get_item()
             .table_name(&self.table_name)
             .key(&self.key_attribute, AttributeValue::S(arg.to_string()))
@@ -58,29 +60,23 @@ impl DynamoDbClient {
             .await {
             Ok(response) => {
 
-                let &attribute_value = &self.value_attribute.as_str();
-
                 // Option<HashMap<String,AttributeValue>> -> Option<Option<&AttributeValue>>
-                let v1 = response.item
-                    .map(|i| i
-                        .get(attribute_value)); // ERROR: returns a reference to data owned by the current function
-
-                // Flatten out the nested Options
-                let v2 = v1.flatten();
-
-                // Get a value instead of a reference
-                let v3 = v2.cloned();
-
-                // Oof, now we have an Option<Result<...>>
-                let v4 = v3.map(|av| av.as_s()); // ERROR: returns a reference to data owned by the current function
-
-                // Here's where I give up and call an unwrap
-                let v5 = v4.map(|result| result.unwrap().clone());
-
-                Ok(GetResponse {
-                    value: v5.clone().unwrap_or("".to_string()),
-                    exists: v5.clone().is_some(),
-                })
+                if let Some(item) = response.item {
+                    if let Some(attr) = item.get(attribute_value).cloned() {
+                        if let Ok(v) = attr.as_s() {
+                            Ok(GetResponse {
+                                value: v.to_string(),
+                                exists: true
+                            })
+                        } else {
+                            Err(RpcError::Other("value not string".to_string()))
+                        }
+                    } else {
+                        Err(RpcError::Other("item not found".to_string()))
+                    }
+                } else {
+                    Err(RpcError::Other("item not found".to_string()))
+                }
             }
 
             Err(e) => Err(RpcError::Other(e.to_string()))
