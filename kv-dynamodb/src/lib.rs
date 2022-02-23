@@ -50,7 +50,7 @@ impl DynamoDbClient {
     }
 
     pub async fn get<TS: ToString + ?Sized + Sync>(&self, key: &TS) -> RpcResult<GetResponse> {
-        let &attribute_value = &self.value_attribute.as_str();
+        let &value_attribute = &self.value_attribute.as_str();
         match self
             .client
             .get_item()
@@ -60,26 +60,30 @@ impl DynamoDbClient {
             .await
         {
             Ok(response) => {
-                let item = response.item.ok_or(RpcError::Other(format!(
-                    "no record found for key: {}",
-                    key.to_string()
-                )))?;
+                response.item
+                    .map(|i| {
+                        let av = i.get(value_attribute).ok_or(RpcError::Other(format!(
+                            "record for key {} as no value attribute {}",
+                            key.to_string(),
+                            value_attribute
+                        )))?;
 
-                let av = item.get(attribute_value).ok_or(RpcError::Other(format!(
-                    "record for key {} as no value attribute {}",
-                    key.to_string(),
-                    attribute_value
-                )))?;
+                        let value = av.as_s()
+                            .map_err(|_| RpcError::Other((format!(
+                                "record for key {} has non-string value attribute {} - only string values are supported at this time",
+                                key.to_string(), value_attribute))))?;
 
-                let value = av.as_s()
-                    .map_err(|_| RpcError::Other((format!(
-                        "record for key {} has non-string value attribute {} - only string values are supported at this time",
-                        key.to_string(), attribute_value))))?;
-
-                Ok(GetResponse {
-                    value: value.to_string(),
-                    exists: true,
-                })
+                        Ok(GetResponse {
+                            value: value.to_string(),
+                            exists: true,
+                        })
+                    })
+                    .unwrap_or((Ok(
+                        GetResponse {
+                            value: "".to_string(),
+                            exists: false,
+                        }
+                    )))
             }
 
             Err(e) => Err(RpcError::Other(e.to_string())),
