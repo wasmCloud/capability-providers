@@ -8,9 +8,7 @@
 //! will be used to create in initial environment, and then the
 //! settings fom `sts_config` will be used to create a session for the assumed role
 //!
-use aws_types::{
-    config::Config, credentials::SharedCredentialsProvider, region::Region,
-};
+use aws_types::{config::Config, credentials::SharedCredentialsProvider, region::Region};
 use serde::Deserialize;
 use std::{collections::HashMap, env};
 use wasmbus_rpc::error::{RpcError, RpcResult};

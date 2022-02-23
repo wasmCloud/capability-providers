@@ -1,9 +1,7 @@
 use std::{collections::HashMap, env};
 
 use aws_sdk_dynamodb::model::AttributeValue;
-use aws_types::{
-    config::Config, credentials::SharedCredentialsProvider, region::Region,
-};
+use aws_types::{config::Config, credentials::SharedCredentialsProvider, region::Region};
 use log::debug;
 use serde::Deserialize;
 use wasmbus_rpc::core::LinkDefinition;
@@ -51,38 +49,40 @@ impl DynamoDbClient {
         // we would delete those here
     }
 
-    pub async fn get<TS: ToString + ?Sized + Sync>(&self, arg: &TS) -> RpcResult<GetResponse> {
+    pub async fn get<TS: ToString + ?Sized + Sync>(&self, key: &TS) -> RpcResult<GetResponse> {
         let &attribute_value = &self.value_attribute.as_str();
-        match self.client.get_item()
+        match self
+            .client
+            .get_item()
             .table_name(&self.table_name)
-            .key(&self.key_attribute, AttributeValue::S(arg.to_string()))
+            .key(&self.key_attribute, AttributeValue::S(key.to_string()))
             .send()
-            .await {
+            .await
+        {
             Ok(response) => {
+                let item = response.item.ok_or(RpcError::Other(format!(
+                    "no record found for key: {}",
+                    key.to_string()
+                )))?;
 
-                // Option<HashMap<String,AttributeValue>> -> Option<Option<&AttributeValue>>
-                if let Some(item) = response.item {
-                    if let Some(attr) = item.get(attribute_value).cloned() {
-                        if let Ok(v) = attr.as_s() {
-                            Ok(GetResponse {
-                                value: v.to_string(),
-                                exists: true
-                            })
-                        } else {
-                            Err(RpcError::Other("value not string".to_string()))
-                        }
-                    } else {
-                        Err(RpcError::Other("item not found".to_string()))
-                    }
-                } else {
-                    Err(RpcError::Other("item not found".to_string()))
-                }
+                let av = item.get(attribute_value).ok_or(RpcError::Other(format!(
+                    "record for key {} as no value attribute {}",
+                    key.to_string(),
+                    attribute_value
+                )))?;
+
+                let value = av.as_s()
+                    .map_err(|_| RpcError::Other((format!(
+                        "record for key {} has non-string value attribute {} - only string values are supported at this time",
+                        key.to_string(), attribute_value))))?;
+
+                Ok(GetResponse {
+                    value: value.to_string(),
+                    exists: true,
+                })
             }
 
-            Err(e) => Err(RpcError::Other(e.to_string()))
+            Err(e) => Err(RpcError::Other(e.to_string())),
         }
     }
 }
-
-
-
