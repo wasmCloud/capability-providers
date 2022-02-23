@@ -1,11 +1,10 @@
 //! DynamoDB implementation for wasmcloud:keyvalue.
 //!
 //! This implementation is multi-threaded and operations between different actors
-//! use different connections and can run in parallel.
+//! use different clients and can run in parallel.
 //! A single connection is shared by all instances of the same actor id (public key),
 //! so there may be some brief lock contention if several instances of the same actor
-//! are simultaneously attempting to communicate with Dynamo. See documentation
-//! on the [exec](#exec) function for more information.
+//! are simultaneously attempting to communicate with Dynamo.
 //!
 //!
 use std::{collections::HashMap, convert::Infallible, sync::Arc};
@@ -91,40 +90,29 @@ impl ProviderHandler for KvDynamoProvider {
     }
 }
 
-// There are two api styles you can use for invoking redis. You can build any raw command
-// as a string command and a sequence of args:
-// ```
-//     let mut cmd = redis::cmd("SREM");
-//     let value: u32 = self.exec(ctx, &mut cmd.arg(&arg.set_name).arg(&arg.value)).await?;
-// ```
-// or you can call a method on Cmd, as in
-// ```
-//     let mut cmd = redis::Cmd::srem(&arg.set_name, &arg.value);
-//     let value: u32 = self.exec(ctx, &mut cmd).await?;
-//```
-// The latter api style has better rust compile-time type checking for args.
-// The rust docs for cmd and Cmd don't document arg types or return types.
-// For that, you need to look at https://redis.io/commands#
-
-/// Handle KeyValue methods that interact with redis
+/// Handle KeyValue methods that interact with DynamoDB
 #[async_trait]
 impl KeyValue for KvDynamoProvider {
     /// Increments a numeric value, returning the new value
-    async fn increment(&self, ctx: &Context, arg: &IncrementRequest) -> RpcResult<i32> {
+    async fn increment(&self, _ctx: &Context, _arg: &IncrementRequest) -> RpcResult<i32> {
         todo!()
     }
 
     /// Returns true if the store contains the key
     async fn contains<TS: ToString + ?Sized + Sync>(
         &self,
-        ctx: &Context,
-        arg: &TS,
+        _ctx: &Context,
+        _arg: &TS,
     ) -> RpcResult<bool> {
         todo!()
     }
 
     /// Deletes a key, returning true if the key was deleted
-    async fn del<TS: ToString + ?Sized + Sync>(&self, ctx: &Context, arg: &TS) -> RpcResult<bool> {
+    async fn del<TS: ToString + ?Sized + Sync>(
+        &self,
+        _ctx: &Context,
+        _arg: &TS,
+    ) -> RpcResult<bool> {
         todo!()
     }
 
@@ -141,7 +129,7 @@ impl KeyValue for KvDynamoProvider {
     }
 
     /// Append a value onto the end of a list. Returns the new list size
-    async fn list_add(&self, ctx: &Context, arg: &ListAddRequest) -> RpcResult<u32> {
+    async fn list_add(&self, _ctx: &Context, _arg: &ListAddRequest) -> RpcResult<u32> {
         todo!()
     }
 
@@ -150,14 +138,14 @@ impl KeyValue for KvDynamoProvider {
     /// returns: true if the list existed and was deleted
     async fn list_clear<TS: ToString + ?Sized + Sync>(
         &self,
-        ctx: &Context,
-        arg: &TS,
+        _ctx: &Context,
+        _arg: &TS,
     ) -> RpcResult<bool> {
         todo!()
     }
 
     /// Deletes an item from a list. Returns true if the item was removed.
-    async fn list_del(&self, ctx: &Context, arg: &ListDelRequest) -> RpcResult<bool> {
+    async fn list_del(&self, _ctx: &Context, _arg: &ListDelRequest) -> RpcResult<bool> {
         todo!()
     }
 
@@ -165,7 +153,7 @@ impl KeyValue for KvDynamoProvider {
     /// Start and end values are inclusive, for example, (0,10) returns
     /// 11 items if the list contains at least 11 items. If the stop value
     /// is beyond the end of the list, it is treated as the end of the list.
-    async fn list_range(&self, ctx: &Context, arg: &ListRangeRequest) -> RpcResult<StringList> {
+    async fn list_range(&self, _ctx: &Context, _arg: &ListRangeRequest) -> RpcResult<StringList> {
         todo!()
     }
 
@@ -174,36 +162,36 @@ impl KeyValue for KvDynamoProvider {
     /// or 0 for no expiration.
     async fn set(&self, ctx: &Context, arg: &SetRequest) -> RpcResult<()> {
         let client = self.client(ctx).await?;
-        todo!()
+        client.set(arg).await
     }
 
     /// Add an item into a set. Returns number of items added
-    async fn set_add(&self, ctx: &Context, arg: &SetAddRequest) -> RpcResult<u32> {
+    async fn set_add(&self, _ctx: &Context, _arg: &SetAddRequest) -> RpcResult<u32> {
         todo!()
     }
 
     /// Remove a item from the set. Returns
-    async fn set_del(&self, ctx: &Context, arg: &SetDelRequest) -> RpcResult<u32> {
+    async fn set_del(&self, _ctx: &Context, _arg: &SetDelRequest) -> RpcResult<u32> {
         todo!()
     }
 
     async fn set_intersection(
         &self,
-        ctx: &Context,
-        arg: &StringList,
+        _ctx: &Context,
+        _arg: &StringList,
     ) -> Result<StringList, RpcError> {
         todo!()
     }
 
     async fn set_query<TS: ToString + ?Sized + Sync>(
         &self,
-        ctx: &Context,
-        arg: &TS,
+        _ctx: &Context,
+        _arg: &TS,
     ) -> RpcResult<StringList> {
         todo!()
     }
 
-    async fn set_union(&self, ctx: &Context, arg: &StringList) -> RpcResult<StringList> {
+    async fn set_union(&self, _ctx: &Context, _arg: &StringList) -> RpcResult<StringList> {
         todo!()
     }
 
@@ -212,8 +200,8 @@ impl KeyValue for KvDynamoProvider {
     /// returns: true if the set existed and was deleted
     async fn set_clear<TS: ToString + ?Sized + Sync>(
         &self,
-        ctx: &Context,
-        arg: &TS,
+        _ctx: &Context,
+        _arg: &TS,
     ) -> RpcResult<bool> {
         todo!()
     }
