@@ -28,6 +28,9 @@ pub struct AwsConfig {
     /// name of the attribute within the table that is treated as the value
     /// ONLY values of type STRING are supported at time of writing
     pub value_attribute: String,
+    /// name of the attribute within the table that is treated as the ttl
+    /// NOTE: If this is not specified, requests to set a value with expiration will fail
+    pub ttl_attribute: Option<String>,
     /// AWS_ACCESS_KEY_ID, can be specified from environment
     pub access_key_id: Option<String>,
     /// AWS_SECRET_ACCESS_KEY, can be in environment

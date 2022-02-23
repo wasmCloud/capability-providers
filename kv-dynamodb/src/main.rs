@@ -10,7 +10,6 @@
 //!
 use std::{collections::HashMap, convert::Infallible, sync::Arc};
 
-use aws_sdk_dynamodb::model::AttributeValue;
 use tokio::sync::RwLock;
 use wasmbus_rpc::provider::prelude::*;
 use wasmcloud_interface_keyvalue::{
@@ -112,7 +111,7 @@ impl ProviderHandler for KvDynamoProvider {
 impl KeyValue for KvDynamoProvider {
     /// Increments a numeric value, returning the new value
     async fn increment(&self, ctx: &Context, arg: &IncrementRequest) -> RpcResult<i32> {
-        unimplemented!()
+        todo!()
     }
 
     /// Returns true if the store contains the key
@@ -121,12 +120,12 @@ impl KeyValue for KvDynamoProvider {
         ctx: &Context,
         arg: &TS,
     ) -> RpcResult<bool> {
-        unimplemented!()
+        todo!()
     }
 
     /// Deletes a key, returning true if the key was deleted
     async fn del<TS: ToString + ?Sized + Sync>(&self, ctx: &Context, arg: &TS) -> RpcResult<bool> {
-        unimplemented!()
+        todo!()
     }
 
     /// Gets a value for a specified key. If the key exists,
@@ -138,12 +137,12 @@ impl KeyValue for KvDynamoProvider {
         arg: &TS,
     ) -> RpcResult<GetResponse> {
         let client = self.client(ctx).await?;
-        unimplemented!()
+        client.get(arg).await
     }
 
     /// Append a value onto the end of a list. Returns the new list size
     async fn list_add(&self, ctx: &Context, arg: &ListAddRequest) -> RpcResult<u32> {
-        unimplemented!()
+        todo!()
     }
 
     /// Deletes a list and its contents
@@ -154,12 +153,12 @@ impl KeyValue for KvDynamoProvider {
         ctx: &Context,
         arg: &TS,
     ) -> RpcResult<bool> {
-        unimplemented!()
+        todo!()
     }
 
     /// Deletes an item from a list. Returns true if the item was removed.
     async fn list_del(&self, ctx: &Context, arg: &ListDelRequest) -> RpcResult<bool> {
-        unimplemented!()
+        todo!()
     }
 
     /// Retrieves a range of values from a list using 0-based indices.
@@ -167,24 +166,45 @@ impl KeyValue for KvDynamoProvider {
     /// 11 items if the list contains at least 11 items. If the stop value
     /// is beyond the end of the list, it is treated as the end of the list.
     async fn list_range(&self, ctx: &Context, arg: &ListRangeRequest) -> RpcResult<StringList> {
-        unimplemented!()
+        todo!()
     }
 
     /// Sets the value of a key.
     /// expires is an optional number of seconds before the value should be automatically deleted,
     /// or 0 for no expiration.
     async fn set(&self, ctx: &Context, arg: &SetRequest) -> RpcResult<()> {
-        unimplemented!()
+        let client = self.client(ctx).await?;
+        todo!()
     }
 
     /// Add an item into a set. Returns number of items added
     async fn set_add(&self, ctx: &Context, arg: &SetAddRequest) -> RpcResult<u32> {
-        unimplemented!()
+        todo!()
     }
 
     /// Remove a item from the set. Returns
     async fn set_del(&self, ctx: &Context, arg: &SetDelRequest) -> RpcResult<u32> {
-        unimplemented!()
+        todo!()
+    }
+
+    async fn set_intersection(
+        &self,
+        ctx: &Context,
+        arg: &StringList,
+    ) -> Result<StringList, RpcError> {
+        todo!()
+    }
+
+    async fn set_query<TS: ToString + ?Sized + Sync>(
+        &self,
+        ctx: &Context,
+        arg: &TS,
+    ) -> RpcResult<StringList> {
+        todo!()
+    }
+
+    async fn set_union(&self, ctx: &Context, arg: &StringList) -> RpcResult<StringList> {
+        todo!()
     }
 
     /// Deletes a set and its contents
@@ -195,26 +215,6 @@ impl KeyValue for KvDynamoProvider {
         ctx: &Context,
         arg: &TS,
     ) -> RpcResult<bool> {
-        unimplemented!()
-    }
-
-    async fn set_intersection(
-        &self,
-        ctx: &Context,
-        arg: &StringList,
-    ) -> Result<StringList, RpcError> {
-        unimplemented!()
-    }
-
-    async fn set_query<TS: ToString + ?Sized + Sync>(
-        &self,
-        ctx: &Context,
-        arg: &TS,
-    ) -> RpcResult<StringList> {
-        unimplemented!()
-    }
-
-    async fn set_union(&self, ctx: &Context, arg: &StringList) -> RpcResult<StringList> {
-        unimplemented!()
+        todo!()
     }
 }

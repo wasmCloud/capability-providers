@@ -1,13 +1,10 @@
-use std::{collections::HashMap, env};
-
 use aws_sdk_dynamodb::model::AttributeValue;
-use aws_types::{config::Config, credentials::SharedCredentialsProvider, region::Region};
+use chrono::{Duration, Utc};
+use futures::TryFutureExt;
 use log::debug;
-use serde::Deserialize;
 use wasmbus_rpc::core::LinkDefinition;
 use wasmbus_rpc::error::{RpcError, RpcResult};
-use wasmbus_rpc::RpcError::Rpc;
-use wasmcloud_interface_keyvalue::GetResponse;
+use wasmcloud_interface_keyvalue::{GetResponse, SetRequest};
 
 pub use config::AwsConfig;
 
@@ -19,6 +16,7 @@ pub struct DynamoDbClient {
     table_name: String,
     key_attribute: String,
     value_attribute: String,
+    ttl_attribute: Option<String>,
     pub link: Option<LinkDefinition>,
 }
 
@@ -31,6 +29,7 @@ impl DynamoDbClient {
             table_name: config.table_name.clone(),
             key_attribute: config.key_attribute.clone(),
             value_attribute: config.value_attribute.clone(),
+            ttl_attribute: config.ttl_attribute.clone(),
             link: ld,
         }
     }
@@ -50,40 +49,73 @@ impl DynamoDbClient {
     }
 
     pub async fn get<TS: ToString + ?Sized + Sync>(&self, key: &TS) -> RpcResult<GetResponse> {
-        match self
+        let sdk_response = self
             .client
             .get_item()
             .table_name(&self.table_name)
             .key(&self.key_attribute, AttributeValue::S(key.to_string()))
             .send()
-            .await
-        {
-            Err(e) => Err(RpcError::Other(e.to_string())),
-            Ok(response) => match response.item {
-                None => Ok(GetResponse {
-                    value: "".to_string(),
-                    exists: false,
-                }),
-                Some(i) => {
-                    let av =
-                        i.get(self.value_attribute.as_str())
-                            .ok_or(RpcError::Other(format!(
-                                "record for key {} as no value attribute {}",
-                                key.to_string(),
-                                self.value_attribute.as_str()
-                            )))?;
+            .map_err(|e| RpcError::Other(e.to_string()))
+            .await?;
 
-                    let value = av.as_s()
-                            .map_err(|_| RpcError::Other((format!(
-                                "record for key {} has non-string value attribute {} - only string values are supported at this time",
-                                key.to_string(), self.value_attribute.as_str()))))?;
+        match sdk_response.item {
+            Some(i) => {
+                let av = i.get(self.value_attribute.as_str()).ok_or_else(|| {
+                    RpcError::Other(format!(
+                        "record for key {} as no value attribute {}",
+                        key.to_string(),
+                        self.value_attribute
+                    ))
+                })?;
 
-                    Ok(GetResponse {
-                        value: value.to_string(),
-                        exists: true,
-                    })
-                }
-            },
+                let value = av.as_s()
+                    .map_err(|_| RpcError::Other(format!(
+                        "record for key {} has non-string value attribute {} - only string values are supported at this time",
+                        key.to_string(), self.value_attribute)))?;
+
+                Ok(GetResponse {
+                    value: value.to_string(),
+                    exists: true,
+                })
+            }
+            None => Ok(GetResponse {
+                value: "".to_string(),
+                exists: false,
+            }),
         }
+    }
+
+    pub async fn set(&self, arg: &SetRequest) -> RpcResult<()> {
+        let mut put_item_request = self
+            .client
+            .put_item()
+            .table_name(&self.table_name)
+            .item(&self.key_attribute, AttributeValue::S(arg.key.to_string()))
+            .item(
+                &self.value_attribute,
+                AttributeValue::S(arg.value.to_string()),
+            );
+
+        put_item_request = match (arg.expires, &self.ttl_attribute) {
+            (0, _) => Ok(put_item_request),
+            (_, None) => Err(RpcError::Other(
+                "set request with expiry without configured ttl attribute".to_string(),
+            )),
+            (expiry, Some(ttl_attribute)) => {
+                let expiry_timestamp =
+                    Utc::now().timestamp() + Duration::seconds(expiry.into()).num_seconds();
+                Ok(put_item_request.item(
+                    ttl_attribute,
+                    AttributeValue::N(expiry_timestamp.to_string()),
+                ))
+            }
+        }?;
+
+        put_item_request
+            .send()
+            .map_err(|e| RpcError::Other(e.to_string()))
+            .await?;
+
+        Ok(())
     }
 }
