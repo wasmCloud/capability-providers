@@ -21,6 +21,13 @@ pub struct Config {
     pub certs: Vec<String>,
 }
 
+impl Default for Config {
+    /// default constructor - Gets all values from environment & defaults
+    fn default() -> Self {
+        Self::from_values(&HashMap::new()).unwrap()
+    }
+}
+
 impl Config {
     /// initialize from linkdef values, environment, and defaults
     pub fn from_values(values: &HashMap<String, String>) -> RpcResult<Config> {

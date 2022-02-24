@@ -1,6 +1,6 @@
 //! Tests kv-vault
 //!
-use kv_vault_lib::wasmcloud_interface_keyvalue::*;
+use kv_vault_lib::{wasmcloud_interface_keyvalue::*, STRING_VALUE_MARKER};
 use wasmbus_rpc::{provider::prelude::Context, RpcResult};
 use wasmcloud_test_util::{
     check, check_eq,
@@ -13,7 +13,7 @@ use wasmcloud_test_util::{
 #[tokio::test]
 async fn run_all() {
     let opts = TestOptions::default();
-    let res = run_selected_spawn!(&opts, health_check, get_set, contains_del,);
+    let res = run_selected_spawn!(&opts, health_check, get_set, contains_del, json_values,);
     print_test_results(&res);
 
     let passed = res.iter().filter(|tr| tr.passed).count();
@@ -117,6 +117,54 @@ async fn contains_del(_opt: &TestOptions) -> RpcResult<()> {
     let _ = kv.del(&ctx, &key).await?;
     let has_key_after_del = kv.contains(&ctx, &key).await?;
     check_eq!(has_key_after_del, false)?;
+
+    Ok(())
+}
+
+/// tests json serialization of values
+async fn json_values(_opt: &TestOptions) -> RpcResult<()> {
+    use std::collections::HashMap;
+
+    let prov = test_provider().await;
+    env_logger::try_init().ok();
+
+    let vault_direct = kv_vault_lib::client::Client::new(kv_vault_lib::config::Config::default())
+        .expect("client from defaults");
+
+    // test pulling data when other processes have saved json data
+    let mut map1 = HashMap::new();
+    map1.insert("foo".to_string(), "bar".to_string());
+    vault_direct
+        .write_secret("test_map_foo", &map1)
+        .await
+        .expect("write map1");
+
+    let mut map2 = HashMap::new();
+    map2.insert(STRING_VALUE_MARKER.to_string(), "42".to_string());
+    vault_direct
+        .write_secret("test_map_data", &map2)
+        .await
+        .expect("write map2");
+
+    // create client and ctx
+    let kv = KeyValueSender::via(prov);
+    let ctx = Context::default();
+
+    let get_map1 = kv.get(&ctx, "test_map_foo").await.expect("get map1");
+    check!(get_map1.exists).expect("get map1 exists");
+    check_eq!(get_map1.value.as_str(), r#"{"foo":"bar"}"#).expect("expected json map");
+
+    let get_map2 = kv.get(&ctx, "test_map_data").await.expect("get map2");
+    check!(get_map2.exists).expect("get map2");
+    check_eq!(get_map2.value.as_str(), "42").expect("map2 expect data value 42");
+
+    // clean up
+    kv.del(&ctx, "test_map_foo")
+        .await
+        .expect("delete test_map_foo");
+    kv.del(&ctx, "test_map_data")
+        .await
+        .expect("delete test_map_data");
 
     Ok(())
 }

@@ -25,6 +25,7 @@ If a setting is provided in the linkdef and in the environment, the environment 
 This provider does not support all wasmcloud:keyvalue interface operations.
 Unimplemented operations return RpcError::NotImplemented.
 
+Vault stores values as json values.
 
 | Operation       | Result                                                                                                                                                                                                              |
 |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| 

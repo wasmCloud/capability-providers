@@ -8,8 +8,9 @@ use kv_vault_lib::{
         GetResponse, IncrementRequest, KeyValue, KeyValueReceiver, ListAddRequest, ListDelRequest,
         ListRangeRequest, SetAddRequest, SetDelRequest, SetRequest, StringList,
     },
+    STRING_VALUE_MARKER,
 };
-use log::{debug, info, warn};
+use log::{debug, info};
 use std::collections::HashMap;
 use tokio::sync::RwLock;
 use wasmbus_rpc::provider::prelude::*;
@@ -110,36 +111,40 @@ impl KeyValue for KvVaultProvider {
         }
     }
 
-    /// Gets a value for a specified key. If the key exists,
-    /// the return structure contains exists: true and the value,
-    /// otherwise the return structure contains exists == false.
+    /// Gets a value for a specified key. Deserialize the value as json
+    /// if it's a map containing the key STRING_VALUE_MARKER, with a sting value, return the value
+    /// If it's any other map, the entire map is returned as a serialized json string
+    /// If the stored value is a plain string, returns the plain value
+    /// All other values are returned as serialized json
     async fn get<TS: ToString + ?Sized + Sync>(
         &self,
         ctx: &Context,
         arg: &TS,
     ) -> RpcResult<GetResponse> {
+        use serde_json::Value;
         let client = self.get_client(ctx).await?;
-        match client
-            .read_secret::<HashMap<String, String>>(&arg.to_string())
-            .await
-        {
-            Ok(map) => {
-                if let Some(val) = map.get("data") {
+        match client.read_secret::<Value>(&arg.to_string()).await {
+            Ok(Value::Object(map)) => {
+                if let Some(Value::String(value)) = map.get(STRING_VALUE_MARKER) {
                     Ok(GetResponse {
-                        value: val.clone(),
+                        value: value.clone(),
                         exists: true,
                     })
                 } else {
-                    warn!(
-                        "unexpected missing hashmap/data at key {}",
-                        &arg.to_string()
-                    );
                     Ok(GetResponse {
-                        exists: false,
-                        ..Default::default()
+                        value: serde_json::to_string(&map).unwrap(),
+                        exists: true,
                     })
                 }
             }
+            Ok(Value::String(value)) => Ok(GetResponse {
+                value,
+                exists: true,
+            }),
+            Ok(value) => Ok(GetResponse {
+                value: serde_json::to_string(&value).unwrap(),
+                exists: true,
+            }),
             Err(VaultError::NotFound { namespace, path }) => {
                 debug!(
                     "vault read NotFound error ns:{}, path:{}",
@@ -189,10 +194,17 @@ impl KeyValue for KvVaultProvider {
     /// Sets the value of a key.
     /// expiration times are not supported by this api and should be 0.
     async fn set(&self, ctx: &Context, arg: &SetRequest) -> RpcResult<()> {
+        use serde_json::Value;
         let client = self.get_client(ctx).await?;
-        let mut data = HashMap::new();
-        data.insert("data".to_string(), arg.value.clone());
-        match client.write_secret(&arg.key, &data).await {
+        let value: Value = serde_json::from_str(&arg.value).unwrap_or_else(|_| {
+            let mut map = serde_json::Map::new();
+            map.insert(
+                STRING_VALUE_MARKER.to_string(),
+                Value::String(arg.value.clone()),
+            );
+            Value::Object(map)
+        });
+        match client.write_secret(&arg.key, &value).await {
             Ok(metadata) => {
                 debug!("set returned metadata: {:#?}", &metadata);
                 Ok(())
