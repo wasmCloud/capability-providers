@@ -17,7 +17,7 @@ The following configuration settings can be set in a link definition or in envir
 If either `certs` or `VAULT_CACERT` is set, the provider will use TLS to connect to Vault (and the `addr`(VAULT_ADDR) url should begin with `https:`),
 otherwise TLS will be disabled (and `addr`(VAULT_ADDR) should begin with `http:`).
 
-For convenience, link setting naems may be provided in uppercase or lowercase. Environment variable names are all-caps.
+For convenience, link setting names may be provided in uppercase or lowercase. Environment variable names are all-caps.
 If a setting is provided in the linkdef and in the environment, the environment value takes precedence.
 
 ## Supported KeyValue operations
