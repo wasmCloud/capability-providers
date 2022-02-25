@@ -1,9 +1,9 @@
-# capability-provider/redis/Makefile
+# capability-provider/kv-dynamodb/Makefile
 
-PROJECT = kvredis
+PROJECT = kv_dynamodb
 CAPABILITY_ID = wasmcloud:keyvalue
 VENDOR   = "wasmCloud"
-NAME     = "Redis KeyValue Store"
+NAME     = "DynamoDB KeyValue Store"
 VERSION  = $(shell cargo metadata --no-deps --format-version 1 | jq -r '.packages[] .version' | head -1)
 REVISION = 0
 oci_url  = localhost:5000/v2/$(PROJECT):$(VERSION)
@@ -11,5 +11,5 @@ oci_url  = localhost:5000/v2/$(PROJECT):$(VERSION)
 include ../build/makefiles/provider.mk
 
 test:
-	killall target/debug/kvredis || true
+	killall target/debug/kv_dynamodb || true
 	RUST_BACKTRACE=1 cargo test -- --nocapture

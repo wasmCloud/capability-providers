@@ -1,5 +1,5 @@
 [package]
-name = "wasmcloud-provider-kvredis"
+name = "wasmcloud-provider-kv-dynamodb"
 version = "0.14.9"
 edition = "2021"
 
