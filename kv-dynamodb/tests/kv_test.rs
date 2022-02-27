@@ -15,11 +15,7 @@ async fn run_all() {
     let res = run_selected_spawn!(
         &opts,
         health_check,
-        get_set,
-        contains_del,
-        incr,
-        lists,
-        sets
+        get_set
     );
     print_test_results(&res);
 
