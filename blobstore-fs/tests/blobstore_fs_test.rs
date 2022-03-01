@@ -1,4 +1,3 @@
-
 use wasmbus_rpc::provider::prelude::*;
 use wasmcloud_interface_blobstore::*;
 use wasmcloud_test_util::{
@@ -18,7 +17,8 @@ async fn run_all() {
         health_check, 
         create_find_and_remove_dir,
         create_dirs_and_list,
-        list_files_in_dirs,
+        upload_and_list_files_in_dirs,
+        upload_and_download_file,
         // upload_download_chunked_file,
         );
     print_test_results(&res);
@@ -57,7 +57,7 @@ async fn create_find_and_remove_dir(_opt: &TestOptions) -> RpcResult<()> {
     assert_eq!(resp, false);
 
     let resp2 = client.create_container(&ctx, &name).await;
-    
+
     assert_eq!(resp2, Ok(()));
 
     let resp3 = client.container_exists(&ctx, &name).await?;
@@ -95,7 +95,7 @@ async fn create_dirs_and_list(_opt: &TestOptions) -> RpcResult<()> {
 
     let resp2 = client.list_containers(&ctx).await?;
     assert_eq!(resp2.len(), 3);
-    
+
     let conts: ContainerIds = vec!["cont1".into(), "cont2".into(), "cont2/cont3".into()];
     let resp3 = client.remove_containers(&ctx, &conts).await?;
     for c in &resp3 {
@@ -110,8 +110,9 @@ async fn create_dirs_and_list(_opt: &TestOptions) -> RpcResult<()> {
 }
 
 
-// test that you can create objects (files) in directory (container) and list them
-async fn list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
+/// test that you can create objects (files) in directory (container) and list them
+/// This test also checks most other operations on individual objects.
+async fn upload_and_list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
     let prov = test_provider().await;
 
     // create client and ctx
@@ -127,7 +128,7 @@ async fn list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
     let file1_chunk = Chunk {
         object_id: "file1".into(),
         container_id: "cont1".into(),
-        bytes: vec![0,1,2,3,4,5],
+        bytes: vec![0, 1, 2, 3, 4, 5],
         is_last: true,
         offset: 0,
     };
@@ -137,13 +138,13 @@ async fn list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
         content_type: None,
     };
     let mut resp2 = client.put_object(&ctx, &upload_request).await;
-    assert_eq!(resp2, Ok(PutObjectResponse {stream_id: None}));
-    
+    assert_eq!(resp2, Ok(PutObjectResponse { stream_id: None }));
+
     // create and upload file2
     let file2_chunk = Chunk {
         object_id: "file2".into(),
         container_id: "cont1".into(),
-        bytes: vec![6,7,8,9,10,11],
+        bytes: vec![6, 7, 8, 9, 10, 11],
         is_last: true,
         offset: 0,
     };
@@ -153,7 +154,7 @@ async fn list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
         content_type: None,
     };
     resp2 = client.put_object(&ctx, &upload_request2).await;
-    assert_eq!(resp2, Ok(PutObjectResponse {stream_id: None}));
+    assert_eq!(resp2, Ok(PutObjectResponse { stream_id: None }));
 
     // list objects (files) in container cont1
     let mut list_object_request = ListObjectsRequest::default();
@@ -163,6 +164,29 @@ async fn list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
     assert_eq!(list_object_response.continuation, None);
     let objects = list_object_response.objects;
     assert_eq!(objects.len(), 2);
+
+    let mut container_object = ContainerObject {
+        container_id: "cont1".into(),
+        object_id: "file2x".into(),
+    };
+    let mut exist = client.object_exists(&ctx, &container_object).await?;
+    assert_eq!(exist, false);
+
+    container_object = ContainerObject {
+        container_id: "cont1".into(),
+        object_id: "file2".into(),
+    };
+    exist = client.object_exists(&ctx, &container_object).await?;
+    assert_eq!(exist, true);
+
+    let object_info = client.get_object_info(&ctx, &container_object).await?;
+    assert_eq!(object_info.container_id, "cont1".to_string());
+    assert_eq!(object_info.content_length, 6);
+    assert_eq!(object_info.object_id, "file2".to_string());
+
+    let container_info = client.get_container_info(&ctx, &"cont1".to_string()).await?;
+    assert_eq!(container_info.container_id, "cont1".to_string());
+    assert_ne!(container_info.created_at, None);
 
     // remove the objects in the container
     let remove_object_request = RemoveObjectsRequest {
@@ -179,7 +203,63 @@ async fn list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
     assert_eq!(objects.len(), 0);
 
     // remove container (which now should be rmpty)
-    let conts: ContainerIds = vec!["cont1".into(), ];
+    let conts: ContainerIds = vec!["cont1".into()];
+    let resp3 = client.remove_containers(&ctx, &conts).await?;
+    assert_eq!(resp3.len(), 0);
+
+    let resp4 = client.list_containers(&ctx).await?;
+    assert_eq!(resp4.len(), 0);
+
+    Ok(())
+}
+
+
+/// test that you can create objects (files) in directory (container) and list them
+/// This test also checks most other operations on individual objects.
+async fn upload_and_download_file(_opt: &TestOptions) -> RpcResult<()> {
+    let prov = test_provider().await;
+
+    // create client and ctx
+    let client = BlobstoreSender::via(prov);
+    let mut ctx = Context::default();
+    ctx.actor = Some("actor_test".into());
+
+    // Create container
+    let resp = client.create_container(&ctx, &"cont1".into()).await;
+    assert_eq!(resp, Ok(()));
+
+    // create and upload file1
+    let file1_chunk = Chunk {
+        object_id: "file1".into(),
+        container_id: "cont1".into(),
+        bytes: vec![0, 1, 2, 3, 4, 5],
+        is_last: true,
+        offset: 0,
+    };
+    let upload_request = PutObjectRequest {
+        chunk: file1_chunk.clone(),
+        content_encoding: None,
+        content_type: None,
+    };
+    let resp2 = client.put_object(&ctx, &upload_request).await;
+    assert_eq!(resp2, Ok(PutObjectResponse { stream_id: None }));
+
+    // file is created. Now retrieve it again using get_object
+    let get_object_request = GetObjectRequest {
+        object_id: "file1".into(),
+        container_id: "cont1".into(),
+        range_start: Some(0),
+        range_end: None,
+    };
+    let o = client.get_object(&ctx, &get_object_request).await?;
+    assert_eq!(o.content_length, 6);
+    assert_eq!(o.success, true);
+    assert_ne!(o.initial_chunk, None);
+    let c = o.initial_chunk.unwrap();
+    assert_eq!(c.bytes, file1_chunk.bytes);
+
+    // remove container (which now should be rmpty)
+    let conts: ContainerIds = vec!["cont1".into()];
     let resp3 = client.remove_containers(&ctx, &conts).await?;
     assert_eq!(resp3.len(), 0);
 
@@ -191,86 +271,96 @@ async fn list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
 
 
 // test that you can upload a file larger than chunk size and download it again
-// async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
-//     let prov = test_provider().await;
+async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
+    let prov = test_provider().await;
 
-//     // create client and ctx
-//     let client = BlobstoreSender::via(prov);
-//     let mut ctx = Context::default();
-//     ctx.actor = Some("actor_test".into());
+    // create client and ctx
+    let client = BlobstoreSender::via(prov);
+    let mut ctx = Context::default();
+    ctx.actor = Some("actor_test".into());
 
-//     // Create container cont1
-//     let mut resp = client.create_container(&ctx, &"cont1".into()).await?;
-//     assert_eq!(resp, BlobstoreResult {success: true, error: None});
+    // Create container cont1
+    let resp = client.create_container(&ctx, &"cont1".into()).await;
+    assert_eq!(resp, Ok(()));
 
-//     // create and upload file1
-//     let obj1 = ObjectMetadata {container_id: "cont1".into(), id: "file1".into(), size: 6};
-//     let file1_chunk = Chunk {
-//         bytes: vec![0,1,2,3,4,5],
-//         chunk_size: 6,
-//         object_data: obj1.clone(),
-//         sequence_no: 0,
-//     };
-//     let upload_data1 = UploadChunkArgs {
-//         object_metadata: obj1.clone(),
-//         chunk: file1_chunk,
-//         chunk_size: 50,
-//     };
+    // create and upload file1 part 1
+    let file_chunk1 = Chunk {
+        object_id: "file1".into(),
+        container_id: "cont1".into(),
+        bytes: vec![0, 1, 2, 3, 4, 5],
+        is_last: false,
+        offset: 0,
+    };
+    let upload_request = PutObjectRequest {
+        chunk: file_chunk1.clone(),
+        content_encoding: None,
+        content_type: None,
+    };
+    let resp2 = client.put_object(&ctx, &upload_request).await;
+    assert!(resp2.is_ok());
 
-//     resp = client.start_upload(&ctx, &upload_data1 ).await?;
-//     assert_eq!(resp, BlobstoreResult {success: true, error: None});
+    let stream_id = match resp2 {
+        Ok(po_response) => po_response.stream_id,
+        Err(e) => return Err(RpcError::InvalidParameter(format!("{:?}", e))),
+    };
 
-//     // Create container cont2
-//     let mut resp = client.create_container(&ctx, &"cont2".into()).await?;
-//     assert_eq!(resp, BlobstoreResult {success: true, error: None});
+    // create and upload file1 part 2
+    let file_chunk2 = Chunk {
+        object_id: "file1".into(),
+        container_id: "cont1".into(),
+        bytes: vec![10, 11, 12, 13, 14, 15, 16, 27],
+        is_last: false,
+        offset: 6,
+    };
+    let upload_2nd_chunk_request = PutChunkRequest {
+        chunk: file_chunk2.clone(),
+        stream_id: stream_id.clone(),
+        cancel_and_remove: false,
+    };
+    let resp3 = client.put_chunk(&ctx, &upload_2nd_chunk_request).await;
+    assert_eq!(resp3, Ok(()));
 
-//     // create and upload file2
-//     let obj2 = ObjectMetadata {container_id: "cont2".into(), id: "file2".into(), size: 6};
-//     let file2_chunk = Chunk {
-//         bytes: vec![6,7,8,9,10,11],
-//         chunk_size: 6,
-//         object_data: obj2.clone(),
-//         sequence_no: 0,
-//     };
-//     let upload_data2 = UploadChunkArgs {
-//         object_metadata: obj2.clone(),
-//         chunk: file2_chunk,
-//         chunk_size: 50,
-//     };
-//     resp = client.start_upload(&ctx, &upload_data2 ).await?;
-//     assert_eq!(resp, BlobstoreResult {success: true, error: None});
+    // create and upload file1 part 3
+    let file_chunk3 = Chunk {
+        object_id: "file1".into(),
+        container_id: "cont1".into(),
+        bytes: vec![110, 111, 112, 113, 114, 115],
+        is_last: true,
+        offset: 14,
+    };
+    let upload_3rd_chunk_request = PutChunkRequest {
+        chunk: file_chunk3.clone(),
+        stream_id: stream_id,
+        cancel_and_remove: false,
+    };
+    let resp4 = client.put_chunk(&ctx, &upload_3rd_chunk_request).await;
+    assert_eq!(resp4, Ok(()));
 
-//     // list objects (files) in container cont1
-//     let objects = client.list_objects(&ctx, &"cont1".to_string()).await?;
-//     assert_eq!(objects.len(), 1);
+    // file is created. Now retrieve it again using get_object assuming it will come back in one chunk
+    let get_object_request = GetObjectRequest {
+        object_id: "file1".into(),
+        container_id: "cont1".into(),
+        range_start: Some(0),
+        range_end: None,
+    };
+    let o = client.get_object(&ctx, &get_object_request).await?;
+    assert_eq!(o.content_length, 20);
+    assert_eq!(o.success, true);
+    assert_ne!(o.initial_chunk, None);
+    let c = o.initial_chunk.unwrap();
+    let mut combined = Vec::new();
+    combined.append(&mut file_chunk1.bytes.clone());
+    combined.append(&mut file_chunk2.bytes.clone());
+    combined.append(&mut file_chunk3.bytes.clone());
+    assert_eq!(c.bytes, combined);
 
-//     // list objects (files) in container cont1
-//     let objects2 = client.list_objects(&ctx, &"cont2".to_string()).await?;
-//     assert_eq!(objects2.len(), 1);
+    // remove container (which now should be rmpty)
+    let conts: ContainerIds = vec!["cont1".into(), "cont2".into()];
+    let resp5 = client.remove_containers(&ctx, &conts).await?;
+    assert_eq!(resp5.len(), 0);
 
-//     // remove files/objects
-//     let objects_to_remove = vec![
-//         ObjectMetadata {container_id: "cont1".into(), id: "file1".into(), size: 6},
-//         ObjectMetadata {container_id: "cont2".into(), id: "file2".into(), size: 6},
-//         ];
-//     resp = client.remove_objects(&ctx, &objects_to_remove).await?;
-//     assert_eq!(resp, BlobstoreResult {success: true, error: None});
+    let resp4 = client.list_containers(&ctx).await?;
+    assert_eq!(resp4.len(), 0);
 
-//     // list objects (files) in container cont1
-//     let objects = client.list_objects(&ctx, &"cont1".to_string()).await?;
-//     assert_eq!(objects.len(), 0);
-
-//     // list objects (files) in container cont1
-//     let objects2 = client.list_objects(&ctx, &"cont2".to_string()).await?;
-//     assert_eq!(objects2.len(), 0);
-
-//     // remove container (which now should be rmpty)
-//     let conts: ContainerIds = vec!["cont1".into(), "cont2".into()];
-//     resp = client.remove_containers(&ctx, &conts).await?;
-//     assert_eq!(resp, BlobstoreResult {success: true, error: None});
-
-//     let resp4 = client.list_containers(&ctx).await?;
-//     assert_eq!(resp4.len(), 0);
-
-//     Ok(())
-// }
+    Ok(())
+}
