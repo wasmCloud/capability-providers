@@ -12,7 +12,12 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
     sync::Arc,
-    fs::{read, read_dir, remove_file},
+    fs::{
+        read, read_dir, 
+        remove_file, 
+        File,
+        metadata,
+    },
 };
 use tokio::sync::RwLock;
 use wasmbus_rpc::provider::prelude::*;
@@ -41,27 +46,41 @@ pub type ChunkOffsetKey = (String, u64);
 
 #[derive(Default, Clone)]
 #[allow(dead_code)]
-struct FsProviderStatus {
+struct FsProviderConfig {
+    ld: LinkDefinition,
     root: PathBuf,
-    upload_chunks: HashMap<ChunkOffsetKey, Chunk>,
-    download_chunks: HashMap<ChunkOffsetKey, Chunk>,
 }
 
 
 /// fs capability provider implementation
-#[derive(Default, Clone, Provider)]
+#[allow(dead_code)]
+#[derive(Clone, Provider)]
 #[services(Blobstore)]
 struct FsProvider {
-    /// The actors field 
-    actors: Arc<RwLock<HashMap<String, FsProviderStatus>>>,
+    config:          Arc<RwLock<HashMap<String, FsProviderConfig>>>,
+    upload_chunks:   Arc<RwLock<HashMap<ChunkOffsetKey, Chunk>>>,
+    download_chunks: Arc<RwLock<HashMap<ChunkOffsetKey, Chunk>>>,
 }
+
+impl Default for FsProvider {
+    fn default() -> Self {
+        FsProvider {
+            config:          Arc::new(RwLock::new(HashMap::new())),
+            upload_chunks:   Arc::new(RwLock::new(HashMap::new())),
+            download_chunks: Arc::new(RwLock::new(HashMap::new())),
+        }
+    }
+}
+
+
 
 impl FsProvider {
 
     /// Get actor id string based on context value
-    fn get_actor_id(ctx: &Context) -> RpcResult<String> {
+    async fn get_actor_id(&self, ctx: &Context) -> RpcResult<String> {
+
         let actor_id = match &ctx.actor {
-            Some(id) => sanitize_id(id),
+            Some(id) => id.clone(),
             None => {
                 return Err(RpcError::InvalidParameter(String::from("No actor id found")));
             },
@@ -69,23 +88,51 @@ impl FsProvider {
         Ok(actor_id)
     }
 
-    /// Get the provider configuration set by the link definition.
-    async fn get_config(&self, ctx: &Context) -> RpcResult<FsProviderStatus> {
-        let actor_id = FsProvider::get_actor_id(ctx)?;
-        let config_map = self.actors.read().await;
-        let actor_config = match config_map.get(&actor_id) {
-            Some(config) => config,
+    async fn get_ld(&self, ctx: &Context) -> RpcResult<LinkDefinition> {
+        let actor_id = self.get_actor_id(ctx).await?;
+        let conf_map = self.config.read().await;
+        let conf = conf_map.get(&actor_id);
+        let ld = match conf {
+            Some(config) => config.ld.clone(),
             None => {
                 return Err(RpcError::InvalidParameter(String::from("No root configuration found")));
-            },  
+            },
         };
-        Ok(actor_config.clone())
+        Ok(ld)
+    }
+
+    async fn get_root(&self, ctx: &Context) -> RpcResult<PathBuf> {
+        let actor_id = self.get_actor_id(ctx).await?;
+        let conf_map =  self.config.read().await;
+        let root  = match conf_map.get(&actor_id) {
+            Some(config) => config.root.clone(),
+            None => {
+                return Err(RpcError::InvalidParameter(String::from("No root configuration found")));
+            },
+        };
+        Ok(root)
     }
 
     /// Stores a file chunk in right order.
-    fn store_chunk(chunk: &Chunk, root: &Path, _upload_chunks: &mut HashMap<ChunkOffsetKey, Chunk>) -> RpcResult<Option<String>> {
+    async fn store_chunk(&self, ctx: &Context, chunk: &Chunk, _stream_id: &Option<String>) -> RpcResult<()> {
 
-        let _key = format!("{}+{}", chunk.container_id, chunk.object_id);
+        let root = self.get_root(ctx).await?;
+        let cdir = Path::new(&root).join(&chunk.container_id);
+        let bfile = Path::join(&cdir, &chunk.object_id);
+
+        // create an empty file if it's the first
+        if chunk.offset == 0 {
+            let resp = std::fs::write(&bfile, &[]);
+            if resp.is_err() {
+                let error_string = format!("Could not create file: {:?}", bfile).to_string();
+                error!("{:?}", &error_string);
+                return Err(RpcError::InvalidParameter(error_string));
+            }
+        }
+
+        let _upload_chunks = self.upload_chunks.write().await;
+
+
     
         let bpath = Path::join(
             &Path::join(
@@ -112,10 +159,38 @@ impl FsProvider {
             return Err(msg.into());
         }
 
-        Ok(None)
+        Ok(())
     
     }
 
+    /// Sends bytes to actor in a single rpc message.
+    /// If successful, returns number of bytes sent (same as chunk.content_length)
+    #[allow(unused)]
+    async fn send_chunk(&self, ctx: &Context, chunk: Chunk) -> Result<u64, RpcError> {
+        let ld = self.get_ld(ctx).await?;
+        let receiver = ChunkReceiverSender::for_actor(&ld);
+        if let Err(e) = receiver.receive_chunk(ctx, &chunk).await {
+            let err = format!(
+                "sending chunk error: Container({}) Object({}) to Actor({}): {:?}",
+                &chunk.container_id, &chunk.object_id, &ld.actor_id, e
+            );
+            error!("{}", &err);
+            Err(RpcError::Rpc(err))
+        } else {
+            Ok(chunk.bytes.len() as u64)
+        }
+    }
+
+
+    fn get_root_from_ld(ld: &LinkDefinition) -> PathBuf {
+        let mut root = PathBuf::from(match ld.values.get("ROOT") {
+            Some(v) => Path::new(v),
+            None => Path::new("/tmp"),     // perhaps not portable across different systems
+        });
+
+        root.push(ld.actor_id.clone());
+        root
+    }
 }
 
 
@@ -128,25 +203,18 @@ impl ProviderHandler for FsProvider {
     /// 
     async fn put_link(&self, ld: &LinkDefinition) -> RpcResult<bool> {
 
-        let mut config_map = self.actors.write().await;
-        let actor_id = ld.actor_id.to_string();
-
-        let mut  root = PathBuf::from(match ld.values.get("ROOT") {
-            Some(v) => Path::new(v),
-            None => Path::new("/tmp"),     // perhaps not portable across different systems
-        });
-
-        root.push(actor_id.clone());
+        let root = Self::get_root_from_ld(ld);
 
         info!("File System Blob Store Container Root: '{:?}'", &root);
 
-        let config = FsProviderStatus {
-            root,
-            upload_chunks: HashMap::new(),
-            download_chunks: HashMap::new(),
-        };
-
-        config_map.insert(actor_id, config);
+        self.config
+            .write()
+            .await
+            .insert(ld.actor_id.clone(), FsProviderConfig {
+                                                    ld: ld.clone(),
+                                                    root,
+                                                }
+            );
 
         Ok(true)
     }
@@ -160,8 +228,8 @@ impl Blobstore for FsProvider {
     #[allow(unused)]
     async fn container_exists(&self, ctx: &Context, arg: &ContainerId) -> RpcResult<bool> {
         info!("Called container_exists({:?})", arg);
-        
-        let root = self.get_config(ctx).await?.root;
+
+        let root = self.get_root(ctx).await?;
         let cdir = Path::new(&root).join(&arg);
 
         match read_dir(&cdir) {
@@ -174,7 +242,7 @@ impl Blobstore for FsProvider {
     /// Note that container names may not be globally unique - just unique within the
     /// "namespace" of the connecting actor and linkdef
     async fn create_container(&self, ctx: &Context, arg: &ContainerId) -> RpcResult<()> {
-        let root = self.get_config(ctx).await?.root;
+        let root = self.get_root(ctx).await?;
         let cdir = Path::new(&root).join(arg.to_string());
 
         info!("create dir: {:?}", cdir);
@@ -183,7 +251,6 @@ impl Blobstore for FsProvider {
             Ok(()) => Ok(()),
             Err(e) => Err(RpcError::InvalidParameter(format!("Could not create container: {:?}", e)))
         }
-
     }
 
     /// Retrieves information about the container.
@@ -194,9 +261,20 @@ impl Blobstore for FsProvider {
         ctx: &Context,
         arg: &ContainerId,
     ) -> RpcResult<ContainerMetadata> {
+
+        let root = self.get_root(ctx).await?;
+        let dir_path = Path::new(&root).join(&arg);
+
+        let dir_info = metadata(dir_path)?;
+
+        let modified = match  dir_info.modified()?.duration_since(SystemTime::UNIX_EPOCH) {
+            Ok(s) => Timestamp { sec: s.as_secs() as i64, nsec: 0u32 },
+            Err(e) => return Err(RpcError::InvalidParameter(format!("{:?}", e))),
+        };
+
         Ok(ContainerMetadata {
-            container_id: "name".to_string(),
-            created_at: None,
+            container_id: arg.clone(),
+            created_at: Some(modified),
         })
     }
 
@@ -204,7 +282,7 @@ impl Blobstore for FsProvider {
     #[allow(unused)]
     async fn list_containers(&self, ctx: &Context) -> RpcResult<ContainersInfo> {
 
-        let root = self.get_config(ctx).await?.root;
+        let root = self.get_root(ctx).await?;
 
         let containers = all_dirs(&Path::new(&root), &root).iter()
             .map(|c| {
@@ -228,7 +306,7 @@ impl Blobstore for FsProvider {
 
         info!("Called remove_containers({:?})", arg);
 
-        let root = self.get_config(ctx).await?.root;
+        let root = self.get_root(ctx).await?;
 
         let mut remove_errors = vec![];
 
@@ -255,7 +333,16 @@ impl Blobstore for FsProvider {
     /// Returns whether the object exists
     #[allow(unused)]
     async fn object_exists(&self, ctx: &Context, arg: &ContainerObject) -> RpcResult<bool> {
-        Ok(true)
+        info!("Called object_exists({:?})", arg);
+        
+        let root = self.get_root(ctx).await?;
+        let file_path = Path::new(&root).join(&arg.container_id).join(&arg.object_id);
+
+        match File::open(file_path) {
+            Ok(_) => Ok(true),
+            Err(_) => Ok(false)
+        }
+
     }
     
     /// Retrieves information about the object.
@@ -266,13 +353,24 @@ impl Blobstore for FsProvider {
         ctx: &Context,
         arg: &ContainerObject,
     ) -> RpcResult<ObjectMetadata> {
+
+        let root = self.get_root(ctx).await?;
+        let file_path = Path::new(&root).join(&arg.container_id).join(&arg.object_id);
+
+        let metadata = metadata(file_path)?;
+
+        let modified = match  metadata.modified()?.duration_since(SystemTime::UNIX_EPOCH) {
+            Ok(s) => Timestamp { sec: s.as_secs() as i64, nsec: 0u32 },
+            Err(e) => return Err(RpcError::InvalidParameter(format!("{:?}", e))),
+        };
+
         Ok(ObjectMetadata {
-            container_id: "name".to_string(),
+            container_id: arg.container_id.clone(),
             content_encoding: None,
-            content_length: 0,
+            content_length: metadata.len() as u64,
             content_type: None,
-            last_modified: None,
-            object_id: "object_name".to_string(),
+            last_modified: Some(modified),
+            object_id: arg.object_id.clone(),
         })
     }
 
@@ -296,7 +394,7 @@ impl Blobstore for FsProvider {
 
         info!("Called list_objects({:?})", arg);
         
-        let root = self.get_config(ctx).await?.root;
+        let root = self.get_root(ctx).await?;
         let cdir = Path::new(&root).join(&arg.container_id);
 
         let mut objects = Vec::new();
@@ -347,11 +445,30 @@ impl Blobstore for FsProvider {
         ctx: &Context,
         arg: &RemoveObjectsRequest,
     ) -> RpcResult<MultiResult> {
-        Ok(vec![ItemResult {
-            error: None,
-            key: "key".to_string(),
-            success: true,
-        }])
+
+        info!("Invoked remove obejcts: {:?}", arg);
+        let root = self.get_root(ctx).await?;
+
+        let mut errors = Vec::new();
+
+        for object in &arg.objects {
+            let opath = Path::join(
+                &Path::join(&root,
+                    &arg.container_id,
+                    ),
+            &object,
+            );
+            if let Err(e) = remove_file(opath.as_path()) {
+                errors.push(ItemResult {
+                    error: Some(format!("{:?}", e)),
+                    key: format!("{:?}", opath),
+                    success: false,
+                })
+            }
+        }
+
+        Ok(errors)
+
     }
 
     /// Requests to start upload of a file/blob to the Blobstore.
@@ -364,50 +481,32 @@ impl Blobstore for FsProvider {
     ) -> RpcResult<PutObjectResponse> {
         info!("Called put_object({:?})", arg.chunk);
 
-        if !arg.chunk.is_last {
-            error!("put_object for multi-part upload: not implemented!");
-            return Err(RpcError::InvalidParameter(
-                "multipart upload not implemented".to_string(),
-            ));
-        }
-        if arg.chunk.offset != 0 {
-            error!("put_object with initial offset non-zero: not implemented!");
-            return Err(RpcError::InvalidParameter(
-                "non-zero offset not supported".to_string(),
-            ));
-        }
         if arg.chunk.bytes.is_empty() {
             error!("put_object with zero bytes");
             return Err(RpcError::InvalidParameter(
                 "cannot put zero-length objects".to_string(),
             ));
         }
-    
-        let actor_id = FsProvider::get_actor_id(ctx)?;
-        let mut config_map = self.actors.write().await;
-        let config = match config_map.get_mut(&actor_id) {
-            Some(config) => config,
-            None => {
-                return Err(RpcError::InvalidParameter(String::from("No root configuration found")));
-            },
+
+        let stream_id = if arg.chunk.is_last {
+            None 
+        } else {
+            Some(format!("{}+{}", arg.chunk.container_id, arg.chunk.object_id))
         };
-        
-        let cdir = Path::new(&config.root).join(&arg.chunk.container_id);
-        let bfile = Path::join(&cdir, &arg.chunk.object_id);
-
-        // create an empty file
-        let resp = std::fs::write(&bfile, &[]);
-
-        if resp.is_err() {
-            let error_string = format!("Could not create file: {:?}", bfile).to_string();
-            error!("{:?}", &error_string);
-            return Err(RpcError::InvalidParameter(error_string));
-        }
 
         // store the chunks in order
-        let stream_id = FsProvider::store_chunk(&arg.chunk, &config.root, & mut config.upload_chunks)?;
+        self.store_chunk(ctx, &arg.chunk, &stream_id).await?;
 
         Ok(PutObjectResponse { stream_id })
+
+    }
+
+    /// Uploads a file chunk to a blobstore. This must be called AFTER PutObject
+    /// It is recommended to keep chunks under 1MB to avoid exceeding nats default message size
+    #[allow(unused)]
+    async fn put_chunk(&self, ctx: &Context, arg: &PutChunkRequest) -> RpcResult<()> {
+
+        Err(RpcError::NotImplemented)
 
     }
 
@@ -420,146 +519,34 @@ impl Blobstore for FsProvider {
         ctx: &Context,
         arg: &GetObjectRequest,
     ) -> RpcResult<GetObjectResponse> {
+
+        let actor_id = self.get_actor_id(ctx).await?;
+
+        let root = &self.get_root(ctx).await?;
+        let cdir = Path::new(root).join(&arg.container_id);
+        let file_path = Path::join(&cdir, &arg.object_id);
+
+        let c = Chunk {
+            object_id: arg.object_id.clone(),
+            container_id: arg.container_id.clone(),
+            bytes: read(file_path)?,
+            offset: 0,
+            is_last: true,
+        };
+
         Ok(GetObjectResponse {
             content_encoding: None,
-            content_length: 0,
+            content_length: c.bytes.len() as u64,
             content_type: None,
             error: None,
-            initial_chunk: None,
+            initial_chunk: Some(c),
             success: true,
         })
     }
 
-    /// Uploads a file chunk to a blobstore. This must be called AFTER PutObject
-    /// It is recommended to keep chunks under 1MB to avoid exceeding nats default message size
-    #[allow(unused)]
-    async fn put_chunk(&self, ctx: &Context, arg: &PutChunkRequest) -> RpcResult<()> {
-        Ok(())
-    }
-    
-
-/*  
-   
-    /// Remove the objects.
-    /// The objects do not need to be in the same container
-    async fn remove_objects(&self, ctx: &Context, arg: &ObjectList) -> RpcResult<BlobstoreResult> {
-
-        info!("Invoked remove obejcts: {:?}", arg);
-        let root = self.get_config(ctx).await?.root; 
-
-        for object in arg {
-            let opath = Path::join(
-                &Path::join(&root,
-                    sanitize_id(&object.container_id),
-                    ),
-            sanitize_id(&object.id),
-            );
-            remove_file(opath.as_path())?;
-        }
-        Ok(BlobstoreResult {success: true, error: None})
-    }
-
-   
-    /// Requests to start a download of a file/blob from the Blobstore
-    /// It is recommended to keep chunks under 1MB to not exceed wasm memory allocation
-    async fn start_download(
-        &self,
-        ctx: &Context,
-        arg: &DownloadChunkArgs,
-    ) -> RpcResult<DownloadResult> {
-
-        info!("Called start_download({:?})", arg);
-
-        let actor_id = FsProvider::get_actor_id(ctx)?;
-        let mut config_map = self.actors.write().await;
-        let config = match config_map.get_mut(&actor_id) {
-            Some(config) => config,
-            None => {
-                return Err(RpcError::InvalidParameter(String::from("No root configuration found")));
-            },
-        };
-
-        let obj_file = Path::join(
-            &Path::join(
-                &config.root,
-                sanitize_id(&arg.object_metadata.container_id),
-            ),
-            sanitize_id(&arg.object_metadata.id),
-        );
-
-        let file = read(obj_file)?;
-
-        let mut chunks = file.chunks(arg.chunk_size as usize);
-        let first_chunk_slice = chunks.next().unwrap(); 
-
-        // if there is more than one chunk, store them in download_chunks with this key
-        let key = sanitize_id(&arg.object_metadata.container_id) + &sanitize_id(&arg.object_metadata.id);
-    
-        if chunks.len() > 1 {
-            let mut sequence_number = 1u64;
-            for chunk_slice in chunks {
-                 let chunk = Chunk {
-                    bytes: Vec::from(chunk_slice),
-                    chunk_size: arg.chunk_size as u64,
-                    object_data: arg.object_metadata.clone(),
-                    sequence_no: sequence_number,
-                };
-                config.download_chunks.insert((key.clone(), sequence_number), chunk);
-                sequence_number += 1;
-            }
-        }
-
-        let chunk0 = Chunk {
-            bytes: Vec::from(first_chunk_slice),
-            chunk_size: arg.chunk_size as u64,
-            object_data: arg.object_metadata.clone(),
-            sequence_no: 0,
-        };
-
-        Ok(DownloadResult { success: true, error: None, chunk: Some(chunk0),})
-    }
-
-    #[allow(unused)]
-    /// Receives a file chunk from a blobstore. This must be called AFTER
-    /// the StartDownload operation.
-    /// It is recommended to keep chunks under 1MB to not exceed wasm memory allocation
-    async fn receive_chunk(&self, ctx: &Context, arg: &DownloadChunkArgs) -> RpcResult<DownloadResult> {
-        info!("Called receive_chunk({:?})", arg);
-
-        let actor_id = FsProvider::get_actor_id(ctx)?;
-        let mut config_map = self.actors.write().await;
-        let config = match config_map.get_mut(&actor_id) {
-            Some(config) => config,
-            None => {
-                return Err(RpcError::InvalidParameter(String::from("No root configuration found")));
-            },
-        };
-
-        // Get the next chunk in sequence
-        let key = sanitize_id(&arg.object_metadata.container_id) + &sanitize_id(&arg.object_metadata.id);
-        let next_chunk = config.download_chunks.get(&(key.clone(), arg.sequence_number));
-
-        match next_chunk {
-            Some(chunk) => Ok(DownloadResult { success: true, error: None, chunk: Some(chunk.clone()),}),
-            None =>  Ok(DownloadResult { 
-                                        success: false, 
-                                        error: Some(format!("Chunk for {:?} not found", arg)), 
-                                        chunk: None,
-                                    }),
-        }
-    }   
-
- */
     fn contract_id() ->  & 'static str {  "wasmcloud:blobstore"}
 
 }
 
 
-#[allow(dead_code)]
-fn sanitize_id(id: &str) -> String {
-    let bad_prefixes: &[_] = &['/', '.'];
-    let s = id.trim_start_matches(bad_prefixes);
-    let s = s.replace("..", "");
-    s.replace("/", "_")
-}
 
