@@ -1,5 +1,4 @@
-use minicbor::Decode;
-use wasmbus_rpc::provider::prelude::*;
+use wasmbus_rpc::{minicbor::Decode, provider::prelude::*};
 use wasmcloud_interface_sqldb::*;
 use wasmcloud_test_util::{
     check,
