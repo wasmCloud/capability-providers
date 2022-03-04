@@ -1,7 +1,7 @@
 use aws_sdk_dynamodb::model::AttributeValue;
 use chrono::{Duration, Utc};
 use futures::TryFutureExt;
-use log::debug;
+use log::{debug, error};
 use wasmbus_rpc::core::LinkDefinition;
 use wasmbus_rpc::error::{RpcError, RpcResult};
 use wasmcloud_interface_keyvalue::{GetResponse, SetRequest};
@@ -55,7 +55,14 @@ impl DynamoDbClient {
             .table_name(&self.table_name)
             .key(&self.key_attribute, AttributeValue::S(key.to_string()))
             .send()
-            .map_err(|e| RpcError::Other(e.to_string()))
+            .map_err(|e| {
+
+
+                error!("********* ERROR FROM AWS SDK *******");
+
+
+                RpcError::Other(e.to_string())
+            })
             .await?;
 
         match sdk_response.item {

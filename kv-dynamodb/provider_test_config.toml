@@ -24,3 +24,6 @@ rust_backtrace = "1"
 
 # name of contract under test
 contract_id = "wasmcloud:keyvalue"
+
+
+#config_json

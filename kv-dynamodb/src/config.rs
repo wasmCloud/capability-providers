@@ -8,9 +8,11 @@
 //! will be used to create in initial environment, and then the
 //! settings fom `sts_config` will be used to create a session for the assumed role
 //!
-use aws_types::{config::Config, credentials::SharedCredentialsProvider, region::Region};
-use serde::Deserialize;
 use std::{collections::HashMap, env};
+
+use aws_types::{config::Config, credentials::SharedCredentialsProvider, region::Region};
+use log::error;
+use serde::Deserialize;
 use wasmbus_rpc::error::{RpcError, RpcResult};
 
 const DEFAULT_STS_SESSION: &str = "kv_dynamodb_provider";
@@ -71,7 +73,12 @@ impl AwsConfig {
             serde_json::from_str::<AwsConfig>(config)
                 .map_err(|e| RpcError::InvalidParameter(format!("corrupt config_json: {}", e)))?
         } else {
-            AwsConfig::default()
+            let mut config = AwsConfig::default();
+            config.table_name = get_required_attr_from_env("TABLE_NAME")?;
+            config.key_attribute = get_required_attr_from_env("KEY_ATTRIBUTE")?;
+            config.value_attribute = get_required_attr_from_env("VALUE_ATTRIBUTE")?;
+            error!("{}", format!("*** table name is {}", config.table_name));
+            config
         };
         if let Ok(arn) = env::var("AWS_ASSUME_ROLE_ARN") {
             let mut sts_config = config.sts_config.unwrap_or_default();
@@ -142,5 +149,22 @@ impl AwsConfig {
             .credentials_provider(cred_provider)
             .retry_config(retry_config);
         loader.load().await
+    }
+}
+
+fn get_required_attr_from_env(name: &str) -> Result<String, RpcError> {
+    let try_env = env::var(name);
+    match try_env {
+        Ok(v) => {
+            error!("*** returning ok");
+            Ok(v)
+        },
+        Err(_) => {
+            error!("*** returning error");
+            Err(RpcError::InvalidParameter(format!(
+                "The configuration value {} must be provided in the link definition or available as an environment variable",
+                name
+            )))
+        }
     }
 }
