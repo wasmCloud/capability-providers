@@ -1,7 +1,9 @@
-# configuration for nats test
+# configuration for kv test
 
 # name of compiled binary (usually project name unless overridden in [[bin]]
-bin_path = "target/release/blobstore-s3"
+# Note that the path depends on whether cargo test is run with the `--release` flag
+# Required
+bin_path = "target/release/kv-vault"
 
 # set RUST_LOG environment variable (default "info")
 rust_log = "debug"
@@ -10,7 +12,7 @@ rust_log = "debug"
 rust_backtrace = "1"
 
 # nats should be running. Uncomment to override the default url
-#nats_url = "0.0.0.0:4222"
+#nats_url = "127.0.0.1:4222"
 
 # lattice prefix (default "default")
 #lattice_rpc_prefix = "default"
@@ -19,4 +21,4 @@ rust_backtrace = "1"
 #link_name = "default"
 
 # name of contract under test
-contract_id = "wasmcloud:blobstore"
+contract_id = "wasmcloud:keyvalue"
