@@ -1,3 +1,5 @@
+use std::time::Duration;
+use tokio::time::sleep;
 use wasmbus_rpc::{
     error::{RpcError, RpcResult},
     provider::prelude::Context,
@@ -47,13 +49,14 @@ async fn set<T1: ToString, T2: ToString>(
     ctx: &Context,
     key: T1,
     value: T2,
+    exp: u32
 ) -> RpcResult<()> {
     kv.set(
         ctx,
         &SetRequest {
             key: key.to_string(),
             value: value.to_string(),
-            ..Default::default()
+            expires: exp
         },
     )
     .await
@@ -83,13 +86,21 @@ async fn get_set(_opt: &TestOptions) -> RpcResult<()> {
     let get_resp = kv.get(&ctx, &key).await?;
     check_eq!(get_resp.exists, false)?;
 
-    set(&kv, &ctx, &key, VALUE).await?;
+    set(&kv, &ctx, &key, VALUE, 0).await?;
 
     let get_resp = kv.get(&ctx, &key).await?;
     check!(get_resp.exists)?;
     check_eq!(get_resp.value.as_str(), VALUE)?;
 
     let _ = kv.del(&ctx, &key).await?;
+
+    //With expiration
+    set(&kv, &ctx, &key, VALUE, 3).await?; //Will expire after 3 seconds
+
+    sleep(Duration::from_secs(5)).await;
+
+    let get_resp = kv.get(&ctx, &key).await?;
+    check!(!get_resp.exists)?;
 
     log::debug!("done!!!!");
 
@@ -112,7 +123,7 @@ async fn contains_del(_opt: &TestOptions) -> RpcResult<()> {
     let has_key_before_set = kv.contains(&ctx, &key).await?;
     check_eq!(has_key_before_set, false)?;
 
-    set(&kv, &ctx, &key, VALUE).await?;
+    set(&kv, &ctx, &key, VALUE, 0).await?;
 
     let has_key_after_set = kv.contains(&ctx, &key).await?;
     check_eq!(has_key_after_set, true)?;
@@ -139,7 +150,7 @@ async fn incr(_opt: &TestOptions) -> RpcResult<()> {
     const VALUE: &str = "0";
 
     // initialize the counter to zero
-    set(&kv, &ctx, &key, VALUE).await?;
+    set(&kv, &ctx, &key, VALUE, 0).await?;
 
     let get_resp = kv.get(&ctx, &key).await?;
     check!(get_resp.exists)?;
