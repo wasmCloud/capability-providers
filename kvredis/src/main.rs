@@ -195,7 +195,7 @@ impl KeyValue for KvRedisProvider {
     async fn set(&self, ctx: &Context, arg: &SetRequest) -> RpcResult<()> {
         let mut cmd = match arg.expires {
             0 => redis::Cmd::set(&arg.key, &arg.value),
-            _=> redis::Cmd::set_ex(&arg.key, &arg.value, arg.expires as usize)
+            _ => redis::Cmd::set_ex(&arg.key, &arg.value, arg.expires as usize),
         };
         let _value: Option<String> = self.exec(ctx, &mut cmd).await?;
         Ok(())

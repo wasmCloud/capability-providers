@@ -49,14 +49,14 @@ async fn set<T1: ToString, T2: ToString>(
     ctx: &Context,
     key: T1,
     value: T2,
-    exp: u32
+    exp: u32,
 ) -> RpcResult<()> {
     kv.set(
         ctx,
         &SetRequest {
             key: key.to_string(),
             value: value.to_string(),
-            expires: exp
+            expires: exp,
         },
     )
     .await
