@@ -7,7 +7,7 @@ from different actors configured with different access roles and policies.
 ## Configuration
 
 - The standard variables are used for connecting to AWS services:
-  - `AWS_ACCESS_KEY` (required)
+  - `AWS_ACCESS_KEY_ID` (required)
   - `AWS_SECRET_ACCESS_KEY` (required)
   - `AWS_SESSION_TOKEN` (optional)
   - `AWS_REGION` (optional)
@@ -19,9 +19,9 @@ from different actors configured with different access roles and policies.
 
 - If you intend to use STS Assumed Role authentication, the user or role for the above credentials should have an IAM role that is allowed to AssumeRole
   - `AWS_ROLE_ARN` - (required, if using STS AssumedRole Authentication) the role to assume, of the form  "arn:aws:iam::123456789012:role/example". This is the role that should have allowed policies for S3
-  - `AWS_IAM_ROLE_SESSION_NAME` - (optional) the session name for the assumed role. Default value is blobstore_s3_provider
-  - `AWS_ASSUME_ROLE_REGION` - (optional) the region that will be used for the assumed role (for using S3). Note that `AWS_REGION` is the region used for contacting STS
-  - `AWS_ASSUME_ROLE_EXTERNAL_ID` - (optional) the external id to be associated with the role. This can be used if your auth policy requires a value for externalId
+  - `AWS_ROLE_SESSION_NAME` - (optional) the session name for the assumed role. Default value is blobstore_s3_provider
+  - `AWS_ROLE_REGION` - (optional) the region that will be used for the assumed role (for using S3). Note that `AWS_REGION` is the region used for contacting STS
+  - `AWS_ROLE_EXTERNAL_ID` - (optional) the external id to be associated with the role. This can be used if your auth policy requires a value for externalId
 
 
 ### with 'env' file (actor link definition)
