@@ -68,6 +68,19 @@ are different from the environment variable names.
 
 Json settings take precedence over environment variables and 'env' file values.
 
+
+## Aliases
+
+Link definitions can optionally contain bucket name aliases which replace an alias with a different name.
+For example, if the link definition contains the setting "alias_backup=backup.20220101", then for any api
+where the actor saves an object to the bucket "backup", it will actually be stored in the bucket "backup.20220101".
+The use case for this is to allow the actor to hard-code a small number of symbolic names that can be remapped
+by an administrator when linking the actor to this provider. If an alias is defined, it is in effect for all api methods.
+Any use of a bucket name not in the alias map is passed on without change. As a convention, it is recommended
+to use the prefix "alias_" for bucket names within actor code, to clarify to readers that use of an alias is intended;
+however, the prefix is not required.
+
+
 ## Known issues
 
 - getContainerInfo does not return container creation date (it's not available in head_bucket request)
