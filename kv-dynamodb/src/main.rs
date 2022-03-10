@@ -95,7 +95,7 @@ impl ProviderHandler for KvDynamoProvider {
 impl KeyValue for KvDynamoProvider {
     /// Increments a numeric value, returning the new value
     async fn increment(&self, _ctx: &Context, _arg: &IncrementRequest) -> RpcResult<i32> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     /// Returns true if the store contains the key
@@ -104,7 +104,7 @@ impl KeyValue for KvDynamoProvider {
         _ctx: &Context,
         _arg: &TS,
     ) -> RpcResult<bool> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     /// Deletes a key, returning true if the key was deleted
@@ -127,7 +127,7 @@ impl KeyValue for KvDynamoProvider {
 
     /// Append a value onto the end of a list. Returns the new list size
     async fn list_add(&self, _ctx: &Context, _arg: &ListAddRequest) -> RpcResult<u32> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     /// Deletes a list and its contents
@@ -138,12 +138,12 @@ impl KeyValue for KvDynamoProvider {
         _ctx: &Context,
         _arg: &TS,
     ) -> RpcResult<bool> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     /// Deletes an item from a list. Returns true if the item was removed.
     async fn list_del(&self, _ctx: &Context, _arg: &ListDelRequest) -> RpcResult<bool> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     /// Retrieves a range of values from a list using 0-based indices.
@@ -151,7 +151,7 @@ impl KeyValue for KvDynamoProvider {
     /// 11 items if the list contains at least 11 items. If the stop value
     /// is beyond the end of the list, it is treated as the end of the list.
     async fn list_range(&self, _ctx: &Context, _arg: &ListRangeRequest) -> RpcResult<StringList> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     /// Sets the value of a key.
@@ -164,12 +164,12 @@ impl KeyValue for KvDynamoProvider {
 
     /// Add an item into a set. Returns number of items added
     async fn set_add(&self, _ctx: &Context, _arg: &SetAddRequest) -> RpcResult<u32> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     /// Remove a item from the set. Returns
     async fn set_del(&self, _ctx: &Context, _arg: &SetDelRequest) -> RpcResult<u32> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     async fn set_intersection(
@@ -177,7 +177,7 @@ impl KeyValue for KvDynamoProvider {
         _ctx: &Context,
         _arg: &StringList,
     ) -> Result<StringList, RpcError> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     async fn set_query<TS: ToString + ?Sized + Sync>(
@@ -185,11 +185,11 @@ impl KeyValue for KvDynamoProvider {
         _ctx: &Context,
         _arg: &TS,
     ) -> RpcResult<StringList> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     async fn set_union(&self, _ctx: &Context, _arg: &StringList) -> RpcResult<StringList> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 
     /// Deletes a set and its contents
@@ -200,6 +200,6 @@ impl KeyValue for KvDynamoProvider {
         _ctx: &Context,
         _arg: &TS,
     ) -> RpcResult<bool> {
-        todo!()
+        Err(RpcError::NotImplemented)
     }
 }

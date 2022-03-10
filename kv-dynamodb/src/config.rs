@@ -73,11 +73,12 @@ impl AwsConfig {
             serde_json::from_str::<AwsConfig>(config)
                 .map_err(|e| RpcError::InvalidParameter(format!("corrupt config_json: {}", e)))?
         } else {
-            let mut config = AwsConfig::default();
-            config.table_name = get_required_attr_from_env("TABLE_NAME")?;
-            config.key_attribute = get_required_attr_from_env("KEY_ATTRIBUTE")?;
-            config.value_attribute = get_required_attr_from_env("VALUE_ATTRIBUTE")?;
-            config
+            AwsConfig {
+                table_name: get_required_attr_from_env("TABLE_NAME")?,
+                key_attribute: get_required_attr_from_env("KEY_ATTRIBUTE")?,
+                value_attribute: get_required_attr_from_env("VALUE_ATTRIBUTE")?,
+                ..AwsConfig::default()
+            }
         };
         if let Ok(arn) = env::var("AWS_ASSUME_ROLE_ARN") {
             let mut sts_config = config.sts_config.unwrap_or_default();
