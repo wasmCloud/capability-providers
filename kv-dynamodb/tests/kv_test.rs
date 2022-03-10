@@ -81,12 +81,12 @@ async fn get_set(_opt: &TestOptions) -> RpcResult<()> {
     check!(get_resp.exists)?;
     check_eq!(get_resp.value.as_str(), VALUE)?;
 
-    let _ = kv.del(&ctx, &key).await?;
+    // let _ = kv.del(&ctx, &key).await?;
 
     log::debug!("done!!!!");
 
     // clean up
-    let _ = kv.del(&ctx, &key).await?;
+    // let _ = kv.del(&ctx, &key).await?;
     Ok(())
 }
 

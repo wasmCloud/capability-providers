@@ -11,7 +11,7 @@
 use std::{collections::HashMap, env};
 
 use aws_types::{config::Config, credentials::SharedCredentialsProvider, region::Region};
-use log::error;
+use log::{error, info};
 use serde::Deserialize;
 use wasmbus_rpc::error::{RpcError, RpcResult};
 
@@ -77,7 +77,6 @@ impl AwsConfig {
             config.table_name = get_required_attr_from_env("TABLE_NAME")?;
             config.key_attribute = get_required_attr_from_env("KEY_ATTRIBUTE")?;
             config.value_attribute = get_required_attr_from_env("VALUE_ATTRIBUTE")?;
-            error!("{}", format!("*** table name is {}", config.table_name));
             config
         };
         if let Ok(arn) = env::var("AWS_ASSUME_ROLE_ARN") {
@@ -156,11 +155,11 @@ fn get_required_attr_from_env(name: &str) -> Result<String, RpcError> {
     let try_env = env::var(name);
     match try_env {
         Ok(v) => {
-            error!("*** returning ok");
+            info!("{}", format!("*** found value {} for env var {}", v, name));
             Ok(v)
         },
         Err(_) => {
-            error!("*** returning error");
+            error!("{}", format!("*** could not value for env var {}", name));
             Err(RpcError::InvalidParameter(format!(
                 "The configuration value {} must be provided in the link definition or available as an environment variable",
                 name
