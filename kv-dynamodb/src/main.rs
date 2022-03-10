@@ -108,12 +108,9 @@ impl KeyValue for KvDynamoProvider {
     }
 
     /// Deletes a key, returning true if the key was deleted
-    async fn del<TS: ToString + ?Sized + Sync>(
-        &self,
-        _ctx: &Context,
-        _arg: &TS,
-    ) -> RpcResult<bool> {
-        todo!()
+    async fn del<TS: ToString + ?Sized + Sync>(&self, ctx: &Context, arg: &TS) -> RpcResult<bool> {
+        let client = self.client(ctx).await?;
+        client.del(arg).await
     }
 
     /// Gets a value for a specified key. If the key exists,

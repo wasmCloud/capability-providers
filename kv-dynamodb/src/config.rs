@@ -157,7 +157,7 @@ fn get_required_attr_from_env(name: &str) -> Result<String, RpcError> {
         Ok(v) => {
             info!("{}", format!("*** found value {} for env var {}", v, name));
             Ok(v)
-        },
+        }
         Err(_) => {
             error!("{}", format!("*** could not value for env var {}", name));
             Err(RpcError::InvalidParameter(format!(

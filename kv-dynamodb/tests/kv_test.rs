@@ -1,5 +1,8 @@
 use std::time::Duration;
-use wasmbus_rpc::{provider::prelude::Context, error::{RpcResult, RpcError}};
+use wasmbus_rpc::{
+    error::{RpcError, RpcResult},
+    provider::prelude::Context,
+};
 use wasmcloud_interface_keyvalue::*;
 use wasmcloud_test_util::{
     check, check_eq,
@@ -81,12 +84,13 @@ async fn get_set(_opt: &TestOptions) -> RpcResult<()> {
     check!(get_resp.exists)?;
     check_eq!(get_resp.value.as_str(), VALUE)?;
 
-    // let _ = kv.del(&ctx, &key).await?;
+    let _ = kv.del(&ctx, &key).await?;
+
+    let get_resp = kv.get(&ctx, &key).await?;
+    check_eq!(get_resp.exists, false)?;
 
     log::debug!("done!!!!");
 
-    // clean up
-    // let _ = kv.del(&ctx, &key).await?;
     Ok(())
 }
 
