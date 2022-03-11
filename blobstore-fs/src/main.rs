@@ -9,16 +9,18 @@ use std::time::SystemTime;
 use std::{
     collections::HashMap,
     fs::OpenOptions,
-    io::Write,
+    io::{Write, BufReader,},
     path::{Path, PathBuf},
     sync::Arc,
     fs::{
-        read, read_dir, 
+        read,
+        read_dir,
         remove_file, 
         File,
         metadata,
     },
 };
+use std::io::Read;
 use tokio::sync::RwLock;
 use wasmbus_rpc::provider::prelude::*;
 use wasmbus_rpc::Timestamp;
@@ -479,7 +481,7 @@ impl Blobstore for FsProvider {
         ctx: &Context,
         arg: &PutObjectRequest,
     ) -> RpcResult<PutObjectResponse> {
-        info!("Called put_object({:?})", arg.chunk);
+        info!("Called put_object()");
 
         if arg.chunk.bytes.is_empty() {
             error!("put_object with zero bytes");
@@ -520,19 +522,25 @@ impl Blobstore for FsProvider {
         arg: &GetObjectRequest,
     ) -> RpcResult<GetObjectResponse> {
 
+        info!("Get object called: {:?}", arg);
+
         let actor_id = self.get_actor_id(ctx).await?;
 
         let root = &self.get_root(ctx).await?;
         let cdir = Path::new(root).join(&arg.container_id);
         let file_path = Path::join(&cdir, &arg.object_id);
 
+        let file = read(file_path)?;
+
         let c = Chunk {
             object_id: arg.object_id.clone(),
             container_id: arg.container_id.clone(),
-            bytes: read(file_path)?,
+            bytes: file,
             offset: 0,
             is_last: true,
         };
+
+        info!("Read file {:?} size {:?}", arg.object_id, c.bytes.len());
 
         Ok(GetObjectResponse {
             content_encoding: None,

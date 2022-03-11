@@ -8,7 +8,7 @@ resolver = "2"
 async-trait = "0.1"
 log = "0.4"
 wasmcloud-interface-blobstore = "0.2"
-wasmbus-rpc = "0.8"
+wasmbus-rpc = "0.8.3"
 tokio = "1.17.0"
 
 
