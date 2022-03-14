@@ -12,14 +12,13 @@ use wasmcloud_test_util::{run_selected, run_selected_spawn};
 #[tokio::test]
 async fn run_all() {
     let opts = TestOptions::default();
-    // let res = run_selected_spawn!(&opts, health_check);
-    let res = run_selected_spawn!(&opts, 
-        health_check, 
-        create_find_and_remove_dir,
-        create_dirs_and_list,
-        upload_and_list_files_in_dirs,
-        upload_and_download_file,
-        // upload_download_chunked_file,
+    let res = run_selected_spawn!(&opts,
+        // health_check,
+        // create_find_and_remove_dir,
+        // create_dirs_and_list,
+        // upload_and_list_files_in_dirs,
+        // upload_and_download_file,
+        upload_download_chunked_file,
         );
     print_test_results(&res);
 
@@ -271,7 +270,7 @@ async fn upload_and_download_file(_opt: &TestOptions) -> RpcResult<()> {
 
 
 // test that you can upload a file larger than chunk size and download it again
-async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
+async fn upload_chunked_download_file(_opt: &TestOptions) -> RpcResult<()> {
     let prov = test_provider().await;
 
     // create client and ctx
@@ -335,6 +334,64 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
     };
     let resp4 = client.put_chunk(&ctx, &upload_3rd_chunk_request).await;
     assert_eq!(resp4, Ok(()));
+
+    // file is created. Now retrieve it again using get_object assuming it will come back in one chunk
+    let get_object_request = GetObjectRequest {
+        object_id: "file1".into(),
+        container_id: "cont1".into(),
+        range_start: Some(0),
+        range_end: None,
+    };
+    let o = client.get_object(&ctx, &get_object_request).await?;
+    assert_eq!(o.content_length, 20);
+    assert_eq!(o.success, true);
+    assert_ne!(o.initial_chunk, None);
+    let c = o.initial_chunk.unwrap();
+    let mut combined = Vec::new();
+    combined.append(&mut file_chunk1.bytes.clone());
+    combined.append(&mut file_chunk2.bytes.clone());
+    combined.append(&mut file_chunk3.bytes.clone());
+    assert_eq!(c.bytes, combined);
+
+    // remove container (which now should be rmpty)
+    let conts: ContainerIds = vec!["cont1".into(), "cont2".into()];
+    let resp5 = client.remove_containers(&ctx, &conts).await?;
+    assert_eq!(resp5.len(), 0);
+
+    let resp4 = client.list_containers(&ctx).await?;
+    assert_eq!(resp4.len(), 0);
+
+    Ok(())
+}
+
+// test that you can upload a file larger than chunk size and download it again
+async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
+    let prov = test_provider().await;
+
+    // create client and ctx
+    let client = BlobstoreSender::via(prov);
+    let mut ctx = Context::default();
+    ctx.actor = Some("actor_test".into());
+
+    // Create container cont1
+    let resp = client.create_container(&ctx, &"cont1".into()).await;
+    assert_eq!(resp, Ok(()));
+
+    // create and upload file1 part 1
+    let file_chunk1 = Chunk {
+        object_id: "file1".into(),
+        container_id: "cont1".into(),
+        bytes: vec![0, 1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 16, 27, 110, 111, 112, 113, 114, 115],
+        is_last: true,
+        offset: 0,
+    };
+    let upload_request = PutObjectRequest {
+        chunk: file_chunk1.clone(),
+        content_encoding: None,
+        content_type: None,
+    };
+    let resp2 = client.put_object(&ctx, &upload_request).await;
+    assert!(resp2.is_ok());
 
     // file is created. Now retrieve it again using get_object assuming it will come back in one chunk
     let get_object_request = GetObjectRequest {

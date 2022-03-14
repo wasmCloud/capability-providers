@@ -21,6 +21,7 @@ use std::{
     },
 };
 use std::io::Read;
+use std::num::ParseIntError;
 use tokio::sync::RwLock;
 use wasmbus_rpc::provider::prelude::*;
 use wasmbus_rpc::Timestamp;
@@ -44,13 +45,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub type ChunkOffsetKey = (String, u64);
+pub type ChunkOffsetKey = (String, usize);
 
 #[derive(Default, Clone)]
 #[allow(dead_code)]
 struct FsProviderConfig {
     ld: LinkDefinition,
     root: PathBuf,
+    chunk_size: usize,
 }
 
 
@@ -97,7 +99,7 @@ impl FsProvider {
         let ld = match conf {
             Some(config) => config.ld.clone(),
             None => {
-                return Err(RpcError::InvalidParameter(String::from("No root configuration found")));
+                return Err(RpcError::InvalidParameter(String::from("No link definition found")));
             },
         };
         Ok(ld)
@@ -113,6 +115,18 @@ impl FsProvider {
             },
         };
         Ok(root)
+    }
+
+    async fn get_chunk_size(&self, ctx: &Context) -> RpcResult<usize> {
+        let actor_id = self.get_actor_id(ctx).await?;
+        let conf_map =  self.config.read().await;
+        let chunk_size  = match conf_map.get(&actor_id) {
+            Some(config) => config.chunk_size,
+            None => {
+                return Err(RpcError::InvalidParameter(String::from("No chunk size configuration found")));
+            },
+        };
+        Ok(chunk_size)
     }
 
     /// Stores a file chunk in right order.
@@ -134,8 +148,6 @@ impl FsProvider {
 
         let _upload_chunks = self.upload_chunks.write().await;
 
-
-    
         let bpath = Path::join(
             &Path::join(
                 &root,
@@ -150,7 +162,6 @@ impl FsProvider {
                                                                 chunk.object_id, 
                                                                 chunk.bytes.len());
     
-    
         let count = file.write(chunk.bytes.as_ref())?;
         if count != chunk.bytes.len() {
             let msg = format!("Failed to fully write chunk: {} of {} bytes",
@@ -162,7 +173,6 @@ impl FsProvider {
         }
 
         Ok(())
-    
     }
 
     /// Sends bytes to actor in a single rpc message.
@@ -193,6 +203,14 @@ impl FsProvider {
         root.push(ld.actor_id.clone());
         root
     }
+
+    fn get_chunk_size_from_ld(ld: &LinkDefinition) -> usize {
+         match ld.values.get("CHUNK_SIZE") {
+            Some(v) => v.parse::<usize>().unwrap(),
+            None => 1024_usize,
+        }
+    }
+
 }
 
 
@@ -206,8 +224,9 @@ impl ProviderHandler for FsProvider {
     async fn put_link(&self, ld: &LinkDefinition) -> RpcResult<bool> {
 
         let root = Self::get_root_from_ld(ld);
+        let chunk_size = Self::get_chunk_size_from_ld(ld);
 
-        info!("File System Blob Store Container Root: '{:?}'", &root);
+        info!("File System Blob Store Container Root: '{:?}', Chunk size: {:?}", &root, chunk_size);
 
         self.config
             .write()
@@ -215,7 +234,8 @@ impl ProviderHandler for FsProvider {
             .insert(ld.actor_id.clone(), FsProviderConfig {
                                                     ld: ld.clone(),
                                                     root,
-                                                }
+                                                    chunk_size,
+            }
             );
 
         Ok(true)
@@ -524,30 +544,47 @@ impl Blobstore for FsProvider {
 
         info!("Get object called: {:?}", arg);
 
-        let actor_id = self.get_actor_id(ctx).await?;
-
         let root = &self.get_root(ctx).await?;
         let cdir = Path::new(root).join(&arg.container_id);
         let file_path = Path::join(&cdir, &arg.object_id);
 
         let file = read(file_path)?;
+        let cs = self.get_chunk_size(ctx).await?;
 
-        let c = Chunk {
-            object_id: arg.object_id.clone(),
-            container_id: arg.container_id.clone(),
-            bytes: file,
-            offset: 0,
-            is_last: true,
+        let file_chunked = file.chunks(cs);
+
+        let mut dcm = self.download_chunks.write().await;
+
+        let mut offset = 0_usize;
+        let actor_id = self.get_actor_id(ctx).await?;
+        for c in file_chunked {
+            let chunk = Chunk {
+                object_id: arg.object_id.clone(),
+                container_id: arg.container_id.clone(),
+                bytes: c.to_vec(),
+                offset: offset as u64,
+                is_last: offset >= (file.len() - c.len()),
+            };
+
+            let key = (actor_id.clone(), offset);
+            dcm.insert(key, chunk);
+
+            offset += c.len();
+        }
+
+
+        let key = (actor_id, 0);
+        let c = match dcm.get(&key) {
+            Some(chunk) => chunk,
+            None => return Err(RpcError::InvalidParameter("Could not retrive the first chunk for download".to_string())),
         };
-
-        info!("Read file {:?} size {:?}", arg.object_id, c.bytes.len());
 
         Ok(GetObjectResponse {
             content_encoding: None,
             content_length: c.bytes.len() as u64,
             content_type: None,
             error: None,
-            initial_chunk: Some(c),
+            initial_chunk: Some(c.clone()),
             success: true,
         })
     }
