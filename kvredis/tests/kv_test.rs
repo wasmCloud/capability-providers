@@ -96,7 +96,6 @@ async fn get_set(_opt: &TestOptions) -> RpcResult<()> {
 
     tracing::debug!("done!!!!");
 
-
     // clean up
     let _ = kv.del(&ctx, &key).await?;
     Ok(())
