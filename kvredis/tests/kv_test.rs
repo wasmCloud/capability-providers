@@ -17,15 +17,7 @@ use wasmcloud_test_util::{run_selected, run_selected_spawn};
 #[tokio::test]
 async fn run_all() {
     let opts = TestOptions::default();
-    let res = run_selected_spawn!(
-        &opts,
-        health_check,
-        get_set,
-        contains_del,
-        incr,
-        lists,
-        sets
-    );
+    let res = run_selected_spawn!(opts, health_check, get_set, contains_del, incr, lists, sets);
     print_test_results(&res);
 
     let passed = res.iter().filter(|tr| tr.passed).count();
@@ -102,7 +94,8 @@ async fn get_set(_opt: &TestOptions) -> RpcResult<()> {
     let get_resp = kv.get(&ctx, &key).await?;
     check!(!get_resp.exists)?;
 
-    log::debug!("done!!!!");
+    tracing::debug!("done!!!!");
+
 
     // clean up
     let _ = kv.del(&ctx, &key).await?;
