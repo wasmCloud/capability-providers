@@ -21,3 +21,6 @@ rust_backtrace = "1"
 
 # name of contract under test
 contract_id = "wasmcloud:blobstore"
+
+values = { chunk_size = 128, root = "/tmp" }
+

@@ -407,8 +407,6 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
     let c = o.initial_chunk.unwrap();
     let mut combined = Vec::new();
     combined.append(&mut file_chunk1.bytes.clone());
-    combined.append(&mut file_chunk2.bytes.clone());
-    combined.append(&mut file_chunk3.bytes.clone());
     assert_eq!(c.bytes, combined);
 
     // remove container (which now should be rmpty)

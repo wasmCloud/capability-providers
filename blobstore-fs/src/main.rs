@@ -3,6 +3,7 @@
 //!
 
 #[allow(unused_imports)]
+use serde::Deserialize;
 use log::{info, error};
 use std::time::SystemTime;
 #[allow(unused_imports)]
@@ -20,12 +21,14 @@ use std::{
         metadata,
     },
 };
-use std::io::Read;
-use std::num::ParseIntError;
 use tokio::sync::RwLock;
 use wasmbus_rpc::provider::prelude::*;
 use wasmbus_rpc::Timestamp;
 use wasmcloud_interface_blobstore::*;
+mod settings;
+pub use settings::{load_settings, ServiceSettings};
+mod hashmap_ci;
+pub(crate) use hashmap_ci::make_case_insensitive;
 mod fs_utils;
 pub use fs_utils::all_dirs;
 
@@ -47,12 +50,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 pub type ChunkOffsetKey = (String, usize);
 
-#[derive(Default, Clone)]
-#[allow(dead_code)]
+#[derive(Default, Debug, Clone, Deserialize)]
 struct FsProviderConfig {
     ld: LinkDefinition,
-    root: PathBuf,
-    chunk_size: usize,
+    settings: ServiceSettings,
 }
 
 
@@ -109,7 +110,7 @@ impl FsProvider {
         let actor_id = self.get_actor_id(ctx).await?;
         let conf_map =  self.config.read().await;
         let root  = match conf_map.get(&actor_id) {
-            Some(config) => config.root.clone(),
+            Some(config) => config.settings.root.clone(),
             None => {
                 return Err(RpcError::InvalidParameter(String::from("No root configuration found")));
             },
@@ -121,7 +122,7 @@ impl FsProvider {
         let actor_id = self.get_actor_id(ctx).await?;
         let conf_map =  self.config.read().await;
         let chunk_size  = match conf_map.get(&actor_id) {
-            Some(config) => config.chunk_size,
+            Some(config) => config.settings.chunk_size,
             None => {
                 return Err(RpcError::InvalidParameter(String::from("No chunk size configuration found")));
             },
@@ -195,7 +196,7 @@ impl FsProvider {
 
 
     fn get_root_from_ld(ld: &LinkDefinition) -> PathBuf {
-        let mut root = PathBuf::from(match ld.values.get("ROOT") {
+        let mut root = PathBuf::from(match ld.values.get("root") {
             Some(v) => Path::new(v),
             None => Path::new("/tmp"),     // perhaps not portable across different systems
         });
@@ -205,7 +206,7 @@ impl FsProvider {
     }
 
     fn get_chunk_size_from_ld(ld: &LinkDefinition) -> usize {
-         match ld.values.get("CHUNK_SIZE") {
+         match ld.values.get("chunk_size") {
             Some(v) => v.parse::<usize>().unwrap(),
             None => 1024_usize,
         }
@@ -223,7 +224,23 @@ impl ProviderHandler for FsProvider {
     /// 
     async fn put_link(&self, ld: &LinkDefinition) -> RpcResult<bool> {
 
+        let values = &ld.values;
+
+        let settings_val = load_settings(values)?;
+
+        let config = FsProviderConfig {
+                ld: ld.clone(),
+                settings: settings_val.clone(), 
+        };
+
+        info!("Config: {:?}", config);
+
         let root = Self::get_root_from_ld(ld);
+
+        for val in &ld.values {
+            info!("ld conf {:?}", val);
+        }
+
         let chunk_size = Self::get_chunk_size_from_ld(ld);
 
         info!("File System Blob Store Container Root: '{:?}', Chunk size: {:?}", &root, chunk_size);
@@ -231,12 +248,7 @@ impl ProviderHandler for FsProvider {
         self.config
             .write()
             .await
-            .insert(ld.actor_id.clone(), FsProviderConfig {
-                                                    ld: ld.clone(),
-                                                    root,
-                                                    chunk_size,
-            }
-            );
+            .insert(ld.actor_id.clone(), config.clone());
 
         Ok(true)
     }
