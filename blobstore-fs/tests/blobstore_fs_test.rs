@@ -13,11 +13,11 @@ use wasmcloud_test_util::{run_selected, run_selected_spawn};
 async fn run_all() {
     let opts = TestOptions::default();
     let res = run_selected_spawn!(&opts,
-        // health_check,
-        // create_find_and_remove_dir,
-        // create_dirs_and_list,
-        // upload_and_list_files_in_dirs,
-        // upload_and_download_file,
+        health_check,
+        create_find_and_remove_dir,
+        create_dirs_and_list,
+        upload_and_list_files_in_dirs,
+        upload_and_download_file,
         upload_download_chunked_file,
         );
     print_test_results(&res);
