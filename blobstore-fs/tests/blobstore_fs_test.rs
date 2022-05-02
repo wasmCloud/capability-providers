@@ -475,7 +475,8 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
         async_reply: true,
     };
     o = client.get_object(&ctx, &get_object_request4).await?;
-    assert_ne!(o.initial_chunk, None);
+    
+    assert_eq!(o.initial_chunk, None); // there should be no chunk as it is asynchronous
 
 
 
@@ -523,11 +524,9 @@ async fn mock_blobstore_actor(num_requests: u32) -> tokio::task::JoinHandle<RpcR
                     break;
                 }
 
-                println!("******************* Received chunk!");
-                let rec_chunk: Chunk = deserialize(&inv.msg)?;
-
-                println!("******************* Received chunk: {:?}", &rec_chunk);
-
+                let rec_chunk: Chunk = wasmbus_rpc::common::decode(&inv.msg, &decode_chunk)
+                .map_err(|e| RpcError::Deser(format!("'Chunk': {}", e)))?;
+                
 
                 // do something with chunk
                 assert_eq!(rec_chunk.is_last, true);
