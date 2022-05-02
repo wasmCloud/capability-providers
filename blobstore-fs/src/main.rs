@@ -227,6 +227,9 @@ impl ProviderHandler for FsProvider {
             None => "/tmp",
             Some(r) => r.as_str(),
         };
+
+        let root = PathBuf::from(root_val).join(ld.actor_id.clone());
+        std::fs::create_dir_all(root.as_path())?;
     
         let config = FsProviderConfig {
             ld: ld.clone(),
