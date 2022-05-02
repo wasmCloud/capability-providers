@@ -15,6 +15,12 @@ use tokio::sync::RwLock;
 use wasmbus_rpc::{core::LinkDefinition, provider::prelude::*};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_ansi(atty::is(atty::Stream::Stderr))
+        .init();
+
     let mut vars: Vec<(String, String)> = std::env::vars().collect();
     vars.sort_by(|v, other| String::cmp(&v.0, &other.0));
     for (var, value) in vars.iter() {
@@ -50,21 +56,6 @@ impl S3BlobstoreProvider {
             .get(actor_id)
             .ok_or_else(|| RpcError::InvalidParameter(format!("actor not linked:{}", actor_id)))?;
         Ok(client.clone())
-    }
-
-    // s3 client: like client() but doesn't clone linkdefinition
-    // (possibly a premature optimization!)
-    async fn s3_client(&self, ctx: &Context) -> RpcResult<StorageClient> {
-        let actor_id = ctx
-            .actor
-            .as_ref()
-            .ok_or_else(|| RpcError::InvalidParameter("no actor in request".to_string()))?;
-        // get read lock on actor-client hashmap
-        let rd = self.actors.read().await;
-        let client = rd
-            .get(actor_id)
-            .ok_or_else(|| RpcError::InvalidParameter(format!("actor not linked:{}", actor_id)))?;
-        Ok(StorageClient(client.0.clone(), None))
     }
 }
 
@@ -111,12 +102,12 @@ impl ProviderHandler for S3BlobstoreProvider {
 #[async_trait]
 impl Blobstore for S3BlobstoreProvider {
     async fn container_exists(&self, ctx: &Context, arg: &ContainerId) -> RpcResult<bool> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.container_exists(ctx, arg).await
     }
 
     async fn create_container(&self, ctx: &Context, arg: &ContainerId) -> RpcResult<()> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.create_container(ctx, arg).await
     }
 
@@ -125,7 +116,7 @@ impl Blobstore for S3BlobstoreProvider {
         ctx: &Context,
         arg: &ContainerId,
     ) -> RpcResult<ContainerMetadata> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.get_container_info(ctx, arg).await
     }
 
@@ -134,22 +125,22 @@ impl Blobstore for S3BlobstoreProvider {
         ctx: &Context,
         arg: &ContainerObject,
     ) -> RpcResult<ObjectMetadata> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.get_object_info(ctx, arg).await
     }
 
     async fn list_containers(&self, ctx: &Context) -> RpcResult<ContainersInfo> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.list_containers(ctx).await
     }
 
     async fn remove_containers(&self, ctx: &Context, arg: &ContainerIds) -> RpcResult<MultiResult> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.remove_containers(ctx, arg).await
     }
 
     async fn object_exists(&self, ctx: &Context, arg: &ContainerObject) -> RpcResult<bool> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.object_exists(ctx, arg).await
     }
 
@@ -158,7 +149,7 @@ impl Blobstore for S3BlobstoreProvider {
         ctx: &Context,
         arg: &ListObjectsRequest,
     ) -> RpcResult<ListObjectsResponse> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.list_objects(ctx, arg).await
     }
 
@@ -167,7 +158,7 @@ impl Blobstore for S3BlobstoreProvider {
         ctx: &Context,
         arg: &RemoveObjectsRequest,
     ) -> RpcResult<MultiResult> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.remove_objects(ctx, arg).await
     }
 
@@ -176,7 +167,7 @@ impl Blobstore for S3BlobstoreProvider {
         ctx: &Context,
         arg: &PutObjectRequest,
     ) -> RpcResult<PutObjectResponse> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.put_object(ctx, arg).await
     }
 
@@ -191,7 +182,7 @@ impl Blobstore for S3BlobstoreProvider {
     }
 
     async fn put_chunk(&self, ctx: &Context, arg: &PutChunkRequest) -> RpcResult<()> {
-        let client = self.s3_client(ctx).await?;
+        let client = self.client(ctx).await?;
         client.put_chunk(ctx, arg).await
     }
 }
