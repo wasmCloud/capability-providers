@@ -1985,6 +1985,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rmp-serde"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25786b0d276110195fa3d6f3f31299900cf71dfbd6c28450f3f58a0e7f7a347e"
+dependencies = [
+ "byteorder",
+ "rmp",
+ "serde",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3032,7 +3043,7 @@ dependencies = [
  "nkeys 0.2.0",
  "once_cell",
  "ring",
- "rmp-serde",
+ "rmp-serde 0.15.5",
  "serde",
  "serde_bytes",
  "serde_json",
@@ -3092,7 +3103,7 @@ dependencies = [
  "futures 0.3.21",
  "http",
  "reqwest",
- "rmp-serde",
+ "rmp-serde 1.1.0",
  "serde",
  "serde_bytes",
  "serde_json",
