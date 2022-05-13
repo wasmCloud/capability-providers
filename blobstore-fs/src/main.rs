@@ -30,8 +30,13 @@ const FIRST_SEQ_NBR: u64 = 0;
 // main (via provider_main) initializes the threaded tokio executor,
 // listens to lattice rpcs, handles actor links,
 // and returns only when it receives a shutdown message
-//
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_ansi(atty::is(atty::Stream::Stderr))
+        .init();
+
     provider_main(FsProvider::default())?;
 
     eprintln!("fs provider exiting");
