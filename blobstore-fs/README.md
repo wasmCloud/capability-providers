@@ -1,7 +1,7 @@
 # blobstore-fs capability provider
 
 This capability provider implements the "wasmcloud:blobstore" capability for
-Unix file system. The provider will store files in the local host where the
+Unix and Windows file system. The provider will store files in the local host where the
 provider executes.
 
 Currently file upload (put_object) and download (get_object) are not chunked 

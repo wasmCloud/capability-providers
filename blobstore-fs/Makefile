@@ -1,7 +1,7 @@
 # blobstore-fs Makefile
 
 CAPABILITY_ID = "wasmcloud:blobstore_fs"
-NAME = "Blobstore for unix file system"
+NAME = "Blobstore for unix and windows file system"
 VENDOR = "Wasmcloud"
 PROJECT = blobstore_fs
 VERSION  = $(shell cargo metadata --no-deps --format-version 1 | jq -r '.packages[] .version' | head -1)
