@@ -84,7 +84,8 @@ par:: $(dest_par)
 $(dest_par): $(bin_target0) Makefile Cargo.toml
 	@mkdir -p $(dir $(dest_par))
 	bin_src=$(bin_target0);  \
-	if [[ $(par_target0) = x86_64-pc-windows-* ]]; then \
+	if [ $(par_target0) = "x86_64-pc-windows-gnu" ] || \
+	   [ $(par_target0) = "x86_64-pc-windows-msvc" ] ; then \
 		bin_src=$$bin_src.exe;  \
 	fi; \
 	$(WASH) par create \
