@@ -49,7 +49,7 @@ jobs:
     - id: run-nats
       uses: wasmcloud/common-actions/run-nats@main
     - name: Run tests
-      run: run-test.sh
+      run: ./run-test.sh
       shell: bash
       working-directory: ${{ env.working-directory }}
 
