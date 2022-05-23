@@ -124,6 +124,7 @@ target/%/release/$(bin_name): $(RUST_DEPS)
 	mkdir -p ${HOME}/.cache
 	tname=`echo -n $@ | sed -E 's_target/([^/]+)/release.*$$_\1_'` &&\
 	rm -rf target/release/build &&\
+	rm -rf target/release/deps &&\
 	XDG_CACHE_HOME=${HOME}/.cache cross build --release --target $$tname
 
 endif
