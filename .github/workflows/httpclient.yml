@@ -31,7 +31,6 @@ jobs:
   #         working-directory: ${{ env.working-directory }}
 
   build_artifact:
-    # needs: rust_check
     # if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     strategy:
       matrix:
@@ -57,10 +56,17 @@ jobs:
         working-directory: ${{ env.working-directory }}
 
       - name: Upload executable to GH Actions
+        if: ${{ !contains(matrix.target, 'windows') }}
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.target }}
           path: ${{ env.working-directory }}/target/${{ matrix.target }}/release/${{ env.artifact-name }}
+      - name: Upload executable to GH Actions (windows)
+        if: ${{ contains(matrix.target, 'windows') }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.target }}
+          path: ${{ env.working-directory }}/target/${{ matrix.target }}/release/${{ env.artifact-name }}.exe
 
   github_release:
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push
