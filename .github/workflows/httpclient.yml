@@ -19,19 +19,19 @@ env:
   WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_HTTPCLIENT }}
 
 jobs:
-  rust_check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - id: run-nats
-        uses: wasmcloud/common-actions/run-nats@main
-      - id: rust-check-action
-        uses: wasmcloud/common-actions/rust-check@main
-        with:
-          working-directory: ${{ env.working-directory }}
+  # rust_check:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - id: run-nats
+  #       uses: wasmcloud/common-actions/run-nats@main
+  #     - id: rust-check-action
+  #       uses: wasmcloud/common-actions/rust-check@main
+  #       with:
+  #         working-directory: ${{ env.working-directory }}
 
   build_artifact:
-    needs: rust_check
+    # needs: rust_check
     # if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     strategy:
       matrix:
