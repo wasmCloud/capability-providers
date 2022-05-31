@@ -30,7 +30,19 @@ jobs:
   #       with:
   #         working-directory: ${{ env.working-directory }}
 
+  install_cross:
+    # if: startswith(github.ref, 'refs/tags/') # Only run on tag push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: wasmcloud/common-actions/install-cross@main
+      - name: Upload cross binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: cross
+          path: ~/.cargo/bin/cross
+
   build_artifact:
+    # needs: [rust_check, install_cross]
     # if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     strategy:
       matrix:
@@ -56,17 +68,27 @@ jobs:
         working-directory: ${{ env.working-directory }}
 
       - name: Upload executable to GH Actions
-        if: ${{ !contains(matrix.target, 'windows') }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.target }}
-          path: ${{ env.working-directory }}/target/${{ matrix.target }}/release/${{ env.artifact-name }}
-      - name: Upload executable to GH Actions (windows)
-        if: ${{ contains(matrix.target, 'windows') }}
-        uses: actions/upload-artifact@v2
+          # if-no-files-found: error
+          path: |
+            ${{ env.working-directory }}/target/${{ matrix.target }}/release/${{ env.artifact-name }}
+            ${{ env.working-directory }}/target/${{ matrix.target }}/release/${{ env.artifact-name }}.exe
+
+  assemble_provider_archive:
+    needs: [build_artifact]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v3
         with:
-          name: ${{ matrix.target }}
-          path: ${{ env.working-directory }}/target/${{ matrix.target }}/release/${{ env.artifact-name }}.exe
+          path: path/to/artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: path/to/artifacts
 
   github_release:
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push
@@ -74,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download provider archive
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: provider-archive
           path: ${{ env.working-directory }}/build
@@ -94,7 +116,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Download provider archive
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: provider-archive
           path: ${{ env.working-directory }}/build
