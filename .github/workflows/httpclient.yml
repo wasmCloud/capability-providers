@@ -9,8 +9,8 @@ on:
       - "httpclient-v*"
   pull_request:
     branches: [main]
-    # paths:
-    # - "httpclient/**"
+    paths:
+      - "httpclient/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -19,19 +19,19 @@ env:
   WASH_SUBJECT_KEY: ${{ secrets.WASMCLOUD_HTTPCLIENT }}
 
 jobs:
-  # rust_check:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - id: run-nats
-  #       uses: wasmcloud/common-actions/run-nats@main
-  #     - id: rust-check-action
-  #       uses: wasmcloud/common-actions/rust-check@main
-  #       with:
-  #         working-directory: ${{ env.working-directory }}
+  rust_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - id: run-nats
+        uses: wasmcloud/common-actions/run-nats@main
+      - id: rust-check-action
+        uses: wasmcloud/common-actions/rust-check@main
+        with:
+          working-directory: ${{ env.working-directory }}
 
   install_cross:
-    # if: startswith(github.ref, 'refs/tags/') # Only run on tag push
+    if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     runs-on: ubuntu-latest
     steps:
       - uses: wasmcloud/common-actions/install-cross@main
@@ -42,8 +42,8 @@ jobs:
           path: ~/.cargo/bin/cross
 
   build_artifact:
-    # needs: [rust_check, install_cross]
-    # if: startswith(github.ref, 'refs/tags/') # Only run on tag push
+    needs: [rust_check, install_cross]
+    if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     strategy:
       matrix:
         target:
@@ -56,7 +56,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: wasmcloud/common-actions/install-cross@main
+      - name: Download cross binary
+        uses: actions/download-artifact@v3
+        with:
+          name: cross
+          path: ~/.cargo/bin
 
       - name: Determine artifact name
         run: |
@@ -64,7 +68,9 @@ jobs:
         working-directory: ${{ env.working-directory }}
 
       - name: Build native executable
-        run: cross build --release --target ${{ matrix.target }}
+        run: |
+          chmod +x ~/.cargo/bin/cross
+          cross build --release --target ${{ matrix.target }}
         working-directory: ${{ env.working-directory }}
 
       - name: Upload executable to GH Actions
@@ -81,18 +87,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
+      - uses: wasmcloud/common-actions/install-wash@main
+      # Downloads all artifacts
       - uses: actions/download-artifact@v3
         with:
-          path: path/to/artifacts
+          path: ${{ env.working-directory }}
 
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: path/to/artifacts
+      - name: Determine artifact name
+        run: |
+          echo "artifact-name=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].targets[0].name')" >> $GITHUB_ENV
+        working-directory: ${{ env.working-directory }}
+
+      - name: Create provider archive
+        working-directory: ${{ env.working-directory }}
+        run: |
+          mkdir -p target/release
+          mv x86_64-unknown-linux-gnu/${{ env.artifact-name }} target/release/
+          make build/${{ env.artifact-name }}.par.gz
+
+      - name: Insert provider archive targets
+        working-directory: ${{ env.working-directory }}
+        run: |
+          wash par insert --arch x86_64-macos   --binary x86_64-apple-darwin/${{ env.artifact-name }} build/${{ env.artifact-name }}.par.gz
+          wash par insert --arch aarch64-linux  --binary aarch64-unknown-linux-gnu/${{ env.artifact-name }} build/${{ env.artifact-name }}.par.gz
+          wash par insert --arch aarch64-macos  --binary aarch64-apple-darwin/${{ env.artifact-name }} build/${{ env.artifact-name }}.par.gz
+          wash par insert --arch armv7-linux    --binary armv7-unknown-linux-gnueabihf/${{ env.artifact-name }} build/${{ env.artifact-name }}.par.gz
+          wash par insert --arch x86_64-windows --binary x86_64-pc-windows-gnu/${{ env.artifact-name }}.exe build/${{ env.artifact-name }}.par.gz
+
+      - name: Upload provider archive to GH Actions
+        uses: actions/upload-artifact@v2
+        with:
+          name: provider-archive
+          path: ${{ env.working-directory }}/build/${{ env.artifact-name }}.par.gz
 
   github_release:
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push
-    needs: build_artifact
+    needs: assemble_provider_archive
     runs-on: ubuntu-latest
     steps:
       - name: Download provider archive
@@ -110,7 +140,7 @@ jobs:
           draft: false
 
   artifact_release:
-    needs: build_artifact
+    needs: assemble_provider_archive
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     runs-on: ubuntu-latest
     steps:
