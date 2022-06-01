@@ -42,7 +42,7 @@ jobs:
           path: ~/.cargo/bin/cross
 
   build_artifact:
-    needs: [rust_check, install_cross]
+    needs: install_cross
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     strategy:
       matrix:
@@ -122,7 +122,7 @@ jobs:
 
   github_release:
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push
-    needs: assemble_provider_archive
+    needs: [rust_check, assemble_provider_archive]
     runs-on: ubuntu-latest
     steps:
       - name: Download provider archive
@@ -140,7 +140,7 @@ jobs:
           draft: false
 
   artifact_release:
-    needs: assemble_provider_archive
+    needs: [rust_check, assemble_provider_archive]
     if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     runs-on: ubuntu-latest
     steps:
