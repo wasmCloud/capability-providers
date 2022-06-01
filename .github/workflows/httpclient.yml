@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.target }}
-          # if-no-files-found: error
+          if-no-files-found: error
           path: |
             ${{ env.working-directory }}/target/${{ matrix.target }}/release/${{ env.artifact-name }}
             ${{ env.working-directory }}/target/${{ matrix.target }}/release/${{ env.artifact-name }}.exe
