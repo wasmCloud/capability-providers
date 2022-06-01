@@ -103,7 +103,7 @@ jobs:
         run: |
           mkdir -p target/release
           mv x86_64-unknown-linux-gnu/${{ env.artifact-name }} target/release/
-          make build/${{ env.artifact-name }}.par.gz
+          make par
 
       - name: Insert provider archive targets
         working-directory: ${{ env.working-directory }}
