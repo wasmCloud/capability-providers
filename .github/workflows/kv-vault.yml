@@ -9,8 +9,8 @@ on:
       - "kv-vault-v*"
   pull_request:
     branches: [main]
-    paths:
-      - "kv-vault/**"
+    # paths:
+    #   - "kv-vault/**"
   workflow_dispatch:
     inputs:
       release:

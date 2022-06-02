@@ -9,8 +9,8 @@ on:
       - "kvredis-v*"
   pull_request:
     branches: [main]
-    paths:
-      - "kvredis/**"
+    # paths:
+    #   - "kvredis/**"
 
 env:
   CARGO_TERM_COLOR: always

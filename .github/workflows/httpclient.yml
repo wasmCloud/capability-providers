@@ -9,8 +9,8 @@ on:
       - "httpclient-v*"
   pull_request:
     branches: [main]
-    paths:
-      - "httpclient/**"
+    # paths:
+    #   - "httpclient/**"
 
 env:
   CARGO_TERM_COLOR: always

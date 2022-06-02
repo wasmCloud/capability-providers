@@ -9,8 +9,8 @@ on:
       - "lattice-controller-v*"
   pull_request:
     branches: [main]
-    paths:
-      - "lattice-controller/**"
+    # paths:
+    #   - "lattice-controller/**"
 
 env:
   CARGO_TERM_COLOR: always

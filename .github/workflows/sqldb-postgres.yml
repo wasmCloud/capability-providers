@@ -9,8 +9,8 @@ on:
       - "sqldb-postgres-v*"
   pull_request:
     branches: [main]
-    paths:
-      - "sqldb-postgres/**"
+    # paths:
+    #   - "sqldb-postgres/**"
   workflow_dispatch:
     inputs:
       release:
