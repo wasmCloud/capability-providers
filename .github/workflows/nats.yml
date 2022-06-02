@@ -9,8 +9,8 @@ on:
       - "nats-v*"
   pull_request:
     branches: [main]
-    # paths:
-    #   - "nats/**"
+    paths:
+      - "nats/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -31,7 +31,7 @@ jobs:
           working-directory: ${{ env.working-directory }}
 
   install_cross:
-    # if: startswith(github.ref, 'refs/tags/') # Only run on tag push
+    if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     runs-on: ubuntu-latest
     steps:
       - uses: wasmcloud/common-actions/install-cross@main
@@ -43,7 +43,7 @@ jobs:
 
   build_artifact:
     needs: install_cross
-    # if: startswith(github.ref, 'refs/tags/') # Only run on tag push
+    if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     strategy:
       matrix:
         target:
