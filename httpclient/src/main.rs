@@ -21,7 +21,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_ansi(atty::is(atty::Stream::Stderr))
         .init();
 
-    provider_main(HttpClientProvider::default(), Some("HttpClient Provider".to_string()))?;
+    provider_main(
+        HttpClientProvider::default(),
+        Some("HttpClient Provider".to_string()),
+    )?;
 
     eprintln!("HttpClient provider exiting");
     Ok(())
