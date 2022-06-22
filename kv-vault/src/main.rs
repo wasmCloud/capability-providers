@@ -24,7 +24,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
     // handle lattice control messages and forward rpc to the provider dispatch
     // returns when provider receives a shutdown control message
-    provider_main(KvVaultProvider::default())?;
+    provider_main(
+        KvVaultProvider::default(),
+        Some("KV-Vault Provider".to_string()),
+    )?;
 
     eprintln!("KvVault provider exiting");
     Ok(())
@@ -305,7 +308,7 @@ impl KvVaultProvider {
         let client_rw = rd
             .get(actor_id)
             .ok_or_else(|| RpcError::InvalidParameter(format!("actor not linked:{}", actor_id)))?;
-        let x = Ok(client_rw.read().await.clone());
-        x
+        let client = client_rw.read().await.clone();
+        Ok(client)
     }
 }

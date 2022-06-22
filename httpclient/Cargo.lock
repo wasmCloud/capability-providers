@@ -76,9 +76,9 @@ dependencies = [
 
 [[package]]
 name = "async-nats"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54e58eee9bfafba3b6b260e3004b1d3b25bc7198b9444f731fbd257fb4144a99"
+checksum = "23f02c8b692d7eea2cfcdf58b43031b163efd93aa99c01d2a9e796168d37dcf1"
 dependencies = [
  "base64-url",
  "bytes",
@@ -92,8 +92,10 @@ dependencies = [
  "rustls-pemfile 0.3.0",
  "serde",
  "serde_json",
+ "serde_nanos",
  "serde_repr",
  "subslice",
+ "time 0.3.9",
  "tokio",
  "tokio-rustls",
  "tokio-util 0.7.3",
@@ -2886,17 +2888,7 @@ checksum = "6a89911bd99e5f3659ec4acf9c4d93b0a90fe4a2a11f15328472058edc5261be"
 [[package]]
 name = "wasmbus-macros"
 version = "0.1.9"
-dependencies = [
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "wasmbus-macros"
-version = "0.1.9"
-source = "git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333#7a6522e5333e72a423d3aaac89f5060514d0d333"
+source = "git+https://github.com/wasmcloud/weld?rev=6da17f739b0ad0f1a58df2061eedd0d2f92baee0#6da17f739b0ad0f1a58df2061eedd0d2f92baee0"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -2906,7 +2898,8 @@ dependencies = [
 
 [[package]]
 name = "wasmbus-rpc"
-version = "0.9.0"
+version = "0.9.0-alpha-1.0"
+source = "git+https://github.com/wasmcloud/weld?rev=6da17f739b0ad0f1a58df2061eedd0d2f92baee0#6da17f739b0ad0f1a58df2061eedd0d2f92baee0"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -2941,68 +2934,28 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "wascap",
- "wasmbus-macros 0.1.9",
- "weld-codegen 0.4.5",
-]
-
-[[package]]
-name = "wasmbus-rpc"
-version = "0.9.0"
-source = "git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333#7a6522e5333e72a423d3aaac89f5060514d0d333"
-dependencies = [
- "anyhow",
- "async-nats",
- "async-trait",
- "atty",
- "base64",
- "bytes",
- "cfg-if 1.0.0",
- "data-encoding",
- "futures 0.3.21",
- "lazy_static",
- "minicbor 0.17.1",
- "minicbor-ser",
- "nats",
- "nkeys",
- "once_cell",
- "opentelemetry",
- "opentelemetry-otlp",
- "rmp-serde 1.1.0",
- "serde",
- "serde_bytes",
- "serde_json",
- "sha2 0.10.2",
- "thiserror",
- "time 0.3.9",
- "tokio",
- "tokio-timer",
- "toml",
- "tracing",
- "tracing-futures",
- "tracing-opentelemetry",
- "tracing-subscriber",
- "uuid",
- "wascap",
- "wasmbus-macros 0.1.9 (git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333)",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333)",
+ "wasmbus-macros",
+ "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=6da17f739b0ad0f1a58df2061eedd0d2f92baee0)",
 ]
 
 [[package]]
 name = "wasmcloud-interface-httpclient"
-version = "0.5.1"
+version = "0.6.0-alpha.1"
+source = "git+https://github.com/wasmcloud/interfaces?rev=763d27dcfd6a5bf72a9f82ed406f638fdb429615#763d27dcfd6a5bf72a9f82ed406f638fdb429615"
 dependencies = [
  "async-trait",
  "futures 0.3.21",
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc 0.9.0 (git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333)",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333)",
+ "wasmbus-rpc",
+ "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
 ]
 
 [[package]]
 name = "wasmcloud-interface-testing"
-version = "0.4.2"
+version = "0.5.0-alpha-1.0"
+source = "git+https://github.com/wasmcloud/interfaces?rev=763d27dcfd6a5bf72a9f82ed406f638fdb429615#763d27dcfd6a5bf72a9f82ed406f638fdb429615"
 dependencies = [
  "async-trait",
  "regex",
@@ -3010,8 +2963,8 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc 0.9.0 (git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333)",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333)",
+ "wasmbus-rpc",
+ "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
 ]
 
 [[package]]
@@ -3036,14 +2989,15 @@ dependencies = [
  "toml",
  "tracing",
  "tracing-subscriber",
- "wasmbus-rpc 0.9.0 (git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333)",
+ "wasmbus-rpc",
  "wasmcloud-interface-httpclient",
  "wasmcloud-test-util",
 ]
 
 [[package]]
 name = "wasmcloud-test-util"
-version = "0.3.2"
+version = "0.4.0-alpha-1.0"
+source = "git+https://github.com/wasmcloud/wasmcloud-test?rev=73d96b44f142777f3d2d9b1d7a5bbfdac73ea5c3#73d96b44f142777f3d2d9b1d7a5bbfdac73ea5c3"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -3057,7 +3011,7 @@ dependencies = [
  "termcolor",
  "tokio",
  "toml",
- "wasmbus-rpc 0.9.0",
+ "wasmbus-rpc",
  "wasmcloud-interface-testing",
 ]
 
@@ -3103,6 +3057,7 @@ dependencies = [
 [[package]]
 name = "weld-codegen"
 version = "0.4.5"
+source = "git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176#38eb105b135d615ab0910a05a9e7d5e821e85176"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -3131,7 +3086,7 @@ dependencies = [
 [[package]]
 name = "weld-codegen"
 version = "0.4.5"
-source = "git+https://github.com/wasmcloud/weld?rev=7a6522e5333e72a423d3aaac89f5060514d0d333#7a6522e5333e72a423d3aaac89f5060514d0d333"
+source = "git+https://github.com/wasmcloud/weld?rev=6da17f739b0ad0f1a58df2061eedd0d2f92baee0#6da17f739b0ad0f1a58df2061eedd0d2f92baee0"
 dependencies = [
  "Inflector",
  "anyhow",

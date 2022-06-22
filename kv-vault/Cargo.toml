@@ -19,7 +19,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 url = "2.2.2"
 vaultrs = "0.6.0"
-wasmbus-rpc = "0.8.2"
+wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev = "6da17f739b0ad0f1a58df2061eedd0d2f92baee0", features = ["otel"] }
 
 [target.'cfg(all(target_arch = "aarch64", target_os = "linux"))'.dependencies]
 # We don't use paste directly, but we pin to a version that works with aarch64-linux
@@ -29,11 +29,11 @@ paste = "=1.0.6"
 [dev-dependencies]
 rand = "0.8"
 env_logger = "0.9"
-wasmcloud-test-util = "0.3.1"
+wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "73d96b44f142777f3d2d9b1d7a5bbfdac73ea5c3" }
 
 [build-dependencies]
 # for local code generation of wasmbus-interface-keyvalue
-weld-codegen = "0.4.2"
+weld-codegen = { git = "https://github.com/wasmcloud/weld", rev = "38eb105b135d615ab0910a05a9e7d5e821e85176" }
 
 [lib]
 name = "kv_vault_lib"
