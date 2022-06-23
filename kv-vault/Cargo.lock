@@ -2938,17 +2938,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "wasmbus-macros"
-version = "0.1.9"
-source = "git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f#89de35130b2379e144a5d7867a9b7bd9590d6b1f"
-dependencies = [
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "wasmbus-rpc"
 version = "0.9.0-alpha.1.1"
 source = "git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d#3029ca06bae2c08237563e39988988a32ceee01d"
@@ -2986,53 +2975,14 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "wascap",
- "wasmbus-macros 0.1.9 (git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d)",
+ "wasmbus-macros",
  "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d)",
-]
-
-[[package]]
-name = "wasmbus-rpc"
-version = "0.9.0-alpha.1.1"
-source = "git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f#89de35130b2379e144a5d7867a9b7bd9590d6b1f"
-dependencies = [
- "anyhow",
- "async-nats",
- "async-trait",
- "atty",
- "base64",
- "bytes",
- "cfg-if 1.0.0",
- "data-encoding",
- "futures 0.3.21",
- "lazy_static",
- "minicbor 0.17.1",
- "minicbor-ser",
- "nats",
- "nkeys",
- "once_cell",
- "rmp-serde 1.1.0",
- "serde",
- "serde_bytes",
- "serde_json",
- "sha2 0.10.2",
- "thiserror",
- "time",
- "tokio",
- "tokio-timer",
- "toml",
- "tracing",
- "tracing-futures",
- "tracing-subscriber",
- "uuid",
- "wascap",
- "wasmbus-macros 0.1.9 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
 ]
 
 [[package]]
 name = "wasmcloud-interface-testing"
 version = "0.5.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/interfaces?rev=6fa5eb5f7ef45df9a658f62e234f1efdec4f3700#6fa5eb5f7ef45df9a658f62e234f1efdec4f3700"
+source = "git+https://github.com/wasmcloud/interfaces?rev=7b8fe081e8e94530a1c571348ab37e6650420878#7b8fe081e8e94530a1c571348ab37e6650420878"
 dependencies = [
  "async-trait",
  "regex",
@@ -3040,7 +2990,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
+ "wasmbus-rpc",
  "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
 ]
 
@@ -3061,7 +3011,7 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "vaultrs",
- "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d)",
+ "wasmbus-rpc",
  "wasmcloud-test-util",
  "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
 ]
@@ -3069,7 +3019,7 @@ dependencies = [
 [[package]]
 name = "wasmcloud-test-util"
 version = "0.4.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/wasmcloud-test?rev=8cde90d1c4a492b40be4b699db86922c8c3d93fd#8cde90d1c4a492b40be4b699db86922c8c3d93fd"
+source = "git+https://github.com/wasmcloud/wasmcloud-test?rev=fc56ff6ba5008145f5add20f7f06eaa6456717e2#fc56ff6ba5008145f5add20f7f06eaa6456717e2"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -3083,7 +3033,7 @@ dependencies = [
  "termcolor",
  "tokio",
  "toml",
- "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
+ "wasmbus-rpc",
  "wasmcloud-interface-testing",
 ]
 
@@ -3159,35 +3109,6 @@ dependencies = [
 name = "weld-codegen"
 version = "0.4.5"
 source = "git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176#38eb105b135d615ab0910a05a9e7d5e821e85176"
-dependencies = [
- "Inflector",
- "anyhow",
- "atelier_assembler",
- "atelier_core",
- "atelier_json",
- "atelier_smithy",
- "bytes",
- "cfg-if 1.0.0",
- "clap",
- "directories",
- "downloader",
- "handlebars",
- "lazy_static",
- "lexical-sort",
- "reqwest",
- "rustc-hash",
- "semver",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "toml",
-]
-
-[[package]]
-name = "weld-codegen"
-version = "0.4.5"
-source = "git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f#89de35130b2379e144a5d7867a9b7bd9590d6b1f"
 dependencies = [
  "Inflector",
  "anyhow",

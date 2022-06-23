@@ -23,7 +23,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 wascap = "0.8.0"
 wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev = "3029ca06bae2c08237563e39988988a32ceee01d", features = ["otel"] }
-wasmcloud-control-interface = { git = "https://github.com/wasmcloud/control-interface-client", rev ="f67479d1db9935407e831b2e19f21f9e76c02621" }
+wasmcloud-control-interface = { git = "https://github.com/wasmcloud/control-interface-client", rev ="f0fbde116fc4f0409cd6632d7b23b516a90e2bcf" }
 
 [target.'cfg(all(target_arch = "aarch64", target_os = "linux"))'.dependencies]
 # We don't use paste directly, but we pin to a version that works with aarch64-linux
