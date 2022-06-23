@@ -20,7 +20,7 @@ toml = "0.5"
 tracing = "0.1.34"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 warp = { version="0.3", features=["tls"] }
-wasmcloud-interface-httpserver = { git = "https://github.com/wasmcloud/interfaces", rev = "6fa5eb5f7ef45df9a658f62e234f1efdec4f3700" }
+wasmcloud-interface-httpserver = { git = "https://github.com/wasmcloud/interfaces", rev = "7b8fe081e8e94530a1c571348ab37e6650420878" }
 #wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev = "3029ca06bae2c08237563e39988988a32ceee01d", features = ["otel"] }
 wasmbus-rpc = { path = "../../weld/rpc-rs" }
 
@@ -38,7 +38,7 @@ async-nats = { path = "../../../nats.rs/async-nats" }
 assert_matches = "1.5"
 blake2 = "0.9"
 reqwest = { version = "0.11", features = ["json"]}
-wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "8cde90d1c4a492b40be4b699db86922c8c3d93fd" }
+wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "fc56ff6ba5008145f5add20f7f06eaa6456717e2" }
 
 [lib]
 name = "wasmcloud_provider_httpserver"

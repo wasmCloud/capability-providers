@@ -35,9 +35,9 @@ rand = "0.8"
 fastrand = "1.7"
 crc32fast = "1.3.2"
 env_logger = "0.9"
-wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "8cde90d1c4a492b40be4b699db86922c8c3d93fd" }
-wasmcloud-interface-blobstore = { git = "https://github.com/wasmcloud/interfaces", rev = "6fa5eb5f7ef45df9a658f62e234f1efdec4f3700" }
-wasmcloud-interface-testing = { git = "https://github.com/wasmcloud/interfaces", rev = "6fa5eb5f7ef45df9a658f62e234f1efdec4f3700" }
+wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "fc56ff6ba5008145f5add20f7f06eaa6456717e2" }
+wasmcloud-interface-blobstore = { git = "https://github.com/wasmcloud/interfaces", rev = "7b8fe081e8e94530a1c571348ab37e6650420878" }
+wasmcloud-interface-testing = { git = "https://github.com/wasmcloud/interfaces", rev = "7b8fe081e8e94530a1c571348ab37e6650420878" }
 
 [build-dependencies]
 weld-codegen = { git = "https://github.com/wasmcloud/weld", rev = "38eb105b135d615ab0910a05a9e7d5e821e85176" }

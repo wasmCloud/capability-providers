@@ -2949,6 +2949,17 @@ checksum = "6a89911bd99e5f3659ec4acf9c4d93b0a90fe4a2a11f15328472058edc5261be"
 [[package]]
 name = "wasmbus-macros"
 version = "0.1.9"
+source = "git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d#3029ca06bae2c08237563e39988988a32ceee01d"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "wasmbus-macros"
+version = "0.1.9"
 source = "git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f#89de35130b2379e144a5d7867a9b7bd9590d6b1f"
 dependencies = [
  "proc-macro-error",
@@ -2960,7 +2971,7 @@ dependencies = [
 [[package]]
 name = "wasmbus-rpc"
 version = "0.9.0-alpha.1.1"
-source = "git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f#89de35130b2379e144a5d7867a9b7bd9590d6b1f"
+source = "git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d#3029ca06bae2c08237563e39988988a32ceee01d"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -2995,7 +3006,46 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "wascap",
- "wasmbus-macros",
+ "wasmbus-macros 0.1.9 (git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d)",
+ "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d)",
+]
+
+[[package]]
+name = "wasmbus-rpc"
+version = "0.9.0-alpha.1.1"
+source = "git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f#89de35130b2379e144a5d7867a9b7bd9590d6b1f"
+dependencies = [
+ "anyhow",
+ "async-nats",
+ "async-trait",
+ "atty",
+ "base64",
+ "bytes",
+ "cfg-if 1.0.0",
+ "data-encoding",
+ "futures 0.3.21",
+ "lazy_static",
+ "minicbor 0.17.1",
+ "minicbor-ser",
+ "nats",
+ "nkeys",
+ "once_cell",
+ "rmp-serde 1.1.0",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "sha2 0.10.2",
+ "thiserror",
+ "time 0.3.11",
+ "tokio",
+ "tokio-timer",
+ "toml",
+ "tracing",
+ "tracing-futures",
+ "tracing-subscriber",
+ "uuid",
+ "wascap",
+ "wasmbus-macros 0.1.9 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
  "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
 ]
 
@@ -3009,7 +3059,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
  "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
 ]
 
@@ -3024,7 +3074,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
  "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
 ]
 
@@ -3052,7 +3102,7 @@ dependencies = [
  "toml",
  "tracing",
  "tracing-subscriber",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d)",
  "wasmcloud-interface-keyvalue",
  "wasmcloud-test-util",
 ]
@@ -3074,7 +3124,7 @@ dependencies = [
  "termcolor",
  "tokio",
  "toml",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
  "wasmcloud-interface-testing",
 ]
 
@@ -3115,6 +3165,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44d8de8415c823c8abd270ad483c6feeac771fad964890779f9a8cb24fbbc1bf"
 dependencies = [
  "webpki 0.22.0",
+]
+
+[[package]]
+name = "weld-codegen"
+version = "0.4.5"
+source = "git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d#3029ca06bae2c08237563e39988988a32ceee01d"
+dependencies = [
+ "Inflector",
+ "anyhow",
+ "atelier_assembler",
+ "atelier_core",
+ "atelier_json",
+ "atelier_smithy",
+ "bytes",
+ "cfg-if 1.0.0",
+ "clap",
+ "directories",
+ "downloader",
+ "handlebars",
+ "lazy_static",
+ "lexical-sort",
+ "reqwest",
+ "rustc-hash",
+ "semver",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "toml",
 ]
 
 [[package]]

@@ -22,7 +22,7 @@ tokio = { version = "1", features = ["full"] }
 toml = "0.5"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-wasmcloud-interface-keyvalue = { git = "https://github.com/wasmcloud/interfaces", rev = "6fa5eb5f7ef45df9a658f62e234f1efdec4f3700" }
+wasmcloud-interface-keyvalue = { git = "https://github.com/wasmcloud/interfaces", rev = "7b8fe081e8e94530a1c571348ab37e6650420878" }
 wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev = "3029ca06bae2c08237563e39988988a32ceee01d", features = ["otel"] }
 
 [target.'cfg(all(target_arch = "aarch64", target_os = "linux"))'.dependencies]
@@ -31,7 +31,7 @@ paste = "=1.0.6"
 
 # test dependencies
 [dev-dependencies]
-wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "8cde90d1c4a492b40be4b699db86922c8c3d93fd" }
+wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "fc56ff6ba5008145f5add20f7f06eaa6456717e2" }
 rand = "0.8"
 
 [[bin]]
