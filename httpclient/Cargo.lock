@@ -53,9 +53,9 @@ checksum = "70033777eb8b5124a81a1889416543dddef2de240019b674c81285a2635a7e1e"
 
 [[package]]
 name = "anyhow"
-version = "1.0.57"
+version = "1.0.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08f9b8508dccb7687a1d6c4ce66b2b0ecef467c94667de27d8d7fe1f8d2a9cdc"
+checksum = "bb07d2053ccdbe10e2af2995a2f116c1330396493dc1269f6a91d0ae82e19704"
 
 [[package]]
 name = "ascii_tree"
@@ -95,7 +95,7 @@ dependencies = [
  "serde_nanos",
  "serde_repr",
  "subslice",
- "time 0.3.9",
+ "time 0.3.11",
  "tokio",
  "tokio-rustls",
  "tokio-util 0.7.3",
@@ -382,9 +382,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.2.4"
+version = "3.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d20de3739b4fb45a17837824f40aa1769cc7655d7a83e68739a77fe7b30c87a"
+checksum = "9f1fe12880bae935d142c8702d500c63a4e8634b6c3c57ad72bf978fc7b6249a"
 dependencies = [
  "atty",
  "bitflags",
@@ -399,9 +399,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "3.2.4"
+version = "3.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "026baf08b89ffbd332836002ec9378ef0e69648cbfadd68af7cd398ca5bf98f7"
+checksum = "ed6db9e867166a43a53f7199b5e4d1f522a1e5bd626654be263c999ce59df39a"
 dependencies = [
  "heck 0.4.0",
  "proc-macro-error",
@@ -412,9 +412,9 @@ dependencies = [
 
 [[package]]
 name = "clap_lex"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5538cd660450ebeb4234cfecf8f2284b844ffc4c50531e66d584ad5b91293613"
+checksum = "87eba3c8c7f42ef17f6c659fc7416d0f4758cd3e58861ee63c5fa4a4dde649e4"
 dependencies = [
  "os_str_bytes",
 ]
@@ -470,17 +470,17 @@ dependencies = [
  "crossbeam-deque",
  "crossbeam-epoch",
  "crossbeam-queue",
- "crossbeam-utils 0.8.8",
+ "crossbeam-utils 0.8.9",
 ]
 
 [[package]]
 name = "crossbeam-channel"
-version = "0.5.4"
+version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5aaa7bd5fb665c6864b5f963dd9097905c54125909c7aa94c9e18507cdbe6c53"
+checksum = "4c02a4d71819009c192cf4872265391563fd6a84c81ff2c0f2a7026ca4c1d85c"
 dependencies = [
  "cfg-if 1.0.0",
- "crossbeam-utils 0.8.8",
+ "crossbeam-utils 0.8.9",
 ]
 
 [[package]]
@@ -491,20 +491,20 @@ checksum = "6455c0ca19f0d2fbf751b908d5c55c1f5cbc65e03c4225427254b46890bdde1e"
 dependencies = [
  "cfg-if 1.0.0",
  "crossbeam-epoch",
- "crossbeam-utils 0.8.8",
+ "crossbeam-utils 0.8.9",
 ]
 
 [[package]]
 name = "crossbeam-epoch"
-version = "0.9.8"
+version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1145cf131a2c6ba0615079ab6a638f7e1973ac9c2634fcbeaaad6114246efe8c"
+checksum = "07db9d94cbd326813772c968ccd25999e5f8ae22f4f8d1b11effa37ef6ce281d"
 dependencies = [
  "autocfg",
  "cfg-if 1.0.0",
- "crossbeam-utils 0.8.8",
- "lazy_static",
+ "crossbeam-utils 0.8.9",
  "memoffset",
+ "once_cell",
  "scopeguard",
 ]
 
@@ -515,7 +515,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f25d8400f4a7a5778f0e4e52384a48cbd9b5c495d110786187fc750075277a2"
 dependencies = [
  "cfg-if 1.0.0",
- "crossbeam-utils 0.8.8",
+ "crossbeam-utils 0.8.9",
 ]
 
 [[package]]
@@ -531,12 +531,12 @@ dependencies = [
 
 [[package]]
 name = "crossbeam-utils"
-version = "0.8.8"
+version = "0.8.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bf124c720b7686e3c2663cf54062ab0f68a88af2fb6a030e87e30bf721fcb38"
+checksum = "8ff1f980957787286a554052d03c7aee98d99cc32e09f6d45f0a814133c87978"
 dependencies = [
  "cfg-if 1.0.0",
- "lazy_static",
+ "once_cell",
 ]
 
 [[package]]
@@ -943,9 +943,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.11.2"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
+checksum = "db0d4cf898abf0081f964436dc980e96670a0f36863e4b83aaacdb65c9d7ccc3"
 
 [[package]]
 name = "heck"
@@ -1073,9 +1073,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "1.8.2"
+version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6012d540c5baa3589337a98ce73408de9b5a25ec9fc2c6fd6be8f0d39e0ca5a"
+checksum = "10a35a97730320ffe8e2d410b5d3b69279b98d2c14bdb8b70ea89ecf7888d41e"
 dependencies = [
  "autocfg",
  "hashbrown",
@@ -1241,9 +1241,9 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.8.3"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "713d550d9b44d89174e066b7a6217ae06234c10cb47819a88290d2b353c31799"
+checksum = "57ee1c23c7c63b0c9250c339ffdc69255f110b298b901b9f6c82547b7b87caaf"
 dependencies = [
  "libc",
  "log",
@@ -1286,7 +1286,7 @@ dependencies = [
  "serde_json",
  "serde_nanos",
  "serde_repr",
- "time 0.3.9",
+ "time 0.3.11",
  "url",
  "webpki 0.21.4",
  "winapi",
@@ -1667,9 +1667,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.39"
+version = "1.0.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c54b25569025b7fc9651de43004ae593a75ad88543b17178aa5e1b9c4f15f56f"
+checksum = "dd96a1e8ed2596c337f8eae5f24924ec83f5ad5ab21ea8e455d3566c69fbcaf7"
 dependencies = [
  "unicode-ident",
 ]
@@ -1729,9 +1729,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.18"
+version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1feb54ed693b93a84e14094943b84b7c4eae204c512b7ccb95ab0c66d278ad1"
+checksum = "3bcdf212e9776fbcb2d23ab029360416bb1706b1aea2d1a5ba002727cbcab804"
 dependencies = [
  "proc-macro2",
 ]
@@ -2265,9 +2265,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.96"
+version = "1.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0748dd251e24453cb8717f0354206b91557e4ec8703673a4b30208f2abaf1ebf"
+checksum = "c50aef8a904de4c23c788f104b7dddc7d6f79c647c7c8ce4cc8f73eb0ca773dd"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2357,9 +2357,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.9"
+version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2702e08a7a860f005826c6815dcac101b19b5eb330c27fe4a5928fec1d20ddd"
+checksum = "72c91f41dcb2f096c05f0873d667dceec1087ce5bcf984ec8ffb19acddbb3217"
 dependencies = [
  "itoa",
  "libc",
@@ -2549,9 +2549,9 @@ dependencies = [
 
 [[package]]
 name = "tower"
-version = "0.4.12"
+version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a89fd63ad6adf737582df5db40d286574513c69a11dac5214dc3b5603d6713e"
+checksum = "b8fa9be0de6cf49e536ce1851f987bd21a43b771b09473c3549a6c853db37c1c"
 dependencies = [
  "futures-core",
  "futures-util",
@@ -2575,9 +2575,9 @@ checksum = "343bc9466d3fe6b0f960ef45960509f84480bf4fd96f92901afe7ff3df9d3a62"
 
 [[package]]
 name = "tower-service"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "360dfd1d6d30e05fda32ace2c8c70e9c0a9da713275777f5a4dbb8a1893930c6"
+checksum = "b6bc1c9ce2b5135ac7f93c72918fc37feb872bdc6a5533a8b85eb4b86bfdae52"
 
 [[package]]
 name = "tracing"
@@ -2888,7 +2888,18 @@ checksum = "6a89911bd99e5f3659ec4acf9c4d93b0a90fe4a2a11f15328472058edc5261be"
 [[package]]
 name = "wasmbus-macros"
 version = "0.1.9"
-source = "git+https://github.com/wasmcloud/weld?rev=6da17f739b0ad0f1a58df2061eedd0d2f92baee0#6da17f739b0ad0f1a58df2061eedd0d2f92baee0"
+source = "git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d#3029ca06bae2c08237563e39988988a32ceee01d"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "wasmbus-macros"
+version = "0.1.9"
+source = "git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f#89de35130b2379e144a5d7867a9b7bd9590d6b1f"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -2898,8 +2909,8 @@ dependencies = [
 
 [[package]]
 name = "wasmbus-rpc"
-version = "0.9.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/weld?rev=6da17f739b0ad0f1a58df2061eedd0d2f92baee0#6da17f739b0ad0f1a58df2061eedd0d2f92baee0"
+version = "0.9.0-alpha.1.1"
+source = "git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d#3029ca06bae2c08237563e39988988a32ceee01d"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -2924,7 +2935,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.2",
  "thiserror",
- "time 0.3.9",
+ "time 0.3.11",
  "tokio",
  "tokio-timer",
  "toml",
@@ -2934,28 +2945,67 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "wascap",
- "wasmbus-macros",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=6da17f739b0ad0f1a58df2061eedd0d2f92baee0)",
+ "wasmbus-macros 0.1.9 (git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d)",
+ "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d)",
+]
+
+[[package]]
+name = "wasmbus-rpc"
+version = "0.9.0-alpha.1.1"
+source = "git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f#89de35130b2379e144a5d7867a9b7bd9590d6b1f"
+dependencies = [
+ "anyhow",
+ "async-nats",
+ "async-trait",
+ "atty",
+ "base64",
+ "bytes",
+ "cfg-if 1.0.0",
+ "data-encoding",
+ "futures 0.3.21",
+ "lazy_static",
+ "minicbor 0.17.1",
+ "minicbor-ser",
+ "nats",
+ "nkeys",
+ "once_cell",
+ "rmp-serde 1.1.0",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "sha2 0.10.2",
+ "thiserror",
+ "time 0.3.11",
+ "tokio",
+ "tokio-timer",
+ "toml",
+ "tracing",
+ "tracing-futures",
+ "tracing-subscriber",
+ "uuid",
+ "wascap",
+ "wasmbus-macros 0.1.9 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
+ "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
 ]
 
 [[package]]
 name = "wasmcloud-interface-httpclient"
 version = "0.6.0-alpha.1"
-source = "git+https://github.com/wasmcloud/interfaces?rev=763d27dcfd6a5bf72a9f82ed406f638fdb429615#763d27dcfd6a5bf72a9f82ed406f638fdb429615"
+source = "git+https://github.com/wasmcloud/interfaces?rev=6fa5eb5f7ef45df9a658f62e234f1efdec4f3700#6fa5eb5f7ef45df9a658f62e234f1efdec4f3700"
 dependencies = [
  "async-trait",
  "futures 0.3.21",
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
  "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
 ]
 
 [[package]]
 name = "wasmcloud-interface-testing"
 version = "0.5.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/interfaces?rev=763d27dcfd6a5bf72a9f82ed406f638fdb429615#763d27dcfd6a5bf72a9f82ed406f638fdb429615"
+source = "git+https://github.com/wasmcloud/interfaces?rev=6fa5eb5f7ef45df9a658f62e234f1efdec4f3700#6fa5eb5f7ef45df9a658f62e234f1efdec4f3700"
 dependencies = [
  "async-trait",
  "regex",
@@ -2963,7 +3013,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
  "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
 ]
 
@@ -2989,7 +3039,7 @@ dependencies = [
  "toml",
  "tracing",
  "tracing-subscriber",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d)",
  "wasmcloud-interface-httpclient",
  "wasmcloud-test-util",
 ]
@@ -2997,7 +3047,7 @@ dependencies = [
 [[package]]
 name = "wasmcloud-test-util"
 version = "0.4.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/wasmcloud-test?rev=73d96b44f142777f3d2d9b1d7a5bbfdac73ea5c3#73d96b44f142777f3d2d9b1d7a5bbfdac73ea5c3"
+source = "git+https://github.com/wasmcloud/wasmcloud-test?rev=8cde90d1c4a492b40be4b699db86922c8c3d93fd#8cde90d1c4a492b40be4b699db86922c8c3d93fd"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -3011,7 +3061,7 @@ dependencies = [
  "termcolor",
  "tokio",
  "toml",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.9.0-alpha.1.1 (git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f)",
  "wasmcloud-interface-testing",
 ]
 
@@ -3057,6 +3107,35 @@ dependencies = [
 [[package]]
 name = "weld-codegen"
 version = "0.4.5"
+source = "git+https://github.com/wasmcloud/weld?rev=3029ca06bae2c08237563e39988988a32ceee01d#3029ca06bae2c08237563e39988988a32ceee01d"
+dependencies = [
+ "Inflector",
+ "anyhow",
+ "atelier_assembler",
+ "atelier_core",
+ "atelier_json",
+ "atelier_smithy",
+ "bytes",
+ "cfg-if 1.0.0",
+ "clap",
+ "directories",
+ "downloader",
+ "handlebars",
+ "lazy_static",
+ "lexical-sort",
+ "reqwest",
+ "rustc-hash",
+ "semver",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
+name = "weld-codegen"
+version = "0.4.5"
 source = "git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176#38eb105b135d615ab0910a05a9e7d5e821e85176"
 dependencies = [
  "Inflector",
@@ -3086,7 +3165,7 @@ dependencies = [
 [[package]]
 name = "weld-codegen"
 version = "0.4.5"
-source = "git+https://github.com/wasmcloud/weld?rev=6da17f739b0ad0f1a58df2061eedd0d2f92baee0#6da17f739b0ad0f1a58df2061eedd0d2f92baee0"
+source = "git+https://github.com/wasmcloud/weld?rev=89de35130b2379e144a5d7867a9b7bd9590d6b1f#89de35130b2379e144a5d7867a9b7bd9590d6b1f"
 dependencies = [
  "Inflector",
  "anyhow",

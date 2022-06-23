@@ -27,7 +27,7 @@ toml = "0.5"
 tracing = "0.1"
 tracing-futures = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev = "6da17f739b0ad0f1a58df2061eedd0d2f92baee0", features = ["otel"] }
+wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev = "3029ca06bae2c08237563e39988988a32ceee01d", features = ["otel"] }
 
 # test dependencies
 [dev-dependencies]
@@ -35,9 +35,9 @@ rand = "0.8"
 fastrand = "1.7"
 crc32fast = "1.3.2"
 env_logger = "0.9"
-wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "73d96b44f142777f3d2d9b1d7a5bbfdac73ea5c3" }
-wasmcloud-interface-blobstore = { git = "https://github.com/wasmcloud/interfaces", rev = "763d27dcfd6a5bf72a9f82ed406f638fdb429615" }
-wasmcloud-interface-testing = { git = "https://github.com/wasmcloud/interfaces", rev = "763d27dcfd6a5bf72a9f82ed406f638fdb429615" }
+wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "8cde90d1c4a492b40be4b699db86922c8c3d93fd" }
+wasmcloud-interface-blobstore = { git = "https://github.com/wasmcloud/interfaces", rev = "6fa5eb5f7ef45df9a658f62e234f1efdec4f3700" }
+wasmcloud-interface-testing = { git = "https://github.com/wasmcloud/interfaces", rev = "6fa5eb5f7ef45df9a658f62e234f1efdec4f3700" }
 
 [build-dependencies]
 weld-codegen = { git = "https://github.com/wasmcloud/weld", rev = "38eb105b135d615ab0910a05a9e7d5e821e85176" }

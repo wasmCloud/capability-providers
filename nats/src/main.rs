@@ -20,11 +20,6 @@ const ENV_NATS_CLIENT_JWT: &str = "CLIENT_JWT";
 const ENV_NATS_CLIENT_SEED: &str = "CLIENT_SEED";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt()
-        .with_writer(std::io::stderr)
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-        .with_ansi(atty::is(atty::Stream::Stderr))
-        .init();
     // handle lattice control messages and forward rpc to the provider dispatch
     // returns when provider receives a shutdown control message
     provider_main(
