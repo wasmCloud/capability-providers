@@ -180,6 +180,7 @@ impl NatsMessagingProvider {
         let _join_handle = tokio::spawn(
             async move {
                 while let Some(msg) = subscription.next().await {
+                    wasmbus_rpc::otel::attach_span_context(&msg);
                     this.dispatch_msg(&link_def, msg).await;
                 }
             }
