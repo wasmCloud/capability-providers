@@ -2926,7 +2926,7 @@ dependencies = [
 [[package]]
 name = "wasmcloud-interface-httpserver"
 version = "0.6.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/interfaces?rev=7b8fe081e8e94530a1c571348ab37e6650420878#7b8fe081e8e94530a1c571348ab37e6650420878"
+source = "git+https://github.com/wasmcloud/interfaces?rev=d4d6b2af443246f09f2201ba502b87cc1389bb6f#d4d6b2af443246f09f2201ba502b87cc1389bb6f"
 dependencies = [
  "async-trait",
  "serde",
@@ -2939,7 +2939,7 @@ dependencies = [
 [[package]]
 name = "wasmcloud-interface-testing"
 version = "0.5.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/interfaces?rev=7b8fe081e8e94530a1c571348ab37e6650420878#7b8fe081e8e94530a1c571348ab37e6650420878"
+source = "git+https://github.com/wasmcloud/interfaces?rev=d4d6b2af443246f09f2201ba502b87cc1389bb6f#d4d6b2af443246f09f2201ba502b87cc1389bb6f"
 dependencies = [
  "async-trait",
  "regex",
@@ -2983,7 +2983,7 @@ dependencies = [
 [[package]]
 name = "wasmcloud-test-util"
 version = "0.4.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/wasmcloud-test?rev=fc56ff6ba5008145f5add20f7f06eaa6456717e2#fc56ff6ba5008145f5add20f7f06eaa6456717e2"
+source = "git+https://github.com/wasmcloud/wasmcloud-test?rev=33d68d1cd59fa543510c30e69dfc9c2d68295e48#33d68d1cd59fa543510c30e69dfc9c2d68295e48"
 dependencies = [
  "anyhow",
  "async-nats",
