@@ -83,6 +83,8 @@ dependencies = [
 [[package]]
 name = "async-nats"
 version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23f02c8b692d7eea2cfcdf58b43031b163efd93aa99c01d2a9e796168d37dcf1"
 dependencies = [
  "base64-url",
  "bytes",
@@ -2877,7 +2879,7 @@ checksum = "6a89911bd99e5f3659ec4acf9c4d93b0a90fe4a2a11f15328472058edc5261be"
 
 [[package]]
 name = "wasmbus-macros"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -2887,7 +2889,7 @@ dependencies = [
 
 [[package]]
 name = "wasmbus-rpc"
-version = "0.9.0-alpha.1.1"
+version = "0.9.0"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -2920,7 +2922,7 @@ dependencies = [
  "uuid",
  "wascap",
  "wasmbus-macros",
- "weld-codegen 0.4.5",
+ "weld-codegen 0.4.6",
 ]
 
 [[package]]
@@ -2933,7 +2935,7 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "wasmbus-rpc",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
+ "weld-codegen 0.4.5",
 ]
 
 [[package]]
@@ -2948,7 +2950,7 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "wasmbus-rpc",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
+ "weld-codegen 0.4.5",
 ]
 
 [[package]]
@@ -3043,6 +3045,7 @@ dependencies = [
 [[package]]
 name = "weld-codegen"
 version = "0.4.5"
+source = "git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176#38eb105b135d615ab0910a05a9e7d5e821e85176"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -3070,8 +3073,7 @@ dependencies = [
 
 [[package]]
 name = "weld-codegen"
-version = "0.4.5"
-source = "git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176#38eb105b135d615ab0910a05a9e7d5e821e85176"
+version = "0.4.6"
 dependencies = [
  "Inflector",
  "anyhow",
@@ -3200,3 +3202,7 @@ dependencies = [
  "syn",
  "synstructure",
 ]
+
+[[patch.unused]]
+name = "async-nats"
+version = "0.14.0"
