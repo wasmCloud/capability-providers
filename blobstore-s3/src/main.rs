@@ -22,7 +22,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     // handle lattice control messages and forward rpc to the provider dispatch
     // returns when provider receives a shutdown control message
-    provider_main(S3BlobstoreProvider::default(), Some("Blobstore S3 Provider".to_string()))?;
+    provider_main(
+        S3BlobstoreProvider::default(),
+        Some("Blobstore S3 Provider".to_string()),
+    )?;
 
     eprintln!("blobstore-s3 provider exiting");
     Ok(())

@@ -3032,8 +3032,9 @@ checksum = "6a89911bd99e5f3659ec4acf9c4d93b0a90fe4a2a11f15328472058edc5261be"
 
 [[package]]
 name = "wasmbus-macros"
-version = "0.1.9"
-source = "git+https://github.com/wasmcloud/weld?rev=249102567eb50fddaf3a35c2546afbdb321e8b16#249102567eb50fddaf3a35c2546afbdb321e8b16"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "302b6c170bb936b14fdcc8dd8efd3023258865e093293c4edbb110bd94cdb276"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -3043,8 +3044,9 @@ dependencies = [
 
 [[package]]
 name = "wasmbus-rpc"
-version = "0.9.0-alpha.1.1"
-source = "git+https://github.com/wasmcloud/weld?rev=249102567eb50fddaf3a35c2546afbdb321e8b16#249102567eb50fddaf3a35c2546afbdb321e8b16"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2df664ef8e11410284657147b78e8172d119839b23b27c71a4eca6b0be083d21"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -3080,13 +3082,14 @@ dependencies = [
  "uuid 1.1.2",
  "wascap",
  "wasmbus-macros",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=249102567eb50fddaf3a35c2546afbdb321e8b16)",
+ "weld-codegen",
 ]
 
 [[package]]
 name = "wasmcloud-control-interface"
-version = "0.16.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/control-interface-client?rev=4ba11659a3a23a8926f0005db80919d4c42f0c69#4ba11659a3a23a8926f0005db80919d4c42f0c69"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "477db429a1bfde9d87076bbbc0e2cf10f701779d893373a9380c0f0b06184325"
 dependencies = [
  "async-nats",
  "async-trait",
@@ -3107,8 +3110,9 @@ dependencies = [
 
 [[package]]
 name = "wasmcloud-interface-lattice-control"
-version = "0.12.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/interfaces?rev=d4d6b2af443246f09f2201ba502b87cc1389bb6f#d4d6b2af443246f09f2201ba502b87cc1389bb6f"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29cc0545a84030c8194e97ee7417ca8e59104f721f4521b64449004c6852b204"
 dependencies = [
  "async-trait",
  "data-encoding",
@@ -3117,13 +3121,14 @@ dependencies = [
  "rmp-serde 1.1.0",
  "serde",
  "wasmbus-rpc",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
+ "weld-codegen",
 ]
 
 [[package]]
 name = "wasmcloud-interface-testing"
-version = "0.5.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/interfaces?rev=d4d6b2af443246f09f2201ba502b87cc1389bb6f#d4d6b2af443246f09f2201ba502b87cc1389bb6f"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "099f02466c92a4609100d0ba55eb55b100d5eeca157a80b75c8bab26660546cc"
 dependencies = [
  "async-trait",
  "regex",
@@ -3132,12 +3137,12 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "wasmbus-rpc",
- "weld-codegen 0.4.5 (git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176)",
+ "weld-codegen",
 ]
 
 [[package]]
 name = "wasmcloud-provider-lattice-controller"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "async-nats",
  "async-trait",
@@ -3165,8 +3170,9 @@ dependencies = [
 
 [[package]]
 name = "wasmcloud-test-util"
-version = "0.4.0-alpha-1.0"
-source = "git+https://github.com/wasmcloud/wasmcloud-test?rev=33d68d1cd59fa543510c30e69dfc9c2d68295e48#33d68d1cd59fa543510c30e69dfc9c2d68295e48"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e36bde37f146a2902def5b47c19c633c2ffbf6d078b7f0143815a45e581f3aeb"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -3225,37 +3231,9 @@ dependencies = [
 
 [[package]]
 name = "weld-codegen"
-version = "0.4.5"
-source = "git+https://github.com/wasmcloud/weld?rev=249102567eb50fddaf3a35c2546afbdb321e8b16#249102567eb50fddaf3a35c2546afbdb321e8b16"
-dependencies = [
- "Inflector",
- "anyhow",
- "atelier_assembler",
- "atelier_core",
- "atelier_json",
- "atelier_smithy",
- "bytes",
- "cfg-if 1.0.0",
- "clap",
- "directories",
- "downloader",
- "handlebars",
- "lazy_static",
- "lexical-sort",
- "reqwest",
- "rustc-hash",
- "semver",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "toml",
-]
-
-[[package]]
-name = "weld-codegen"
-version = "0.4.5"
-source = "git+https://github.com/wasmcloud/weld?rev=38eb105b135d615ab0910a05a9e7d5e821e85176#38eb105b135d615ab0910a05a9e7d5e821e85176"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e60907625a6f1a53c2b4b26b4bf381d2335ea1ae5bd2e82263034bdaddfe4638"
 dependencies = [
  "Inflector",
  "anyhow",

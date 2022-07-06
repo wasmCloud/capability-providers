@@ -24,7 +24,10 @@ mod types;
 // and returns only when it receives a shutdown message
 //
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    provider_main(SqlDbProvider::default(), Some("SQLDB Postgres Provider".to_string()))?;
+    provider_main(
+        SqlDbProvider::default(),
+        Some("SQLDB Postgres Provider".to_string()),
+    )?;
 
     eprintln!("sqldb provider exiting");
     Ok(())

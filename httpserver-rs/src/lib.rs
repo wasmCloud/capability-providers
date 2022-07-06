@@ -41,8 +41,8 @@ use tokio::{
     sync::{oneshot, RwLock},
     task::JoinHandle,
 };
-use tracing::{error, info, instrument, Instrument, trace, warn};
-use warp::{path::FullPath, Filter };
+use tracing::{error, info, instrument, trace, warn, Instrument};
+use warp::{path::FullPath, Filter};
 use wasmbus_rpc::{common::Context, core::LinkDefinition, error::RpcError, provider::*};
 use wasmcloud_interface_httpserver::{HttpRequest, HttpResponse, HttpServer, HttpServerSender};
 

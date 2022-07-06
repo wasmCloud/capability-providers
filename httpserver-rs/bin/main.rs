@@ -9,7 +9,6 @@ use wasmbus_rpc::{core::LinkDefinition, error::RpcError, provider::prelude::*};
 use wasmcloud_provider_httpserver::{load_settings, HttpServerCore};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     // handle lattice control messages and forward rpc to the provider dispatch
     // returns when provider receives a shutdown control message
     provider_main(

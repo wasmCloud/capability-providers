@@ -155,12 +155,20 @@ struct LatticeControllerProvider {
 
 impl LatticeControllerProvider {
     /// Create a nats connection and a Lattice controller client
-    async fn create_client(&self, config: ConnectionConfig) -> RpcResult<wasmcloud_control_interface::Client> {
+    async fn create_client(
+        &self,
+        config: ConnectionConfig,
+    ) -> RpcResult<wasmcloud_control_interface::Client> {
         let timeout = Duration::from_millis(config.timeout_ms);
         let auction_timeout = Duration::from_millis(config.auction_timeout_ms);
         let lattice_prefix = config.lattice_prefix.clone();
         let conn = connect(config).await?;
-        let client = wasmcloud_control_interface::Client::new(conn, Some(lattice_prefix), timeout, auction_timeout);
+        let client = wasmcloud_control_interface::Client::new(
+            conn,
+            Some(lattice_prefix),
+            timeout,
+            auction_timeout,
+        );
         Ok(client)
     }
 

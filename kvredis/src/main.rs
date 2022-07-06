@@ -25,7 +25,10 @@ const DEFAULT_CONNECT_URL: &str = "redis://0.0.0.0:6379/";
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // handle lattice control messages and forward rpc to the provider dispatch
     // returns when provider receives a shutdown control message
-    provider_main(KvRedisProvider::default(), Some("KeyValue Redis Provider".to_string()))?;
+    provider_main(
+        KvRedisProvider::default(),
+        Some("KeyValue Redis Provider".to_string()),
+    )?;
 
     eprintln!("KVRedis provider exiting");
     Ok(())
