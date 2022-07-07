@@ -126,7 +126,9 @@ async fn mock_echo_actor(num_requests: u32) -> tokio::task::JoinHandle<RpcResult
                     let mut ir = InvocationResponse::default();
                     ir.invocation_id = inv.id;
                     ir.msg = buf;
-                    prov.rpc_client.publish(reply_to.to_string(), serialize(&ir)?).await?;
+                    prov.rpc_client
+                        .publish(reply_to.to_string(), serialize(&ir)?)
+                        .await?;
                 }
                 completed += 1;
                 if completed >= num_requests {
