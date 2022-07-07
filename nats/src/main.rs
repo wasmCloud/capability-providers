@@ -7,7 +7,7 @@ use tokio::sync::RwLock;
 use tracing::{error, info, instrument};
 use tracing_futures::Instrument;
 use wascap::prelude::KeyPair;
-use wasmbus_rpc::{core::LinkDefinition, provider::prelude::*};
+use wasmbus_rpc::{core::LinkDefinition, otel::OtelHeaderInjector, provider::prelude::*};
 use wasmcloud_interface_messaging::{
     MessageSubscriber, MessageSubscriberSender, Messaging, MessagingReceiver, PubMessage,
     ReplyMessage, RequestMessage, SubMessage,
@@ -180,13 +180,13 @@ impl NatsMessagingProvider {
         let _join_handle = tokio::spawn(
             async move {
                 while let Some(msg) = subscription.next().await {
-                    wasmbus_rpc::otel::attach_span_context(&msg);
-                    this.dispatch_msg(&link_def, msg).await;
+                    let span = tracing::debug_span!("subscribe");
+                    span.in_scope(|| {
+                        wasmbus_rpc::otel::attach_span_context(&msg);
+                    });
+                    this.dispatch_msg(&link_def, msg).instrument(span).await;
                 }
             }
-            .instrument(
-                tracing::debug_span!("subscription", actor_id = %ld.actor_id, subject = %sub),
-            ),
         );
         Ok(())
     }
@@ -247,13 +247,14 @@ impl Messaging for NatsMessagingProvider {
             .ok_or_else(|| RpcError::InvalidParameter(format!("actor not linked:{}", actor_id)))?
             .clone();
         drop(_rd);
+        let headers = OtelHeaderInjector::default_with_span().into();
         match msg.reply_to.clone() {
             Some(reply_to) => conn
-                .publish_with_reply(msg.subject.to_string(), reply_to, msg.body.clone().into())
+                .publish_with_reply_and_headers(msg.subject.to_string(), reply_to, headers, msg.body.clone().into())
                 .await
                 .map_err(|e| RpcError::Nats(e.to_string())),
             None => conn
-                .publish(msg.subject.to_string(), msg.body.clone().into())
+                .publish_with_headers(msg.subject.to_string(), headers, msg.body.clone().into())
                 .await
                 .map_err(|e| RpcError::Nats(e.to_string())),
         }
