@@ -177,17 +177,15 @@ impl NatsMessagingProvider {
         })?;
         let this = self.clone();
         let link_def = ld.clone();
-        let _join_handle = tokio::spawn(
-            async move {
-                while let Some(msg) = subscription.next().await {
-                    let span = tracing::debug_span!("subscribe");
-                    span.in_scope(|| {
-                        wasmbus_rpc::otel::attach_span_context(&msg);
-                    });
-                    this.dispatch_msg(&link_def, msg).instrument(span).await;
-                }
+        let _join_handle = tokio::spawn(async move {
+            while let Some(msg) = subscription.next().await {
+                let span = tracing::debug_span!("subscribe");
+                span.in_scope(|| {
+                    wasmbus_rpc::otel::attach_span_context(&msg);
+                });
+                this.dispatch_msg(&link_def, msg).instrument(span).await;
             }
-        );
+        });
         Ok(())
     }
 }
@@ -250,7 +248,12 @@ impl Messaging for NatsMessagingProvider {
         let headers = OtelHeaderInjector::default_with_span().into();
         match msg.reply_to.clone() {
             Some(reply_to) => conn
-                .publish_with_reply_and_headers(msg.subject.to_string(), reply_to, headers, msg.body.clone().into())
+                .publish_with_reply_and_headers(
+                    msg.subject.to_string(),
+                    reply_to,
+                    headers,
+                    msg.body.clone().into(),
+                )
                 .await
                 .map_err(|e| RpcError::Nats(e.to_string())),
             None => conn
