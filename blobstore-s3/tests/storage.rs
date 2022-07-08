@@ -12,10 +12,10 @@ async fn test_create_container() {
     let num = rand::random::<u64>();
     let bucket = format!("test.bucket.{}", num);
 
-    assert_eq!(s3.container_exists(&ctx, &bucket).await, Ok(false));
+    assert_eq!(s3.container_exists(&ctx, &bucket).await.unwrap(), false);
     s3.create_container(&ctx, &bucket).await.unwrap();
 
-    assert_eq!(s3.container_exists(&ctx, &bucket).await, Ok(true));
+    assert_eq!(s3.container_exists(&ctx, &bucket).await.unwrap(), true);
 
     s3.remove_containers(&ctx, &vec![bucket])
         .await
@@ -64,8 +64,9 @@ async fn test_create_object() {
                 object_id: "object.1".to_string(),
             },
         )
-        .await,
-        Ok(true)
+        .await
+        .unwrap(),
+        true
     );
 
     s3.remove_objects(
@@ -86,8 +87,9 @@ async fn test_create_object() {
                 object_id: "object.1".to_string(),
             },
         )
-        .await,
-        Ok(false)
+        .await
+        .unwrap(),
+        false
     );
 
     s3.remove_containers(&ctx, &vec![bucket])
