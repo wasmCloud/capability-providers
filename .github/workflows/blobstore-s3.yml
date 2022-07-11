@@ -53,8 +53,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - id: run-nats
-        uses: wasmcloud/common-actions/run-nats@main
       - name: Run tests via Makefile
         env:
           AWS_REGION: us-east-1
