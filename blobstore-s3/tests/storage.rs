@@ -1,4 +1,15 @@
-use blobstore_s3_lib::{wasmcloud_interface_blobstore::*, StorageClient};
+use blobstore_s3_lib::{wasmcloud_interface_blobstore::*, StorageClient, StorageConfig};
+
+/// Helper function to create a StorageClient with local testing overrides
+async fn test_client() -> StorageClient {
+    use std::env;
+    let mut conf = StorageConfig::default();
+    conf.endpoint = env::var("AWS_ENDPOINT").ok();
+    conf.access_key_id = env::var("AWS_ACCESS_KEY_ID").ok();
+    conf.secret_access_key = env::var("AWS_SECRET_ACCESS_KEY").ok();
+
+    StorageClient::new(conf, None).await
+}
 
 /// Tests
 /// - create_container
@@ -6,7 +17,7 @@ use blobstore_s3_lib::{wasmcloud_interface_blobstore::*, StorageClient};
 /// - container_exists
 #[tokio::test]
 async fn test_create_container() {
-    let s3 = StorageClient::async_default().await;
+    let s3 = test_client().await;
     let ctx = wasmbus_rpc::common::Context::default();
 
     let num = rand::random::<u64>();
@@ -28,7 +39,7 @@ async fn test_create_container() {
 /// - object_exists
 #[tokio::test]
 async fn test_create_object() {
-    let s3 = StorageClient::async_default().await;
+    let s3 = test_client().await;
     let ctx = wasmbus_rpc::common::Context::default();
 
     let num = rand::random::<u64>();
@@ -101,7 +112,7 @@ async fn test_create_object() {
 /// - list_objects
 #[tokio::test]
 async fn test_list_objects() {
-    let s3 = StorageClient::async_default().await;
+    let s3 = test_client().await;
     let ctx = wasmbus_rpc::common::Context::default();
 
     let num = rand::random::<u64>();
@@ -165,7 +176,7 @@ async fn test_list_objects() {
 /// - get_object_range
 #[tokio::test]
 async fn test_get_object_range() {
-    let s3 = StorageClient::async_default().await;
+    let s3 = test_client().await;
     let ctx = wasmbus_rpc::common::Context::default();
     let num = rand::random::<u64>();
     let bucket = format!("test.range.{}", num);
@@ -255,7 +266,7 @@ async fn test_get_object_range() {
 /// - get_object with chunked response
 #[tokio::test]
 async fn test_get_object_chunks() {
-    let s3 = StorageClient::async_default().await;
+    let s3 = test_client().await;
     let ctx = wasmbus_rpc::common::Context::default();
     let num = rand::random::<u64>();
     let bucket = format!("test.chunk.{}", num);
