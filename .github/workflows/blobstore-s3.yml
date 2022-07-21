@@ -5,12 +5,14 @@ on:
     branches: [main]
     paths:
       - "blobstore-s3/**"
+      - ".github/workflows/blobstore-s3.yml"
     tags:
       - "blobstore-s3*"
   pull_request:
     branches: [main]
     paths:
       - "blobstore-s3/**"
+      - ".github/workflows/blobstore-s3.yml"
   workflow_dispatch:
     inputs:
       release:
