@@ -78,7 +78,7 @@ jobs:
 
   build_artifact:
     needs: install_cross
-    # if: startswith(github.ref, 'refs/tags/') # Only run on tag push
+    if: startswith(github.ref, 'refs/tags/') # Only run on tag push
     strategy:
       matrix:
         target:
