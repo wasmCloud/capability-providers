@@ -163,7 +163,7 @@ fn convert_rows(items: Option<&[HashMap<String, AttributeValue>]>) -> Result<Vec
         })
         .collect::<Vec<HashMap<String, Value>>>());
     let string_for_serialization = json_rows.to_string();
-    println!("string_for_serialization {}", string_for_serialization);
+    debug!("string_for_serialization {}", string_for_serialization);
     let mut buf: Vec<u8> = Vec::with_capacity(string_for_serialization.len());
     minicbor::encode(&string_for_serialization, &mut buf)
         .map_err(|e| DbError::Encoding(e.to_string()))?;
