@@ -2245,15 +2245,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_dynamo"
-version = "4.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb17a242663eb9ad2793cca00badeed14197d8db7727186e1c8858841a68b9aa"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "serde_json"
 version = "1.0.82"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2428,7 +2419,6 @@ dependencies = [
  "minicbor 0.13.2",
  "serde",
  "serde_bytes",
- "serde_dynamo",
  "serde_json",
  "simple_env_load",
  "tokio",

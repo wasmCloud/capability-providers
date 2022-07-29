@@ -42,10 +42,12 @@ async fn health_check(_opt: &TestOptions) -> RpcResult<()> {
 
 /// Helper function to create a StorageClient with local testing overrides
 async fn test_client() -> SqlDbClient {
-    let mut conf = StorageConfig::default();
-    conf.endpoint = Some("http://localhost:8000".to_string());
-    conf.access_key_id = Some("DUMMYIDEXAMPLE".to_string());
-    conf.secret_access_key = Some("DUMMYIDEXAMPLE".to_string());
+    let conf = StorageConfig {
+        endpoint: Some("http://localhost:8000".to_string()),
+        access_key_id: Some("DUMMYIDEXAMPLE".to_string()),
+        secret_access_key: Some("DUMMYIDEXAMPLE".to_string()),
+        ..Default::default()
+    };
 
     SqlDbClient::new(conf, None).await
 }

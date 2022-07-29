@@ -14,7 +14,7 @@ all::
 
 test::
 	cargo clippy --all-targets --all-features
-	docker-compose -f tests/docker-compose.yaml up
+	docker-compose -f tests/docker-compose.yaml up &
 	RUST_BACKTRACE=1 RUST_LOG=debug cargo test $(RELEASE) -- --nocapture
 	docker-compose -f tests/docker-compose.yaml down
 

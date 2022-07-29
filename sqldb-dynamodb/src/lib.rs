@@ -81,7 +81,7 @@ impl SqlDb for SqlDbClient {
             Ok(output) => Ok(ExecuteResult {
                 rows_affected: match output.consumed_capacity() {
                     Some(capacity) => capacity.capacity_units().unwrap_or(0_f64) as u64,
-                    None => 0 as u64,
+                    None => 0_u64,
                 },
                 ..Default::default()
             }),
@@ -122,7 +122,7 @@ impl SqlDb for SqlDbClient {
                 Ok(buf) => Ok(QueryResult {
                     num_rows: match output.consumed_capacity() {
                         Some(capacity) => capacity.capacity_units().unwrap_or(0_f64) as u64,
-                        None => 0 as u64,
+                        None => 0_u64,
                     },
                     rows: buf,
                     ..Default::default()
@@ -155,9 +155,9 @@ fn convert_rows(items: Option<&[HashMap<String, AttributeValue>]>) -> Result<Vec
     };
     // Convert items into a big json value.
     let json_rows: Value = json!(rows
-        .into_iter()
+        .iter()
         .map(|r| {
-            r.into_iter()
+            r.iter()
                 .map(|(k, v)| (k.to_owned(), attribute_value_to_json(v.to_owned())))
                 .collect::<HashMap<String, Value>>()
         })
@@ -189,7 +189,7 @@ fn attribute_value_to_json(attribute_value: AttributeValue) -> Value {
         AttributeValue::L(list) => json!({
             "L":
             list.into_iter()
-                .map(|item| attribute_value_to_json(item))
+                .map(attribute_value_to_json)
                 .collect::<Vec<Value>>()
         }),
         // "M": {"Name": {"S": "Joe"}, "Age": {"N": 35}}
@@ -479,11 +479,11 @@ mod test {
             AttributeValue::L(vec!(
                 AttributeValue::S("Cookies".to_string()),
                 AttributeValue::S("Coffee".to_string()),
-                AttributeValue::N("3.14159".to_string())
+                AttributeValue::N("5.14159".to_string())
             )),
             parameter_to_attribute_value(
                 None,
-                json!({"L": [ {"S": "Cookies"} , {"S": "Coffee"}, {"N": 3.14159}]})
+                json!({"L": [ {"S": "Cookies"} , {"S": "Coffee"}, {"N": 5.14159}]})
             )
             .unwrap()
         );
