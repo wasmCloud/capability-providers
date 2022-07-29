@@ -219,29 +219,20 @@ fn convert_parameters(parameters: &Option<Parameters>) -> RpcResult<Option<Vec<A
         Some(p) => p,
         None => return Ok(None),
     };
-    let mut result: Vec<AttributeValue> = Vec::with_capacity(parameters.len());
-    for parameter in parameters.iter() {
-        let json_value: Value = match serde_json::from_slice(parameter) {
-            Ok(v) => v,
-            Err(e) => {
-                return Err(RpcError::InvalidParameter(format!(
-                    "parameter {:?} has invalid json
-            format, {:?}",
+    let result = parameters
+        .iter()
+        .map(|parameter| {
+            let json_value = serde_json::from_slice(parameter).map_err(|e| {
+                RpcError::InvalidParameter(format!(
+                    "parameter {:?} has invalid json format {:?}",
                     parameter, e
-                )))
-            }
-        };
-        match parameter_to_attribute_value(None, json_value) {
-            Some(v) => result.push(v),
-            None => {
-                return Err(RpcError::InvalidParameter(format!(
-                    "parameter {:?} has unknown
-                        type",
-                    parameter
-                )))
-            }
-        }
-    }
+                ))
+            })?;
+            parameter_to_attribute_value(None, json_value).ok_or_else(|| {
+                RpcError::InvalidParameter(format!("parameter {:?} has unknown type", parameter))
+            })
+        })
+        .collect::<RpcResult<Vec<AttributeValue>>>()?;
     Ok(Some(result))
 }
 
@@ -374,16 +365,20 @@ mod test {
             .unwrap()
             .unwrap()
         );
+
         // Too many parameters at top level.
-        assert!(convert_parameters(&Some(vec![
-            br#"[{"B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk"}, {"S": "Cookies}}"#.to_vec(),
-        ]))
-        .is_err(),);
+        let result = convert_parameters(&Some(vec![
+            br#"{"B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk", "S": "Cookies"}"#.to_vec(),
+        ]));
+        assert!(result.is_err());
+        assert!(format!("{:?}", result).contains("unknown type"));
+
         // Invalid JSON
-        assert!(convert_parameters(&Some(vec!(
-            br#"[{"B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk"}, {"S": "Cookies}"#.to_vec()
-        )))
-        .is_err());
+        let result = convert_parameters(&Some(vec![
+            br#"[{"B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk"}, {"S": "Cookies}"#.to_vec(),
+        ]));
+        assert!(result.is_err());
+        assert!(format!("{:?}", result).contains("invalid json format"));
     }
 
     #[test]
