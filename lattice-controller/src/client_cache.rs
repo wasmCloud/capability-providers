@@ -5,6 +5,7 @@ use tokio::{
     sync::RwLock,
     time::{interval_at, Duration, Instant},
 };
+use tracing::{debug, trace};
 use wascap::prelude::KeyPair;
 use wasmbus_rpc::error::RpcError;
 use wasmcloud_control_interface::Client;
@@ -161,8 +162,24 @@ async fn connect(cfg: &ConnectionConfig) -> RpcResult<async_nats::Client> {
             ));
         }
     };
+    if cfg.cluster_uris.is_empty() {
+        return Err(RpcError::NotInitialized(
+            "No NATS URIs supplied".to_string(),
+        ));
+    }
+
     let url = cfg.cluster_uris.get(0).unwrap();
+
     let conn = opts
+        .event_callback(|event| async move {
+            // lattice prefix/ID will already be on the span from earlier calls
+            match event {
+                async_nats::Event::Disconnect => debug!("NATS client disconnected"),
+                async_nats::Event::Reconnect => debug!("NATS client reconnected"),
+                async_nats::Event::ClientError(err) => debug!("NATS client error occured: {}", err),
+                other => debug!("NATS client other event occurred: {}", other),
+            }
+        })
         .connect(url)
         .await
         .map_err(|e| RpcError::ProviderInit(format!("Nats connection to {}: {}", url, e)))?;
@@ -186,6 +203,13 @@ async fn evacuate_cache(
             .map(|(k, _v)| k.to_string())
             .collect()
     };
+
+    if !expired_keys.is_empty() {
+        trace!(
+            "Removing NATS clients from cache: {}",
+            expired_keys.join(",")
+        );
+    }
 
     let mut conns = c.write().await;
     conns.retain(|k, _v| !expired_keys.contains(k));

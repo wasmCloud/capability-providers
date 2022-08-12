@@ -155,7 +155,7 @@ impl LatticeController for LatticeControllerProvider {
         client
             .put_registries(hm)
             .await
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?;
+            .map_err(|e| RpcError::Nats(e.to_string()))?;
         Ok(())
     }
 
@@ -180,7 +180,7 @@ impl LatticeController for LatticeControllerProvider {
                     })
                     .collect::<Vec<_>>()
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx), fields(actor_id = ?ctx.actor, lattice_id = ?arg.lattice_id))]
@@ -203,7 +203,7 @@ impl LatticeController for LatticeControllerProvider {
                     })
                     .collect::<Vec<_>>()
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx, arg), fields(actor_id = ?ctx.actor, lattice_id = %arg.to_string()))]
@@ -235,7 +235,7 @@ impl LatticeController for LatticeControllerProvider {
                     })
                     .collect::<Vec<_>>()
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     // humble apologies for the jagged shape of the code below, but this is the price
@@ -287,7 +287,7 @@ impl LatticeController for LatticeControllerProvider {
                     })
                     .collect::<Vec<_>>(),
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx, arg), fields(actor_id = ?ctx.actor, lattice_id = %arg.to_string()))]
@@ -303,7 +303,7 @@ impl LatticeController for LatticeControllerProvider {
             .get_claims()
             .await
             .map(|c| GetClaimsResponse { claims: c.claims })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx), fields(actor_id = ?ctx.actor, lattice_id = ?arg.lattice_id))]
@@ -327,7 +327,7 @@ impl LatticeController for LatticeControllerProvider {
                 accepted: ack.accepted,
                 error: ack.error,
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx), fields(actor_id = ?ctx.actor, lattice_id = ?arg.lattice_id))]
@@ -352,7 +352,7 @@ impl LatticeController for LatticeControllerProvider {
                 accepted: a.accepted,
                 error: a.error,
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx), fields(actor_id = ?ctx.actor, lattice_id = ?arg.lattice_id))]
@@ -377,7 +377,7 @@ impl LatticeController for LatticeControllerProvider {
                 accepted: a.accepted,
                 error: a.error,
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx), fields(actor_id = ?ctx.actor, lattice_id = ?arg.lattice_id))]
@@ -396,7 +396,7 @@ impl LatticeController for LatticeControllerProvider {
                 accepted: a.accepted,
                 error: a.error,
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx, arg), fields(actor_id = ?ctx.actor, lattice_id = %arg.to_string()))]
@@ -412,7 +412,7 @@ impl LatticeController for LatticeControllerProvider {
             .query_links()
             .await
             .map(|res| LinkDefinitionList { links: res.links })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx), fields(actor_id = ?ctx.actor, lattice_id = ?arg.lattice_id))]
@@ -436,7 +436,7 @@ impl LatticeController for LatticeControllerProvider {
                 accepted: a.accepted,
                 error: a.error,
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx, arg), fields(actor_id = ?ctx.actor, host_id = %arg.host_id, provider_ref = %arg.provider_ref, link_name = %arg.link_name, lattice_id = ?arg.lattice_id))]
@@ -461,7 +461,7 @@ impl LatticeController for LatticeControllerProvider {
                 accepted: a.accepted,
                 error: a.error,
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx), fields(actor_id = ?ctx.actor, lattice_id = ?arg.lattice_id))]
@@ -486,7 +486,7 @@ impl LatticeController for LatticeControllerProvider {
                 accepted: a.accepted,
                 error: a.error,
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx), fields(actor_id = ?ctx.actor, lattice_id = ?arg.lattice_id))]
@@ -510,7 +510,7 @@ impl LatticeController for LatticeControllerProvider {
                 accepted: a.accepted,
                 error: a.error,
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 
     #[instrument(level = "debug", skip(self, ctx), fields(actor_id = ?ctx.actor, lattice_id = ?arg.lattice_id))]
@@ -525,6 +525,6 @@ impl LatticeController for LatticeControllerProvider {
                 accepted: a.accepted,
                 error: a.error,
             })
-            .map_err(|e| RpcError::Nats(format!("{}", e)))?)
+            .map_err(|e| RpcError::Nats(e.to_string()))?)
     }
 }
