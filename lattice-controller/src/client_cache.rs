@@ -1,6 +1,11 @@
+// TODO: evaluate using dashmap as a replacement for the RwLocks
+// TODO: evaluate using cached (https://crates.io/crates/cached) as a replacement for this entire module
+// TODO?: if we don't replace this module with another crate, add more unit tests for edge cases
+// TODO: add a means by which this provider restores its credential cache upon startup
+// TODO: make lattice control connection timeout/auction timeout configurable (it's hardcoded now)
+
 use std::{collections::HashMap, sync::Arc};
 
-// TODO: evaluate using dashmap as a replacement for the RwLocks
 use tokio::{
     sync::RwLock,
     time::{interval_at, Duration, Instant},
@@ -176,7 +181,9 @@ async fn connect(cfg: &ConnectionConfig) -> RpcResult<async_nats::Client> {
             match event {
                 async_nats::Event::Disconnect => debug!("NATS client disconnected"),
                 async_nats::Event::Reconnect => debug!("NATS client reconnected"),
-                async_nats::Event::ClientError(err) => debug!("NATS client error occured: {}", err),
+                async_nats::Event::ClientError(err) => {
+                    debug!("NATS client error occurred: {}", err)
+                }
                 other => debug!("NATS client other event occurred: {}", other),
             }
         })
@@ -196,10 +203,9 @@ async fn evacuate_cache(
 ) {
     let expired_keys: Vec<String> = {
         let meta = m.read().await;
-        let now = Instant::now();
 
         meta.iter()
-            .filter(|(_k, v)| now.duration_since(v.last_accessed) > period)
+            .filter(|(_k, v)| v.last_accessed.elapsed() > period)
             .map(|(k, _v)| k.to_string())
             .collect()
     };

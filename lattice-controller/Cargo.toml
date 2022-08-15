@@ -25,7 +25,6 @@ wascap = "0.8.0"
 wasmbus-rpc = { version = "0.9", features = ["otel"] }
 wasmcloud-control-interface = "0.17.0" # lattice client
 wasmcloud-interface-lattice-control = "0.13.1" # provider contract
-#dashmap = "5.3.4"
 
 [target.'cfg(all(target_arch = "aarch64", target_os = "linux"))'.dependencies]
 # We don't use paste directly, but we pin to a version that works with aarch64-linux

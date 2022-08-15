@@ -18,4 +18,23 @@ This is _not_ how the current version of the provider works. The current provide
 This provider no longer supports fallback connections supplied via the provider configuration parameter at startup. In other words, you _must_ invoke `set_lattice_credentials` at least once to use this provider.
 
 
+## Actor Usage Example
+The following is an example of what it looks like for an actor to utilize this capability provider. In this sample, the actor is requesting that the `echo` actor (10 instances of it) be started in the `default` lattice:
 
+```rust
+async fn start_actor(ctx: &Context) -> RpcResult<CtlOperationAck> {
+    let lattice = LatticeControllerSender::new();
+    // NOTE: lattice credentials need to have been set for 'default' before calling this
+    let cmd = StartActorCommand {
+        lattice_id: "default".to_string(),
+        actor_ref: "wasmcloud.azurecr.io/echo:0.3.4".to_string(),
+        annotations: None,
+        count: 10,
+        host_id: "NB67YNOVU5YB3526RUNCKNZBCQDH2L5NZJKQ6FWOVWGSHNHHEO65RP4A".to_string(),
+    };
+
+    debug!("Starting 10 instances of the echo actor...");
+
+    lattice.start_actor(ctx, &cmd).await
+}
+```

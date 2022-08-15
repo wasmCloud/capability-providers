@@ -64,7 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         connections: ClientCache::new(60 * client_cache::CACHE_EXPIRE_MINUTES).await,
     };
 
-    provider_start(lp, hd, Some("Lattice Control Provider".to_string()))?;
+    provider_run(lp, hd, Some("Lattice Control Provider".to_string())).await?;
 
     eprintln!("Lattice Controller capability provider exiting");
     Ok(())
