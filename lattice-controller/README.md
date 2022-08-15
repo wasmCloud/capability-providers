@@ -24,7 +24,14 @@ The following is an example of what it looks like for an actor to utilize this c
 ```rust
 async fn start_actor(ctx: &Context) -> RpcResult<CtlOperationAck> {
     let lattice = LatticeControllerSender::new();
-    // NOTE: lattice credentials need to have been set for 'default' before calling this
+    // Instruct provider to use anonymous local for NATS client for `default` lattice
+    let _ = lattice.set_lattice_credentials(SetLatticeCredentialsRequest {
+        lattice_id: "default".to_string(),
+        nats_url: None,
+        user_jwt: None,
+        user_seed: None
+    }).await;
+
     let cmd = StartActorCommand {
         lattice_id: "default".to_string(),
         actor_ref: "wasmcloud.azurecr.io/echo:0.3.4".to_string(),
