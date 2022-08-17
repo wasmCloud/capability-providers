@@ -38,14 +38,15 @@ async fn run_all() {
     // check that the thread didn't end early
     match join.await.unwrap() {
         Ok(completed) => assert_eq!(completed, NUM_RPC),
-        Err(e) => println!("Mock actor did not handle {} calls or finished in error: {:?}", NUM_RPC, e),
+        Err(e) => println!(
+            "Mock actor did not handle {} calls or finished in error: {:?}",
+            NUM_RPC, e
+        ),
     }
-       
 
     // try to let the provider shut dowwn gracefully
     let provider = test_provider().await;
     let _ = provider.shutdown().await;
-    
 }
 
 /// test that health check returns healthy
@@ -74,7 +75,7 @@ async fn create_find_and_remove_dir(_opt: &TestOptions) -> RpcResult<()> {
 
     let resp2 = client.create_container(&ctx, &name).await;
 
-    assert_eq!(resp2, Ok(()));
+    assert!(resp2.is_ok());
 
     let resp3 = client.container_exists(&ctx, &name).await?;
 
@@ -101,13 +102,13 @@ async fn create_dirs_and_list(_opt: &TestOptions) -> RpcResult<()> {
     let ctx = Context::default();
 
     let mut resp = client.create_container(&ctx, &"cont1".into()).await;
-    assert_eq!(resp, Ok(()));
+    assert!(resp.is_ok());
 
     resp = client.create_container(&ctx, &"cont2".into()).await;
-    assert_eq!(resp, Ok(()));
+    assert!(resp.is_ok());
 
     resp = client.create_container(&ctx, &"cont2/cont3".into()).await;
-    assert_eq!(resp, Ok(()));
+    assert!(resp.is_ok());
 
     let resp2 = client.list_containers(&ctx).await?;
     assert_eq!(resp2.len(), 3);
@@ -137,7 +138,7 @@ async fn upload_and_list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
 
     // Create container
     let resp = client.create_container(&ctx, &"cont1".into()).await;
-    assert_eq!(resp, Ok(()));
+    assert!(resp.is_ok());
 
     // create and upload file1
     let file1_chunk = Chunk {
@@ -242,7 +243,7 @@ async fn upload_and_download_file(_opt: &TestOptions) -> RpcResult<()> {
 
     // Create container
     let resp = client.create_container(&ctx, &"cont1".into()).await;
-    assert_eq!(resp, Ok(()));
+    assert!(resp.is_ok());
 
     // create and upload file1
     let file1_chunk = Chunk {
@@ -266,7 +267,6 @@ async fn upload_and_download_file(_opt: &TestOptions) -> RpcResult<()> {
         container_id: "cont1".into(),
         range_start: Some(0),
         range_end: None,
-        async_reply: false,
     };
     let o = client.get_object(&ctx, &get_object_request).await?;
     assert_eq!(o.content_length, 6);
@@ -297,7 +297,7 @@ async fn upload_chunked_download_file(_opt: &TestOptions) -> RpcResult<()> {
 
     // Create container cont1
     let resp = client.create_container(&ctx, &"cont1".into()).await;
-    assert_eq!(resp, Ok(()));
+    assert!(resp.is_ok());
 
     // create and upload file1 part 1
     let file_chunk1 = Chunk {
@@ -362,8 +362,6 @@ async fn upload_chunked_download_file(_opt: &TestOptions) -> RpcResult<()> {
     };
     let o = client.get_object(&ctx, &get_object_request).await?;
 
-
-
     assert_eq!(o.content_length, 20);
     assert_eq!(o.success, true);
     assert_ne!(o.initial_chunk, None);
@@ -396,7 +394,7 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
 
     // Create container cont1
     let resp = client.create_container(&ctx, &"cont1".into()).await;
-    assert_eq!(resp, Ok(()));
+    assert!(resp.is_ok());
 
     // create and upload file1 part 1
     let file_chunk1 = Chunk {
@@ -421,7 +419,7 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
         object_id: "file1".into(),
         container_id: "cont1".into(),
         range_start: Some(0),
-        range_end: Some(5),     // inclusive
+        range_end: Some(5), // inclusive
         async_reply: false,
     };
     let mut o = client.get_object(&ctx, &get_object_request1).await?;
@@ -438,8 +436,7 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
         object_id: "file1".into(),
         container_id: "cont1".into(),
         range_start: Some(6),
-        range_end: Some(11),     // inclusive
-        async_reply: false,
+        range_end: Some(11), // inclusive
     };
     o = client.get_object(&ctx, &get_object_request2).await?;
     assert_eq!(o.content_length, 6);
@@ -454,7 +451,7 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
         object_id: "file1".into(),
         container_id: "cont1".into(),
         range_start: Some(12),
-        range_end: Some(100),     // inclusive
+        range_end: Some(100), // inclusive
         async_reply: false,
     };
     o = client.get_object(&ctx, &get_object_request3).await?;
@@ -471,14 +468,12 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
         object_id: "file1".into(),
         container_id: "cont1".into(),
         range_start: None,
-        range_end: None,     
+        range_end: None,
         async_reply: true,
     };
     o = client.get_object(&ctx, &get_object_request4).await?;
-    
+
     assert_eq!(o.initial_chunk, None); // there should be no chunk as it is asynchronous
-
-
 
     // remove container (which now should be rmpty)
     let conts: ContainerIds = vec!["cont1".into(), "cont2".into()];
@@ -525,8 +520,7 @@ async fn mock_blobstore_actor(num_requests: u32) -> tokio::task::JoinHandle<RpcR
                 }
 
                 let rec_chunk: Chunk = wasmbus_rpc::common::decode(&inv.msg, &decode_chunk)
-                .map_err(|e| RpcError::Deser(format!("'Chunk': {}", e)))?;
-                
+                    .map_err(|e| RpcError::Deser(format!("'Chunk': {}", e)))?;
 
                 // do something with chunk
                 assert_eq!(rec_chunk.is_last, true);
