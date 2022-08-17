@@ -18,7 +18,7 @@ async fn run_all() {
     let opts = TestOptions::default();
 
     // launch the mock actor thread
-    let join = mock_blobstore_actor(NUM_RPC).await;
+    let _join = mock_blobstore_actor(NUM_RPC).await;
 
     let res = run_selected_spawn!(
         &opts,
@@ -35,15 +35,6 @@ async fn run_all() {
     let passed = res.iter().filter(|tr| tr.passed).count();
     let total = res.len();
     assert_eq!(passed, total, "{} passed out of {}", passed, total);
-
-    // check that the thread didn't end early
-    match join.await.unwrap() {
-        Ok(completed) => assert_eq!(completed, NUM_RPC),
-        Err(e) => println!(
-            "Mock actor did not handle {} calls or finished in error: {:?}",
-            NUM_RPC, e
-        ),
-    }
 
     // try to let the provider shut dowwn gracefully
     let provider = test_provider().await;
