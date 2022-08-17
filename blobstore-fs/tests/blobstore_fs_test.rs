@@ -1,3 +1,4 @@
+use futures_util::StreamExt;
 use wasmbus_rpc::{core::InvocationResponse, provider::prelude::*};
 use wasmcloud_interface_blobstore::*;
 use wasmcloud_test_util::{
@@ -154,7 +155,8 @@ async fn upload_and_list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
         content_type: None,
     };
     let mut resp2 = client.put_object(&ctx, &upload_request).await;
-    assert_eq!(resp2, Ok(PutObjectResponse { stream_id: None }));
+    assert!(resp2.is_ok());
+    assert_eq!(resp2.unwrap().stream_id, None);
 
     // create and upload file2
     let file2_chunk = Chunk {
@@ -170,7 +172,8 @@ async fn upload_and_list_files_in_dirs(_opt: &TestOptions) -> RpcResult<()> {
         content_type: None,
     };
     resp2 = client.put_object(&ctx, &upload_request2).await;
-    assert_eq!(resp2, Ok(PutObjectResponse { stream_id: None }));
+    assert!(resp2.is_ok());
+    assert_eq!(resp2.unwrap().stream_id, None);
 
     // list objects (files) in container cont1
     let mut list_object_request = ListObjectsRequest::default();
@@ -259,7 +262,8 @@ async fn upload_and_download_file(_opt: &TestOptions) -> RpcResult<()> {
         content_type: None,
     };
     let resp2 = client.put_object(&ctx, &upload_request).await;
-    assert_eq!(resp2, Ok(PutObjectResponse { stream_id: None }));
+    assert!(resp2.is_ok());
+    assert_eq!(resp2.unwrap().stream_id, None);
 
     // file is created. Now retrieve it again using get_object
     let get_object_request = GetObjectRequest {
@@ -334,7 +338,7 @@ async fn upload_chunked_download_file(_opt: &TestOptions) -> RpcResult<()> {
         cancel_and_remove: false,
     };
     let resp3 = client.put_chunk(&ctx, &upload_2nd_chunk_request).await;
-    assert_eq!(resp3, Ok(()));
+    assert!(resp3.is_ok());
 
     // create and upload file1 part 3
     let file_chunk3 = Chunk {
@@ -350,7 +354,7 @@ async fn upload_chunked_download_file(_opt: &TestOptions) -> RpcResult<()> {
         cancel_and_remove: false,
     };
     let resp4 = client.put_chunk(&ctx, &upload_3rd_chunk_request).await;
-    assert_eq!(resp4, Ok(()));
+    assert!(resp4.is_ok());
 
     // file is created. Now retrieve it again using get_object assuming it will come back in one chunk
     let get_object_request = GetObjectRequest {
@@ -358,7 +362,6 @@ async fn upload_chunked_download_file(_opt: &TestOptions) -> RpcResult<()> {
         container_id: "cont1".into(),
         range_start: Some(0),
         range_end: None,
-        async_reply: false,
     };
     let o = client.get_object(&ctx, &get_object_request).await?;
 
@@ -420,7 +423,6 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
         container_id: "cont1".into(),
         range_start: Some(0),
         range_end: Some(5), // inclusive
-        async_reply: false,
     };
     let mut o = client.get_object(&ctx, &get_object_request1).await?;
     assert_eq!(o.content_length, 6);
@@ -452,7 +454,6 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
         container_id: "cont1".into(),
         range_start: Some(12),
         range_end: Some(100), // inclusive
-        async_reply: false,
     };
     o = client.get_object(&ctx, &get_object_request3).await?;
     assert_ne!(o.initial_chunk, None);
@@ -469,7 +470,6 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
         container_id: "cont1".into(),
         range_start: None,
         range_end: None,
-        async_reply: true,
     };
     o = client.get_object(&ctx, &get_object_request4).await?;
 
@@ -507,13 +507,13 @@ async fn mock_blobstore_actor(num_requests: u32) -> tokio::task::JoinHandle<RpcR
             // subscribe() returns a Stream of nats messages
 
             println!("topic: {:?}", &topic);
-            let sub = prov
+            let mut sub = prov
                 .nats_client
-                .subscribe(&topic)
+                .subscribe(topic)
                 .await
                 .map_err(|e| RpcError::Nats(e.to_string()))?;
             while let Some(msg) = sub.next().await {
-                let inv: Invocation = deserialize(&msg.data)?;
+                let inv: Invocation = deserialize(&msg.payload)?;
                 if &inv.operation != "ChunkReceiver.ReceiveChunk" {
                     eprintln!("Unexpected method received by actor: {}", &inv.operation);
                     break;
@@ -535,14 +535,16 @@ async fn mock_blobstore_actor(num_requests: u32) -> tokio::task::JoinHandle<RpcR
                     let mut ir = InvocationResponse::default();
                     ir.invocation_id = inv.id;
                     ir.msg = buf;
-                    prov.rpc_client.publish(reply_to, &serialize(&ir)?).await?;
+                    prov.rpc_client
+                        .publish(reply_to.to_string(), serialize(&ir)?)
+                        .await?;
                 }
                 completed += 1;
                 if completed >= num_requests {
                     break;
                 }
             }
-            let _ = sub.close().await;
+            let _ = sub.unsubscribe().await;
             Ok(())
         } {
             eprintln!("mock_actor got error: {}. quitting actor thread", e);
