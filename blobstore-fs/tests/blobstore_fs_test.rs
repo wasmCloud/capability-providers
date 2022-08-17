@@ -464,17 +464,6 @@ async fn upload_download_chunked_file(_opt: &TestOptions) -> RpcResult<()> {
 
     assert_eq!(file_chunk1.bytes, combined);
 
-    // now try it with asynchronous retrieval
-    let get_object_request4 = GetObjectRequest {
-        object_id: "file1".into(),
-        container_id: "cont1".into(),
-        range_start: None,
-        range_end: None,
-    };
-    o = client.get_object(&ctx, &get_object_request4).await?;
-
-    assert_eq!(o.initial_chunk, None); // there should be no chunk as it is asynchronous
-
     // remove container (which now should be rmpty)
     let conts: ContainerIds = vec!["cont1".into(), "cont2".into()];
     let resp5 = client.remove_containers(&ctx, &conts).await?;
