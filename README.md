@@ -31,5 +31,12 @@ The following capability providers are included automatically in every host runt
 
 While neither of these providers requires a _link definition_, to use either of them your actors _must_ be signed with their contract IDs.
 
+## Community Capability Providers
+The following is a list of community supported capability providers developed by members of the wasmCloud community. Please see the [CONTRIBUTING](./CONTRIBUTING.md) guide for information on how to submit your capability provider.
+
+| Provider | Contract | Description |
+| :--- | :--- | :--- |
+| [kvdynamodb](https://github.com/matthewtgilbride/kvdynamodb-provider) | [`wasmcloud:keyvalue`](https://github.com/matthewtgilbride/kvdynamodb-provider) | AWS DynamoDB implementation for the keyvalue contract |
+
 ## Additional Examples
 Additional capability provider examples and sample code can be found in the [wasmCloud examples](https://github.com/wasmCloud/examples) repository.
