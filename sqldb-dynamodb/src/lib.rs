@@ -22,22 +22,8 @@ pub struct SqlDbClient {
 
 impl SqlDbClient {
     pub async fn new(config: config::StorageConfig, ld: Option<LinkDefinition>) -> Self {
-        // TODO: let mut aliases = config.aliases.clone();
         let dynamodb_config = aws_sdk_dynamodb::Config::from(&config.configure_aws().await);
         let dynamodb_client = aws_sdk_dynamodb::Client::from_conf(dynamodb_config);
-        /* TODO
-        if let Some(ref ld) = ld {
-            for (k, v) in ld.values.iter() {
-                if let Some(alias) = k.strip_prefix(ALIAS_PREFIX) {
-                    if alias.is_empty() || v.is_empty() {
-                        error!("invalid bucket alias_ key and value must not be empty");
-                    } else {
-                        aliases.insert(alias.to_string(), v.to_string());
-                    }
-                }
-            }
-        }
-        */
         SqlDbClient {
             dynamodb_client,
             ld,
@@ -54,8 +40,6 @@ impl SqlDbClient {
         if let Some(ld) = &self.ld {
             debug!(actor_id = %ld.actor_id, "sqldb-dynamodb dropping linkdef");
         }
-        // If there were any https clients, caches, or other link-specific data,
-        // we would delete those here
     }
 }
 

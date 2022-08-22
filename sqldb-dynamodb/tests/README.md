@@ -1,6 +1,6 @@
 # sqldb-dynamodb capability provider tests
 
-The tests include a local docker dynamodb database. The database was initialized with the following command from example 6 of the [AWS cli guide](https://docs.aws.amazon.com/cli/latest/reference/dynamodb/create-table.html)
+The tests include a local docker dynamodb database (`docker/dynamodb/shared-local-instance.db`). The database was initialized with the following command from example 6 of the [AWS cli guide](https://docs.aws.amazon.com/cli/latest/reference/dynamodb/create-table.html)
 ```
 aws dynamodb create-table \
     --table-name GameScores \

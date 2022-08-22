@@ -11,7 +11,7 @@ use serde::Deserialize;
 use std::{collections::HashMap, env};
 use wasmbus_rpc::error::{RpcError, RpcResult};
 
-const DEFAULT_STS_SESSION: &str = "kv_dynamodb_provider";
+const DEFAULT_STS_SESSION: &str = "sqldb_dynamodb_provider";
 
 /// Configuration for connecting to DynamoDB.
 ///
