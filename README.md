@@ -9,7 +9,7 @@ with `0.18` (aka "pre-OTP") or earlier can be found in the [pre-otp](./pre-otp) 
 The following is a list of first-party supported capability providers developed by the
 wasmCloud team.
 
-| Provider | Contract | Description | OCI Reference |
+| Provider | Contract | Description | <div style="width:250px">OCI Reference<div> |
 | :--- | :--- | :--- | :--- |
 | [blobstore-fs](./blobstore-fs) | [`wasmcloud:blobstore`](https://github.com/wasmCloud/interfaces/tree/main/blobstore-fs) | Blobstore implementation where blobs are local files and containers are folders | ![blobstore fs oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fblobstore-fs)
 | [blobstore-s3](./blobstore-s3) | [`wasmcloud:blobstore`](https://github.com/wasmCloud/interfaces/tree/main/blobstore-s3) | Blobstore implementation with AWS S3 | ![blobstore s3 oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fblobstore-s3)
