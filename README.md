@@ -9,16 +9,17 @@ with `0.18` (aka "pre-OTP") or earlier can be found in the [pre-otp](./pre-otp) 
 The following is a list of first-party supported capability providers developed by the
 wasmCloud team.
 
-| Provider | Contract | Description |
-| :--- | :--- | :--- |
-| [blobstore-fs](./blobstore-fs) | [`wasmcloud:blobstore`](https://github.com/wasmCloud/interfaces/tree/main/blobstore-fs) | Blobstore implementation where blobs are local files and containers are folders |
-| [blobstore-s3](./blobstore-s3) | [`wasmcloud:blobstore`](https://github.com/wasmCloud/interfaces/tree/main/blobstore-s3) | Blobstore implementation with AWS S3|
-| [httpserver](./httpserver-rs) | [`wasmcloud:httpserver`](https://github.com/wasmCloud/interfaces/tree/main/httpserver) | HTTP web server built with Rust and warp/hyper |
-| [httpclient](./httpclient) | [`wasmcloud:httpclient`](https://github.com/wasmCloud/interfaces/tree/main/httpclient) | HTTP client built in Rust |
-| [redis](./kvredis) | [`wasmcloud:keyvalue`](https://github.com/wasmCloud/interfaces/tree/main/keyvalue) | Redis-backed key-value implementation |
-| [nats](./nats) | [`wasmcloud:messaging`](https://github.com/wasmCloud/interfaces/tree/main/messaging) | [NATS](https://nats.io)-based message broker |
-| [lattice-controller](./lattice-controller) | [`wasmcloud:latticecontroller`](https://github.com/wasmCloud/interfaces/tree/main/lattice-controller) | Lattice Controller interface |
-| [postgres](./sqldb-postgres) | [`wasmcloud:sqldb`](https://github.com/wasmCloud/interfaces/tree/main/sqldb) | Postgres-based SQL database capability provider |
+| Provider | Contract | Description | OCI Reference |
+| :--- | :--- | :--- | :--- |
+| [blobstore-fs](./blobstore-fs) | [`wasmcloud:blobstore`](https://github.com/wasmCloud/interfaces/tree/main/blobstore-fs) | Blobstore implementation where blobs are local files and containers are folders | ![blobstore fs oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fblobstore-fs)
+| [blobstore-s3](./blobstore-s3) | [`wasmcloud:blobstore`](https://github.com/wasmCloud/interfaces/tree/main/blobstore-s3) | Blobstore implementation with AWS S3 | ![blobstore s3 oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fblobstore-s3)
+| [httpserver](./httpserver-rs) | [`wasmcloud:httpserver`](https://github.com/wasmCloud/interfaces/tree/main/httpserver) | HTTP web server built with Rust and warp/hyper | ![httpserver oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fhttpserver)
+| [httpclient](./httpclient) | [`wasmcloud:httpclient`](https://github.com/wasmCloud/interfaces/tree/main/httpclient) | HTTP client built in Rust |  ![httpclient oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fhttpclient)
+| [redis](./kvredis) | [`wasmcloud:keyvalue`](https://github.com/wasmCloud/interfaces/tree/main/keyvalue) | Redis-backed key-value implementation | ![kvredis oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fkvredis)
+| [vault](./kv-vault) | [`wasmcloud:keyvalue`](https://github.com/wasmCloud/interfaces/tree/main/keyvalue) | Vault-backed key-value implementation for secrets | ![kv-vault oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fkv-vault)
+| [nats](./nats) | [`wasmcloud:messaging`](https://github.com/wasmCloud/interfaces/tree/main/messaging) | [NATS](https://nats.io)-based message broker | ![nats oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fnats_messaging)
+| [lattice-controller](./lattice-controller) | [`wasmcloud:latticecontroller`](https://github.com/wasmCloud/interfaces/tree/main/lattice-controller) | Lattice Controller interface | ![lattice-controller oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Flattice-controller)
+| [postgres](./sqldb-postgres) | [`wasmcloud:sqldb`](https://github.com/wasmCloud/interfaces/tree/main/sqldb) | Postgres-based SQL database capability provider | ![sqldb-postgres oci reference](https://img.shields.io/endpoint?url=https%3A%2F%2Fproud-bird-4896.cosmonic.io%2Fsqldb-postgres)
 
 ## Built-in Capability Providers
 The following capability providers are included automatically in every host runtime:
