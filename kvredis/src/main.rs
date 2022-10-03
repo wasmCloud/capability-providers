@@ -12,8 +12,8 @@ use std::{collections::HashMap, convert::Infallible, ops::DerefMut, sync::Arc};
 
 use redis::{aio::Connection, FromRedisValue, RedisError};
 use tokio::sync::RwLock;
-use tracing::{info, instrument};
-use wasmbus_rpc::{actor, provider::prelude::*};
+use tracing::{info, instrument, warn};
+use wasmbus_rpc::provider::prelude::*;
 use wasmcloud_interface_keyvalue::{
     GetResponse, IncrementRequest, KeyValue, KeyValueReceiver, ListAddRequest, ListDelRequest,
     ListRangeRequest, SetAddRequest, SetDelRequest, SetRequest, StringList,
@@ -62,7 +62,17 @@ impl ProviderHandler for KvRedisProvider {
             if let Ok(connection) = client.get_async_connection().await {
                 let mut update_map = self.actors.write().await;
                 update_map.insert(ld.actor_id.to_string(), RwLock::new(connection));
+            } else {
+                warn!(
+                    "Could not create Redis connection for actor {}, keyvalue operations will fail",
+                    ld.actor_id
+                )
             }
+        } else {
+            warn!(
+                "Could not create Redis client for actor {}, keyvalue operations will fail",
+                ld.actor_id
+            )
         }
 
         Ok(true)
