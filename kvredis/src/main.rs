@@ -10,7 +10,10 @@
 //!
 use std::{collections::HashMap, convert::Infallible, ops::DerefMut, sync::Arc};
 
-use redis::{aio::Connection, FromRedisValue, RedisError};
+use redis::{
+    aio::{Connection, ConnectionManager},
+    FromRedisValue, RedisError,
+};
 use tokio::sync::RwLock;
 use tracing::{info, instrument, warn};
 use wasmbus_rpc::provider::prelude::*;
@@ -34,26 +37,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-struct RedisConnection {
-    connection: Connection,
-    redis_url: String,
-}
-
-impl RedisConnection {
-    fn new(connection: Connection, redis_url: &str) -> Self {
-        RedisConnection {
-            connection,
-            redis_url: redis_url.to_owned(),
-        }
-    }
-}
-
 /// Redis keyValue provider implementation.
 #[derive(Default, Clone, Provider)]
 #[services(KeyValue)]
 struct KvRedisProvider {
     // store redis connections per actor
-    actors: Arc<RwLock<HashMap<String, RwLock<RedisConnection>>>>,
+    actors: Arc<RwLock<HashMap<String, RwLock<ConnectionManager>>>>,
 }
 /// use default implementations of provider message handlers
 impl ProviderDispatch for KvRedisProvider {}
@@ -73,18 +62,24 @@ impl ProviderHandler for KvRedisProvider {
         };
 
         if let Ok(client) = redis::Client::open(redis_url) {
-            if let Ok(connection) = client.get_async_connection().await {
-                let mut update_map = self.actors.write().await;
-                update_map.insert(
-                    ld.actor_id.to_string(),
-                    RwLock::new(RedisConnection::new(connection, redis_url)),
-                );
-            } else {
-                warn!(
-                    "Could not create Redis connection for actor {}, keyvalue operations will fail",
-                    ld.actor_id
-                )
-            }
+            // if let Ok(connection) = client.get_async_connection().await {
+            let mut update_map = self.actors.write().await;
+
+            update_map.insert(
+                ld.actor_id.to_string(),
+                RwLock::new(
+                    client
+                        .get_tokio_connection_manager()
+                        .await
+                        .map_err(to_rpc_err)?,
+                ),
+            );
+            // } else {
+            //     warn!(
+            //         "Could not create Redis connection for actor {}, keyvalue operations will fail",
+            //         ld.actor_id
+            //     )
+            // }
         } else {
             warn!(
                 "Could not create Redis client for actor {}, keyvalue operations will fail",
@@ -329,39 +324,6 @@ impl KvRedisProvider {
             .ok_or_else(|| RpcError::InvalidParameter(format!("No Redis connection found for {}. Please ensure the URL supplied in the link definition is a valid Redis URL", actor_id)))?;
         // get write lock on this actor's connection
         let mut con = rc.write().await;
-        match cmd.query_async(&mut con.deref_mut().connection).await {
-            // If the error is IO or connection dropped, try to reconnect
-            Err(err) if err.is_connection_dropped() || err.is_io_error() => {
-                let redis_url = con.redis_url.clone();
-                // Explicitly drop read locks here so we can take a write lock on the actor map
-                drop(con);
-                drop(rd);
-
-                //TODO: refactoring opportunity from linkdef
-                if let Ok(client) = redis::Client::open(redis_url.clone()) {
-                    if let Ok(connection) = client.get_async_connection().await {
-                        info!("Connection re-established, replacing in actor map");
-                        let mut update_map = self.actors.write().await;
-                        update_map.insert(
-                            actor_id.to_string(),
-                            RwLock::new(RedisConnection::new(connection, &redis_url)),
-                        );
-                    } else {
-                        warn!(
-                            "Could not re-create Redis connection for actor {}, keyvalue operations will fail",
-                            actor_id
-                        );
-                    }
-                } else {
-                    warn!(
-                        "Could not re-create Redis client for actor {}, keyvalue operations will fail",
-                        actor_id
-                    );
-                }
-                Err(to_rpc_err(err))
-            }
-            //TODO: meaningful here
-            res => res.map_err(to_rpc_err),
-        }
+        cmd.query_async(con.deref_mut()).await.map_err(to_rpc_err)
     }
 }
