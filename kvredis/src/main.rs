@@ -62,7 +62,6 @@ impl ProviderHandler for KvRedisProvider {
         };
 
         if let Ok(client) = redis::Client::open(redis_url) {
-            // if let Ok(connection) = client.get_async_connection().await {
             let mut update_map = self.actors.write().await;
 
             update_map.insert(
@@ -74,12 +73,6 @@ impl ProviderHandler for KvRedisProvider {
                         .map_err(to_rpc_err)?,
                 ),
             );
-            // } else {
-            //     warn!(
-            //         "Could not create Redis connection for actor {}, keyvalue operations will fail",
-            //         ld.actor_id
-            //     )
-            // }
         } else {
             warn!(
                 "Could not create Redis client for actor {}, keyvalue operations will fail",
