@@ -10,10 +10,7 @@
 //!
 use std::{collections::HashMap, convert::Infallible, ops::DerefMut, sync::Arc};
 
-use redis::{
-    aio::{Connection, ConnectionManager},
-    FromRedisValue, RedisError,
-};
+use redis::{aio::ConnectionManager, FromRedisValue, RedisError};
 use tokio::sync::RwLock;
 use tracing::{info, instrument, warn};
 use wasmbus_rpc::provider::prelude::*;
