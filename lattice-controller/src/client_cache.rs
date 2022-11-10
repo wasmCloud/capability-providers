@@ -179,8 +179,8 @@ async fn connect(cfg: &ConnectionConfig) -> RpcResult<async_nats::Client> {
         .event_callback(|event| async move {
             // lattice prefix/ID will already be on the span from earlier calls
             match event {
-                async_nats::Event::Disconnect => debug!("NATS client disconnected"),
-                async_nats::Event::Reconnect => debug!("NATS client reconnected"),
+                async_nats::Event::Disconnected => debug!("NATS client disconnected"),
+                async_nats::Event::Connected => debug!("NATS client reconnected"),
                 async_nats::Event::ClientError(err) => {
                     debug!("NATS client error occurred: {}", err)
                 }

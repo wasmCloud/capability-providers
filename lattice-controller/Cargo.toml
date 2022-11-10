@@ -1,11 +1,11 @@
 [package]
 name = "wasmcloud-provider-lattice-controller"
 description = "Capability provider that allows actors to interact with lattice control interfaces"
-version = "0.9.1"
+version = "0.9.2"
 edition = "2021"
 
 [dependencies]
-async-nats = "0.18.0"
+async-nats = "0.22.0"
 async-trait = "0.1"
 atty = "0.2"
 base64 = "0.13"
@@ -22,9 +22,9 @@ toml = "0.5"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 wascap = "0.8.0"
-wasmbus-rpc = { version = "0.10", features = ["otel"] }
-wasmcloud-control-interface = "0.20.1" # lattice client
-wasmcloud-interface-lattice-control = "0.14.1" # provider contract
+wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev="77f50ddd476e0b2a50915de6c4fb0f41e6e24c85", features = ["otel"] }
+wasmcloud-control-interface = { git = "https://github.com/wasmcloud/control-interface-client", rev = "8f5c6736bc9d2c76db2e795e119734fc2a9d3fd3" }
+wasmcloud-interface-lattice-control = { git = "https://github.com/wasmcloud/interfaces", rev = "c5e09cac09e04c9ca4fb0d78d19bde5f093c8133" }
 
 [target.'cfg(all(target_arch = "aarch64", target_os = "linux"))'.dependencies]
 # We don't use paste directly, but we pin to a version that works with aarch64-linux
@@ -32,7 +32,7 @@ paste = "=1.0.6"
 
 # test dependencies
 [dev-dependencies]
-wasmcloud-test-util = "0.5.0"
+wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev = "266272ab2466187bfaa2cd2410881b5c9bd002c2" }
 
 [[bin]]
 name = "lattice-controller"

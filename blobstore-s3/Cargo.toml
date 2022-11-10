@@ -6,11 +6,11 @@ edition = "2021"
 [dependencies]
 async-trait = "0.1"
 atty = "0.2"
-aws-sdk-s3 = "0.17.0"
-aws-config = "0.47.0"
-aws-types = { version = "0.47.0", features = ["hardcoded-credentials"] }
-aws-smithy-http = "0.47.0"
-aws-smithy-types = "0.47.0"
+aws-sdk-s3 = "0.21.0"
+aws-config = "0.51.0"
+aws-types = { version = "0.51.0", features = ["hardcoded-credentials"] }
+aws-smithy-http = "0.51.0"
+aws-smithy-types = "0.51.0"
 base64 = "0.13"
 bytes = "1.0"
 http = "0.2.6"
@@ -28,7 +28,7 @@ toml = "0.5"
 tracing = "0.1"
 tracing-futures = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-wasmbus-rpc = { version = "0.10.0", features = ["otel"] }
+wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev="77f50ddd476e0b2a50915de6c4fb0f41e6e24c85", features = ["otel"] }
 
 # test dependencies
 [dev-dependencies]
@@ -37,8 +37,8 @@ fastrand = "1.7"
 crc32fast = "1.3.2"
 env_logger = "0.9"
 wasmcloud-test-util = "0.5.0"
-wasmcloud-interface-blobstore = "0.4.0"
-wasmcloud-interface-testing = "0.6.0"
+wasmcloud-interface-blobstore = { git = "https://github.com/wasmcloud/interfaces", rev = "c5e09cac09e04c9ca4fb0d78d19bde5f093c8133" }
+wasmcloud-interface-testing = { git = "https://github.com/wasmcloud/interfaces", rev = "c5e09cac09e04c9ca4fb0d78d19bde5f093c8133" }
 
 [build-dependencies]
 weld-codegen = "0.5.0"
