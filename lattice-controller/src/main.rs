@@ -6,7 +6,7 @@ use std::{collections::HashMap, convert::Infallible};
 use client_cache::ClientCache;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
-use wasmbus_rpc::provider::prelude::*;
+use wasmbus_rpc::{error::{RpcResult,RpcError}, provider::prelude::{load_host_data, Provider,async_trait, ProviderDispatch, ProviderHandler, LinkDefinition, Context, provider_run}};
 use wasmcloud_control_interface as interface_client;
 use wasmcloud_interface_lattice_control::*;
 

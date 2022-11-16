@@ -12,10 +12,10 @@ use tokio::{
 };
 use tracing::{debug, trace};
 use wascap::prelude::KeyPair;
-use wasmbus_rpc::error::RpcError;
+use wasmbus_rpc::error::{RpcError,RpcResult};
 use wasmcloud_control_interface::Client;
 
-use crate::{ConnectionConfig, RpcResult};
+use crate::{ConnectionConfig };
 
 pub(crate) const CACHE_EXPIRE_MINUTES: u64 = 10;
 
