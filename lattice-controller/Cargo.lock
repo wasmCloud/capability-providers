@@ -2903,11 +2903,11 @@ dependencies = [
 
 [[package]]
 name = "wasmcloud-control-interface"
-version = "0.22.1"
+version = "0.22.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2aa09b38d67e416694bbd23d992887c39ad8941a10762c9d0a2888a9d65f4e0"
+checksum = "b3653aaa00c7bdfadced94c8466bb28310540e1799603f9e5130803e319ca3b8"
 dependencies = [
- "async-nats 0.22.1",
+ "async-nats 0.23.0",
  "cloudevents-sdk",
  "futures",
  "rmp-serde",
@@ -2955,7 +2955,7 @@ dependencies = [
 name = "wasmcloud-provider-lattice-controller"
 version = "0.10.0"
 dependencies = [
- "async-nats 0.22.1",
+ "async-nats 0.23.0",
  "async-trait",
  "atty",
  "base64 0.13.1",
