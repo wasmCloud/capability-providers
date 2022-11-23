@@ -20,7 +20,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 url = "2.2.2"
 vaultrs = "0.6.0"
 wasmcloud-interface-keyvalue = "0.9.1"
-wasmbus-rpc = { version = "0.11.1", features = ["otel"] }
+wasmbus-rpc = { version = "0.11.2", features = ["otel"] }
 
 # test dependencies
 [dev-dependencies]

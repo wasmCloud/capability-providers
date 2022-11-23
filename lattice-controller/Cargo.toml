@@ -22,7 +22,7 @@ toml = "0.5"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 wascap = "0.8.0"
-wasmbus-rpc = { version = "0.11.1", features = ["otel"] }
+wasmbus-rpc = { version = "0.11.2", features = ["otel"] }
 wasmcloud-control-interface = "0.22.1"
 wasmcloud-interface-lattice-control = "0.16.1"
 

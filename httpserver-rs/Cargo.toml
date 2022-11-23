@@ -21,7 +21,7 @@ tracing = "0.1.34"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 warp = { version="0.3", features=["tls"] }
 wasmcloud-interface-httpserver = "0.8.1"
-wasmbus-rpc = { version = "0.11.1", features = ["otel"] }
+wasmbus-rpc = { version = "0.11.2", features = ["otel"] }
 
 [dev-dependencies]
 assert_matches = "1.5"

@@ -23,7 +23,7 @@ toml = "0.5"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 wasmcloud-interface-keyvalue = "0.9.1"
-wasmbus-rpc = { version = "0.11.1", features = ["otel"] }
+wasmbus-rpc = { version = "0.11.2", features = ["otel"] }
 
 # test dependencies
 [dev-dependencies]
