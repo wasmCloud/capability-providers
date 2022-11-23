@@ -5,7 +5,7 @@ version = "0.10.0"
 edition = "2021"
 
 [dependencies]
-async-nats = "0.22.1"
+async-nats = "0.23"
 async-trait = "0.1"
 atty = "0.2"
 base64 = "0.13"
@@ -23,7 +23,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 wascap = "0.8.0"
 wasmbus-rpc = { version = "0.11.2", features = ["otel"] }
-wasmcloud-control-interface = "0.22.1"
+wasmcloud-control-interface = "0.22.2"
 wasmcloud-interface-lattice-control = "0.16.1"
 
 # test dependencies

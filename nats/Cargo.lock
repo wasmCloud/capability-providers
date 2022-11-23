@@ -2911,7 +2911,7 @@ dependencies = [
 name = "wasmcloud-provider-nats"
 version = "0.15.0"
 dependencies = [
- "async-nats 0.22.1",
+ "async-nats 0.23.0",
  "async-trait",
  "atty",
  "base64",
