@@ -23,12 +23,12 @@ toml = "0.5"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-wasmcloud-interface-httpclient = "0.8.0"
-wasmbus-rpc = { version = "0.11.0", features = ["otel"] }
+wasmcloud-interface-httpclient = "0.8.1"
+wasmbus-rpc = { version = "0.11.1", features = ["otel"] }
 
 # test dependencies
 [dev-dependencies]
-wasmcloud-test-util = "0.6.2"
+wasmcloud-test-util = "0.6.3"
 
 [[bin]]
 name = "httpclient"
