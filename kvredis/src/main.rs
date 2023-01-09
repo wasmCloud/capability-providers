@@ -82,12 +82,7 @@ impl ProviderHandler for KvRedisProvider {
     /// If the link is allowed, return true, otherwise return false to deny the link.
     #[instrument(level = "debug", skip(self, ld), fields(actor_id = %ld.actor_id))]
     async fn put_link(&self, ld: &LinkDefinition) -> RpcResult<bool> {
-        let redis_url = ld
-            .values
-            .iter()
-            .find(|(key, _value)| key.eq_ignore_ascii_case(REDIS_URL_KEY))
-            .map(|(_key, url)| url)
-            .unwrap_or_else(|| &self.default_connect_url);
+        let redis_url = get_redis_url(&ld.values, &self.default_connect_url);
 
         if let Ok(client) = redis::Client::open(redis_url.clone()) {
             if let Ok(conn_manager) = client.get_tokio_connection_manager().await {
@@ -347,9 +342,19 @@ impl KvRedisProvider {
     }
 }
 
+fn get_redis_url(link_values: &HashMap<String, String>, default_connect_url: &str) -> String {
+    link_values
+        .iter()
+        .find(|(key, _value)| key.eq_ignore_ascii_case(REDIS_URL_KEY))
+        .map(|(_key, url)| url.to_owned())
+        .unwrap_or_else(|| default_connect_url.to_owned())
+}
+
 #[cfg(test)]
 mod test {
-    use crate::KvRedisConfig;
+    use std::collections::HashMap;
+
+    use crate::{get_redis_url, KvRedisConfig};
 
     const PROPER_URL: &str = "redis://127.0.0.1:6379";
 
@@ -377,5 +382,28 @@ mod test {
                 .unwrap()
                 .url
         );
+    }
+
+    #[test]
+    fn can_accept_case_insensitive_url_parameters() {
+        let mut lowercase_map = HashMap::new();
+        lowercase_map.insert("url".to_string(), PROPER_URL.to_string());
+
+        assert_eq!(get_redis_url(&lowercase_map, ""), PROPER_URL);
+
+        let mut uppercase_map = HashMap::new();
+        uppercase_map.insert("URL".to_string(), PROPER_URL.to_string());
+
+        assert_eq!(get_redis_url(&uppercase_map, ""), PROPER_URL);
+
+        let mut spongebob_map_one = HashMap::new();
+        spongebob_map_one.insert("uRl".to_string(), PROPER_URL.to_string());
+
+        assert_eq!(get_redis_url(&spongebob_map_one, ""), PROPER_URL);
+
+        let mut spongebob_map_two = HashMap::new();
+        spongebob_map_two.insert("UrL".to_string(), PROPER_URL.to_string());
+
+        assert_eq!(get_redis_url(&spongebob_map_two, ""), PROPER_URL);
     }
 }
