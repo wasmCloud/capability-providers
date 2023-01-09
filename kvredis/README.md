@@ -6,7 +6,7 @@ This capability provider implements the [wasmcloud:keyvalue](https://github.com/
 
 If you want multiple actors to share the same keyspace/database then you will need to provide the same Redis URL for multiple link definitions (or utilize start-up configuration as discussed below).
 
-The easiest way to use this provider is to pass `wasmcloud.azurecr.io/kvredis:0.19.0` (or newer) as the OCI reference parameter to a wash/lattice control "start provider" command. 
+The easiest way to use this provider is to pass `wasmcloud.azurecr.io/kvredis:0.19.0` (or newer, check the badge at the top of this README) as the OCI reference parameter to a wash/lattice control "start provider" command. 
 
 For the latest OCI reference URLs for all capability providers, see the root of the [capability-providers](https://github.com/wasmCloud/capability-providers) repository.
 
