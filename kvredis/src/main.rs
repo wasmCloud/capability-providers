@@ -84,7 +84,9 @@ impl ProviderHandler for KvRedisProvider {
     async fn put_link(&self, ld: &LinkDefinition) -> RpcResult<bool> {
         let redis_url = ld
             .values
-            .get(REDIS_URL_KEY)
+            .iter()
+            .find(|(key, _value)| key.eq_ignore_ascii_case(REDIS_URL_KEY))
+            .map(|(_key, url)| url)
             .unwrap_or_else(|| &self.default_connect_url);
 
         if let Ok(client) = redis::Client::open(redis_url.clone()) {
