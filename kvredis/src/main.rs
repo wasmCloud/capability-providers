@@ -21,11 +21,12 @@ use wasmcloud_interface_keyvalue::{
 };
 
 const REDIS_URL_KEY: &str = "URL";
-const DEFAULT_CONNECT_URL: &str = "redis://0.0.0.0:6379/";
+const DEFAULT_CONNECT_URL: &str = "redis://127.0.0.1:6379/";
 
 #[derive(Deserialize)]
 struct KvRedisConfig {
     /// Default URL to connect when actor doesn't provide one on a link
+    #[serde(alias = "URL", alias = "Url")]
     url: String,
 }
 
@@ -341,5 +342,38 @@ impl KvRedisProvider {
         // get write lock on this actor's connection
         let mut con = rc.write().await;
         cmd.query_async(con.deref_mut()).await.map_err(to_rpc_err)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::KvRedisConfig;
+
+    const PROPER_URL: &str = "redis://127.0.0.1:6379";
+
+    #[test]
+    fn can_deserialize_config_case_insensitive() {
+        let lowercase_config = format!("{{\"url\": \"{}\"}}", PROPER_URL);
+        let uppercase_config = format!("{{\"URL\": \"{}\"}}", PROPER_URL);
+        let initial_caps_config = format!("{{\"Url\": \"{}\"}}", PROPER_URL);
+
+        assert_eq!(
+            PROPER_URL,
+            serde_json::from_str::<KvRedisConfig>(&lowercase_config)
+                .unwrap()
+                .url
+        );
+        assert_eq!(
+            PROPER_URL,
+            serde_json::from_str::<KvRedisConfig>(&uppercase_config)
+                .unwrap()
+                .url
+        );
+        assert_eq!(
+            PROPER_URL,
+            serde_json::from_str::<KvRedisConfig>(&initial_caps_config)
+                .unwrap()
+                .url
+        );
     }
 }
