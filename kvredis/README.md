@@ -29,7 +29,7 @@ wash ctl start wasmcloud.azurecr.io/kvredis:0.18.0 --config-json /path/to/config
 
 The JSON expected by the provider is an object with a single `url` field: 
 ```json
-{ "url": "redis://127.0.0.1:6380" }
+{ "url": "redis://127.0.0.1:6379" }
 ```
 
 Note that this URL, like link definition URLs, must also use the URL scheme `redis://`
