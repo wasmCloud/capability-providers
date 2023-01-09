@@ -8,6 +8,10 @@ If you want multiple actors to share the same keyspace/database then you will ne
 
 The easiest way to use this provider is to pass `wasmcloud.azurecr.io/kvredis:0.19.0` (or newer, check the badge at the top of this README) as the OCI reference parameter to a wash/lattice control "start provider" command. 
 
+```
+wash ctl start provider wasmcloud.azurecr.io/kvredis:0.19.0
+```
+
 For the latest OCI reference URLs for all capability providers, see the root of the [capability-providers](https://github.com/wasmCloud/capability-providers) repository.
 
 ## Link Definition Configuration Settings
@@ -24,7 +28,7 @@ This provider also accepts a default URL as a configuration value on startup. If
 
 To supply the startup configuration, you can use `wash` to pass the `config-json` parameter to the start command:
 ```
-wash ctl start wasmcloud.azurecr.io/kvredis:0.18.0 --config-json /path/to/config.json
+wash ctl start provider wasmcloud.azurecr.io/kvredis:0.19.0 --config-json /path/to/config.json
 ```
 
 The JSON expected by the provider is an object with a single `url` field: 
