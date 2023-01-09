@@ -16,7 +16,7 @@ The following is a list of configuration settings available in the link definiti
 
 | Property | Description                                                                                                                   |
 | :------- | :---------------------------------------------------------------------------------------------------------------------------- |
-| `URL`    | The connection string URL for the Redis database. Note that all authentication information must also be contained in this URL. The URL _must_ start with the `redis://` scheme. This property name is case sensitive |
+| `URL`    | The connection string URL for the Redis database. Note that all authentication information must also be contained in this URL. The URL _must_ start with the `redis://` scheme. This property name is case sensitive. Example: `redis://127.0.0.1:6379` |
 
 ## Supplying Startup Configuration
 
