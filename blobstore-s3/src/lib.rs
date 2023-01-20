@@ -7,7 +7,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use aws_sdk_s3::{
-    error::{HeadBucketError, HeadBucketErrorKind, HeadObjectError, HeadObjectErrorKind},
     model::ObjectIdentifier,
     output::{CreateBucketOutput, HeadObjectOutput, ListBucketsOutput},
     types::{ByteStream, SdkError},
@@ -134,17 +133,12 @@ impl StorageClient {
                 content_encoding,
                 content_length: content_length as u64,
             }),
-            Err(SdkError::ServiceError {
-                err:
-                    HeadObjectError {
-                        kind: HeadObjectErrorKind::NotFound(_),
-                        ..
-                    },
-                ..
-            }) => Err(RpcError::Other(format!(
-                "Not found: Bucket({}) Object({})",
-                bucket_id, object_id,
-            ))),
+            Err(SdkError::ServiceError(context)) if context.err().is_not_found() => {
+                Err(RpcError::Other(format!(
+                    "Not found: Bucket({}) Object({})",
+                    bucket_id, object_id,
+                )))
+            }
             Err(e) => Err(RpcError::Other(format!(
                 "get_object_metadata for Bucket({}) Object({}): {}",
                 bucket_id, object_id, e
@@ -272,14 +266,7 @@ impl Blobstore for StorageClient {
         let bucket_id = self.unalias(arg);
         match self.s3_client.head_bucket().bucket(bucket_id).send().await {
             Ok(_) => Ok(true),
-            Err(SdkError::ServiceError {
-                err:
-                    HeadBucketError {
-                        kind: HeadBucketErrorKind::NotFound(_),
-                        ..
-                    },
-                ..
-            }) => Ok(false),
+            Err(SdkError::ServiceError(context)) if context.err().is_not_found() => Ok(false),
             Err(e) => {
                 error!(error = %e, "Unable to head bucket");
                 Err(RpcError::Other(e.to_string()))
@@ -312,7 +299,8 @@ impl Blobstore for StorageClient {
                         debug!(?location, "bucket created");
                         Ok(())
                     }
-                    Err(SdkError::ServiceError { err, .. }) => {
+                    Err(SdkError::ServiceError(context)) => {
+                        let err = context.err();
                         error!(
                             error = %err,
                             "Got service error",
@@ -345,14 +333,9 @@ impl Blobstore for StorageClient {
                 // so we can't fill in creation date
                 created_at: None,
             }),
-            Err(SdkError::ServiceError {
-                err:
-                    HeadBucketError {
-                        kind: HeadBucketErrorKind::NotFound(_),
-                        ..
-                    },
-                ..
-            }) => Err(RpcError::Other(format!("Bucket({})not found", bucket_id))),
+            Err(SdkError::ServiceError(context)) if context.err().is_not_found() => {
+                Err(RpcError::Other(format!("Bucket({})not found", bucket_id)))
+            }
             Err(e) => Err(RpcError::Other(e.to_string())),
         }
     }
@@ -371,7 +354,8 @@ impl Blobstore for StorageClient {
                 })
                 .collect()),
             Ok(ListBucketsOutput { buckets: None, .. }) => Ok(Vec::new()),
-            Err(SdkError::ServiceError { err, .. }) => {
+            Err(SdkError::ServiceError(context)) => {
+                let err = context.err();
                 error!(error = %err, "Service error");
                 Err(RpcError::Other(err.to_string()))
             }
@@ -393,10 +377,10 @@ impl Blobstore for StorageClient {
             let bucket = self.unalias(bucket);
             match self.s3_client.delete_bucket().bucket(bucket).send().await {
                 Ok(_) => {}
-                Err(SdkError::ServiceError { err, .. }) => {
+                Err(SdkError::ServiceError(context)) => {
                     results.push(blobstore::ItemResult {
                         key: bucket.to_string(),
-                        error: Some(err.to_string()),
+                        error: Some(context.err().to_string()),
                         success: false,
                     });
                 }
@@ -429,14 +413,7 @@ impl Blobstore for StorageClient {
             .await
         {
             Ok(_) => Ok(true),
-            Err(SdkError::ServiceError {
-                err:
-                    HeadObjectError {
-                        kind: HeadObjectErrorKind::NotFound(_),
-                        ..
-                    },
-                ..
-            }) => Ok(false),
+            Err(SdkError::ServiceError(context)) if context.err().is_not_found() => Ok(false),
             Err(e) => {
                 error!(
                     error = %e,
@@ -477,17 +454,12 @@ impl Blobstore for StorageClient {
                 content_encoding,
                 content_length: content_length as u64,
             }),
-            Err(SdkError::ServiceError {
-                err:
-                    HeadObjectError {
-                        kind: HeadObjectErrorKind::NotFound(_),
-                        ..
-                    },
-                ..
-            }) => Err(RpcError::Other(format!(
-                "Not found: Bucket({}) Object({})",
-                bucket_id, &arg.object_id,
-            ))),
+            Err(SdkError::ServiceError(context)) if context.err().is_not_found() => {
+                Err(RpcError::Other(format!(
+                    "Not found: Bucket({}) Object({})",
+                    bucket_id, &arg.object_id,
+                )))
+            }
             Err(e) => Err(RpcError::Other(format!(
                 "get_object_metadata for Bucket({}) Object({}): {}",
                 bucket_id, &arg.object_id, e

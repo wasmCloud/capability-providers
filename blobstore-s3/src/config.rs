@@ -3,8 +3,9 @@
 //! See README.md for configuration options using environment variables, aws credentials files,
 //! and EC2 IAM authorizations.
 //!
-use aws_smithy_http::endpoint::Endpoint;
-use aws_types::{credentials::SharedCredentialsProvider, region::Region, SdkConfig as AwsConfig};
+use aws_credential_types::{provider::SharedCredentialsProvider, Credentials};
+use aws_types::{region::Region, SdkConfig as AwsConfig};
+use base64::{engine::general_purpose, Engine as _};
 use serde::Deserialize;
 use std::{collections::HashMap, env};
 use wasmbus_rpc::error::{RpcError, RpcResult};
@@ -36,7 +37,7 @@ pub struct StorageConfig {
 
 #[derive(Clone, Default, Deserialize)]
 pub struct StsAssumeRoleConfig {
-    /// Role to assume (AWS_ASSUME_ROLE_ARN)
+    /// Role to assume (AWS_ROLE_ARN)
     /// Should be in the form "arn:aws:iam::123456789012:role/example"
     pub role: String,
     /// AWS Region for using sts, not for S3
@@ -51,9 +52,11 @@ impl StorageConfig {
     /// initialize from linkdef values
     pub fn from_values(values: &HashMap<String, String>) -> RpcResult<StorageConfig> {
         let mut config = if let Some(config_b64) = values.get("config_b64") {
-            let bytes = base64::decode(config_b64.as_bytes()).map_err(|e| {
-                RpcError::InvalidParameter(format!("invalid base64 encoding: {}", e))
-            })?;
+            let bytes = general_purpose::STANDARD
+                .decode(config_b64.as_bytes())
+                .map_err(|e| {
+                    RpcError::InvalidParameter(format!("invalid base64 encoding: {}", e))
+                })?;
             serde_json::from_slice::<StorageConfig>(&bytes)
                 .map_err(|e| RpcError::InvalidParameter(format!("corrupt config_b64: {}", e)))?
         } else if let Some(config) = values.get("config_json") {
@@ -106,7 +109,7 @@ impl StorageConfig {
         // use static credentials or defaults from environment
         let mut cred_provider = match (self.access_key_id, self.secret_access_key) {
             (Some(access_key_id), Some(secret_access_key)) => {
-                SharedCredentialsProvider::new(aws_types::credentials::Credentials::from_keys(
+                SharedCredentialsProvider::new(Credentials::from_keys(
                     access_key_id,
                     secret_access_key,
                     self.session_token.clone(),
@@ -139,19 +142,22 @@ impl StorageConfig {
         if let Some(max_attempts) = self.max_attempts {
             retry_config = retry_config.with_max_attempts(max_attempts);
         }
-        let mut loader = aws_config::from_env()
-            .region(region)
-            .credentials_provider(cred_provider)
-            .retry_config(retry_config);
 
         if let Some(endpoint) = self.endpoint {
-            if let Ok(parsed_endpoint) = endpoint.parse() {
-                loader = loader.endpoint_resolver(Endpoint::immutable(parsed_endpoint));
-            } else {
-                tracing::warn!("Endpoint {} could not be parsed, ignoring", endpoint);
-            }
+            aws_config::from_env()
+                .region(region)
+                .credentials_provider(cred_provider)
+                .retry_config(retry_config)
+                .endpoint_url(endpoint)
+                .load()
+                .await
+        } else {
+            aws_config::from_env()
+                .region(region)
+                .credentials_provider(cred_provider)
+                .retry_config(retry_config)
+                .load()
+                .await
         }
-
-        loader.load().await
     }
 }
