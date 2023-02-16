@@ -17,15 +17,12 @@
 //!
 use std::time::Instant;
 use wasmbus_rpc::{core::InvocationResponse, provider::prelude::*};
-use wasmcloud_interface_httpserver::*;
+use wasmcloud_provider_httpserver::wasmcloud_interface_httpserver::{HttpRequest, HttpResponse};
 use wasmcloud_test_util::{
-    check,
-    cli::print_test_results,
-    provider_test::test_provider,
-    testing::{TestOptions, TestResult},
+    check, cli::print_test_results, provider_test::test_provider, testing::TestOptions,
 };
 #[allow(unused_imports)]
-use wasmcloud_test_util::{run_selected, run_selected_spawn};
+use wasmcloud_test_util::{run_selected, run_selected_spawn, testing};
 
 /// HTTP host and port for this test.
 /// Port number should match value in provider_test_config.toml
@@ -77,7 +74,6 @@ async fn mock_echo_actor(num_requests: u32) -> tokio::task::JoinHandle<RpcResult
     use wasmbus_rpc::{
         common::{deserialize, serialize},
         core::Invocation,
-        rpc_client::rpc_topic,
     };
 
     let handle = tokio::runtime::Handle::current();
@@ -86,7 +82,7 @@ async fn mock_echo_actor(num_requests: u32) -> tokio::task::JoinHandle<RpcResult
 
         if let Err::<(), RpcError>(e) = {
             let prov = test_provider().await;
-            let topic = rpc_topic(&prov.origin(), &prov.host_data.lattice_rpc_prefix);
+            let topic = prov.mock_actor_rpc_topic();
             // subscribe() returns a Stream of nats messages
             let mut sub = prov
                 .nats_client
@@ -119,7 +115,8 @@ async fn mock_echo_actor(num_requests: u32) -> tokio::task::JoinHandle<RpcResult
                 .map_err(|e| RpcError::Ser(e.to_string()))?;
                 let http_resp = HttpResponse {
                     body,
-                    ..Default::default()
+                    status_code: 200,
+                    header: Default::default(),
                 };
                 let buf = serialize(&http_resp)?;
                 if let Some(ref reply_to) = msg.reply {
@@ -128,7 +125,8 @@ async fn mock_echo_actor(num_requests: u32) -> tokio::task::JoinHandle<RpcResult
                     ir.msg = buf;
                     prov.rpc_client
                         .publish(reply_to.to_string(), serialize(&ir)?)
-                        .await?;
+                        .await
+                        .map_err(|e| RpcError::Nats(e.to_string()))?;
                 }
                 completed += 1;
                 if completed >= num_requests {
