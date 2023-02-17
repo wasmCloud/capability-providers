@@ -78,6 +78,10 @@ pub struct ServiceSettings {
     /// - "1g" = 1024*1024*1024 bytes
     /// The value may not be higher than i32::MAX
     pub max_content_len: Option<String>,
+
+    /// capture any other configuration values
+    #[serde(flatten)]
+    extra: HashMap<String, Value>,
 }
 
 impl Default for ServiceSettings {
@@ -89,6 +93,7 @@ impl Default for ServiceSettings {
             log: Log::default(),
             timeout_ms: None,
             max_content_len: Some(DEFAULT_MAX_CONTENT_LEN.to_string()),
+            extra: Default::default(),
         }
     }
 }
