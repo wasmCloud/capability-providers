@@ -26,8 +26,8 @@ warp = { version="0.3", features=["tls"] }
 wasmbus-rpc = { path = "../../weld/rpc-rs" }
 
 [build-dependencies]
-#weld-codegen = { git= "https://github.com/wasmcloud/weld", rev="122b87d132c570cdfc7583bea740aa4667170578" }
-weld-codegen = { path = "../../weld/codegen" }
+weld-codegen = { git= "https://github.com/wasmcloud/weld", rev="5635c0ec47fba97700af3224588d94b141362c5a" }
+#weld-codegen = { path = "../../weld/codegen" }
 
 [dev-dependencies]
 assert_matches = "1.5"

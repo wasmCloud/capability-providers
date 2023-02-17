@@ -81,7 +81,7 @@ pub struct ServiceSettings {
 
     /// capture any other configuration values
     #[serde(flatten)]
-    extra: HashMap<String, Value>,
+    extra: HashMap<String, serde_json::Value>,
 }
 
 impl Default for ServiceSettings {
