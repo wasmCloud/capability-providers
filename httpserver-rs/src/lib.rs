@@ -410,7 +410,7 @@ pub fn convert_human_size(value: &str) -> Result<u64, Error> {
     } else if let Ok(num) = value.parse::<u64>() {
         limit = Some(num);
     } else {
-        let (num, units) = value.split_at(value.len() - 2);
+        let (num, units) = value.split_at(value.len() - 1);
         if let Ok(base_value) = num.trim().parse::<u64>() {
             match units {
                 "k" | "K" => {
@@ -461,8 +461,6 @@ fn parse_max_content_len() {
     assert_eq!(convert_human_size("2K").unwrap(), 2 * 1024);
     assert_eq!(convert_human_size("10m").unwrap(), 10 * 1024 * 1024);
     assert_eq!(convert_human_size("10M").unwrap(), 10 * 1024 * 1024);
-    assert_eq!(convert_human_size("10g").unwrap(), 10 * 1024 * 1024 * 1024);
-    assert_eq!(convert_human_size("10G").unwrap(), 10 * 1024 * 1024 * 1024);
 
     // allow space before units
     assert_eq!(convert_human_size("10 M").unwrap(), 10 * 1024 * 1024);

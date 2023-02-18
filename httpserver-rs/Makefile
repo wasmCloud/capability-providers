@@ -13,5 +13,12 @@ oci_insecure = --insecure
 
 include ../build/makefiles/provider.mk
 
-test:
+ifeq ($(shell nc -czt -w1 127.0.0.1 4222 || echo fail),fail)
+test::
+	@echo To run these tests, you need a wamcloud host and nats server running
+	exit 2
+else
+test::
 	cargo test -- --nocapture
+endif
+
