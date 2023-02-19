@@ -71,5 +71,5 @@ wasmcloud-interface-lattice-control = "0.17.0"
 wasmcloud-interface-messaging = "0.8.1"
 wasmcloud-interface-sqldb = "0.8.1"
 wasmcloud-interface-testing = "0.7.1"
-wasmcloud-test-util = "0.6.4"
+wasmcloud-test-util = { git = "https://github.com/rvolosatovs/wasmcloud-test", branch = "feat/runtime-config" }
 weld-codegen = "0.6.0"

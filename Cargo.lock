@@ -4338,6 +4338,7 @@ dependencies = [
  "tracing-subscriber",
  "wasmbus-rpc",
  "wasmcloud-interface-blobstore",
+ "wasmcloud-provider-blobstore-fs",
  "wasmcloud-test-util",
 ]
 
@@ -4376,6 +4377,7 @@ dependencies = [
  "wasmbus-rpc",
  "wasmcloud-interface-blobstore",
  "wasmcloud-interface-testing",
+ "wasmcloud-provider-blobstore-s3",
  "wasmcloud-test-util",
  "weld-codegen 0.6.0",
 ]
@@ -4404,6 +4406,7 @@ dependencies = [
  "tracing-subscriber",
  "wasmbus-rpc",
  "wasmcloud-interface-httpclient",
+ "wasmcloud-provider-httpclient",
  "wasmcloud-test-util",
 ]
 
@@ -4432,6 +4435,7 @@ dependencies = [
  "warp",
  "wasmbus-rpc",
  "wasmcloud-interface-httpserver",
+ "wasmcloud-provider-httpserver",
  "wasmcloud-test-util",
 ]
 
@@ -4453,6 +4457,7 @@ dependencies = [
  "vaultrs",
  "wasmbus-rpc",
  "wasmcloud-interface-keyvalue",
+ "wasmcloud-provider-kv-vault",
  "wasmcloud-test-util",
  "weld-codegen 0.6.0",
 ]
@@ -4482,6 +4487,7 @@ dependencies = [
  "tracing-subscriber",
  "wasmbus-rpc",
  "wasmcloud-interface-keyvalue",
+ "wasmcloud-provider-kvredis",
  "wasmcloud-test-util",
 ]
 
@@ -4539,6 +4545,7 @@ dependencies = [
  "wascap 0.9.2",
  "wasmbus-rpc",
  "wasmcloud-interface-messaging",
+ "wasmcloud-provider-nats",
  "wasmcloud-test-util",
 ]
 
@@ -4570,14 +4577,14 @@ dependencies = [
  "uuid",
  "wasmbus-rpc",
  "wasmcloud-interface-sqldb",
+ "wasmcloud-provider-sqldb-postgres",
  "wasmcloud-test-util",
 ]
 
 [[package]]
 name = "wasmcloud-test-util"
 version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e61ffa428b4c302c24802180cd406039c632091dcd9c0952ffa4d9283b0e55b8"
+source = "git+https://github.com/rvolosatovs/wasmcloud-test?branch=feat/runtime-config#de3e401d51f507c2de8c250274e98ab899135118"
 dependencies = [
  "anyhow",
  "async-nats",
