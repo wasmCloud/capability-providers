@@ -25,14 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // returns when provider receives a shutdown control message
     let host_data = load_host_data()?;
     let provider = if let Some(c) = host_data.config_json.as_ref() {
-        // fall back to the safe default if the JSON is bad
-        let config: ConnectionConfig = match serde_json::from_str(c) {
-            Ok(c) => c,
-            Err(e) => {
-                error!("Failed to parse host data config JSON: {e:?}");
-                ConnectionConfig::default()
-            }
-        };
+        let config: ConnectionConfig = serde_json::from_str(c)?;
         NatsMessagingProvider {
             default_config: config,
             ..Default::default()
