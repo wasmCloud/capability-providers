@@ -22,7 +22,8 @@ toml = "0.7"
 tracing = "0.1.34"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 warp = { version="0.3", features=["tls"] }
-wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev="4faec462d1dd41efbfe95c9e2d2061a9a40f2fcc", features = [ "otel" ] }
+wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", branch="feat/smithy-bindgen", features = ["otel"]}
+
 
 [build-dependencies]
 weld-codegen = { git= "https://github.com/wasmcloud/weld", rev="5635c0ec47fba97700af3224588d94b141362c5a" }

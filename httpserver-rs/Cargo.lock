@@ -3085,12 +3085,62 @@ checksum = "0046fef7e28c3804e5e38bfa31ea2a0f73905319b677e57ebe37e49358989b5d"
 [[package]]
 name = "wasmbus-macros"
 version = "0.1.11"
+source = "git+https://github.com/wasmcloud/weld?branch=feat/smithy-bindgen#6d3e216c6120ba61845290f9b591bdc767aba5c8"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "wasmbus-macros"
+version = "0.1.11"
 source = "git+https://github.com/wasmcloud/weld?rev=4faec462d1dd41efbfe95c9e2d2061a9a40f2fcc#4faec462d1dd41efbfe95c9e2d2061a9a40f2fcc"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "wasmbus-rpc"
+version = "0.11.2"
+source = "git+https://github.com/wasmcloud/weld?branch=feat/smithy-bindgen#6d3e216c6120ba61845290f9b591bdc767aba5c8"
+dependencies = [
+ "async-nats",
+ "async-trait",
+ "atty",
+ "base64 0.13.1",
+ "bytes",
+ "cfg-if",
+ "data-encoding",
+ "futures",
+ "lazy_static",
+ "minicbor 0.17.1",
+ "minicbor-ser",
+ "nkeys",
+ "once_cell",
+ "opentelemetry 0.17.0",
+ "opentelemetry-otlp",
+ "rmp-serde",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "sha2 0.10.6",
+ "thiserror",
+ "time",
+ "tokio",
+ "toml 0.5.11",
+ "tracing",
+ "tracing-futures",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+ "uuid",
+ "wascap",
+ "wasmbus-macros 0.1.11 (git+https://github.com/wasmcloud/weld?branch=feat/smithy-bindgen)",
+ "weld-codegen 0.6.1 (git+https://github.com/wasmcloud/weld?branch=feat/smithy-bindgen)",
 ]
 
 [[package]]
@@ -3128,7 +3178,7 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "wascap",
- "wasmbus-macros",
+ "wasmbus-macros 0.1.11 (git+https://github.com/wasmcloud/weld?rev=4faec462d1dd41efbfe95c9e2d2061a9a40f2fcc)",
  "weld-codegen 0.6.0",
 ]
 
@@ -3157,7 +3207,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "warp",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.11.2 (git+https://github.com/wasmcloud/weld?branch=feat/smithy-bindgen)",
  "wasmcloud-test-util",
  "weld-codegen 0.6.1 (git+https://github.com/wasmcloud/weld?rev=5635c0ec47fba97700af3224588d94b141362c5a)",
 ]
@@ -3182,7 +3232,7 @@ dependencies = [
  "termcolor",
  "tokio",
  "toml 0.5.11",
- "wasmbus-rpc",
+ "wasmbus-rpc 0.11.2 (git+https://github.com/wasmcloud/weld?rev=4faec462d1dd41efbfe95c9e2d2061a9a40f2fcc)",
 ]
 
 [[package]]
