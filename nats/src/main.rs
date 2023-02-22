@@ -58,11 +58,36 @@ struct ConnectionConfig {
     ping_interval_sec: Option<u16>,
 }
 
+impl ConnectionConfig {
+    fn merge(&self, extra: &ConnectionConfig) -> ConnectionConfig {
+        let mut out = self.clone();
+        if !extra.subscriptions.is_empty() {
+            out.subscriptions = extra.subscriptions.clone();
+        }
+        // If the default configuration has a URL in it, and then the link definition
+        // also provides a URL, the assumption is to replace/override rather than combine
+        // the two into a potentially incompatible set of URIs
+        if !extra.cluster_uris.is_empty() {
+            out.cluster_uris = extra.cluster_uris.clone();
+        }
+        if extra.auth_jwt.is_some() {
+            out.auth_jwt = extra.auth_jwt.clone()
+        }
+        if extra.auth_seed.is_some() {
+            out.auth_seed = extra.auth_seed.clone()
+        }
+        if extra.ping_interval_sec.is_some() {
+            out.ping_interval_sec = extra.ping_interval_sec.clone()
+        }
+        out
+    }
+}
+
 impl Default for ConnectionConfig {
     fn default() -> ConnectionConfig {
         ConnectionConfig {
             subscriptions: vec![],
-            cluster_uris: vec!["nats://127.0.0.1:4222".to_string()],
+            cluster_uris: vec![DEFAULT_NATS_URI.to_string()],
             auth_jwt: None,
             auth_seed: None,
             ping_interval_sec: None,
@@ -241,8 +266,9 @@ impl ProviderHandler for NatsMessagingProvider {
         let config = if ld.values.is_empty() {
             self.default_config.clone()
         } else {
+            // create a config from the supplied values and merge that with the existing default
             match ConnectionConfig::new_from(&ld.values) {
-                Ok(cc) => cc,
+                Ok(cc) => self.default_config.merge(&cc),
                 Err(e) => {
                     error!("Failed to build connection configuration: {e:?}");
                     return Ok(false);
@@ -364,5 +390,20 @@ mod test {
         assert_eq!(config.cluster_uris, ["nats://soyvuh"]);
         assert!(config.subscriptions.is_empty());
         assert!(config.ping_interval_sec.is_none());
+    }
+
+    #[test]
+    fn test_connectionconfig_merge() {
+        // second > original, individual vec fields are replace not extend
+        let mut cc1 = ConnectionConfig::default();
+        cc1.cluster_uris = vec!["old_server".to_string()];
+        cc1.subscriptions = vec!["topic1".to_string()];
+        let mut cc2 = ConnectionConfig::default();
+        cc2.cluster_uris = vec!["server1".to_string(), "server2".to_string()];
+        cc2.auth_jwt = Some("jawty".to_string());
+        let cc3 = cc1.merge(&cc2);
+        assert_eq!(cc3.cluster_uris, cc2.cluster_uris);
+        assert_eq!(cc3.subscriptions, cc1.subscriptions);
+        assert_eq!(cc3.auth_jwt, Some("jawty".to_string()))
     }
 }
