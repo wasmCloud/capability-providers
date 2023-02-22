@@ -241,7 +241,13 @@ impl ProviderHandler for NatsMessagingProvider {
         let config = if ld.values.is_empty() {
             self.default_config.clone()
         } else {
-            ConnectionConfig::new_from(&ld.values)?
+            match ConnectionConfig::new_from(&ld.values) {
+                Ok(cc) => cc,
+                Err(e) => {
+                    error!("Failed to build connection configuration: {e:?}");
+                    return Ok(false);
+                }
+            }
         };
         let conn = self.connect(config, ld).await?;
 
