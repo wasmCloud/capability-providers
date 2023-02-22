@@ -105,19 +105,20 @@ dependencies = [
 
 [[package]]
 name = "async-stream"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dad5c83079eae9969be7fadefe640a1c566901f05ff91ab221de4b6f68d9507e"
+checksum = "ad445822218ce64be7a341abfb0b1ea43b5c23aa83902542a4542e78309d8e5e"
 dependencies = [
  "async-stream-impl",
  "futures-core",
+ "pin-project-lite",
 ]
 
 [[package]]
 name = "async-stream-impl"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10f203db73a71dfa2fb6dd22763990fa26f3d2625a6da2da900d23b87d26be27"
+checksum = "e4655ae1a7b0cdf149156f780c5bf3f1352bc53cbd9e0a361a7ef7b22947e965"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2140,9 +2141,9 @@ dependencies = [
 
 [[package]]
 name = "serde_nanos"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e44969a61f5d316be20a42ff97816efb3b407a924d06824c3d8a49fa8450de0e"
+checksum = "8ae801b7733ca8d6a2b580debe99f67f36826a0f5b8a36055dc6bc40f8d6bc71"
 dependencies = [
  "serde",
 ]
@@ -2263,9 +2264,9 @@ checksum = "74233d3b3b2f6d4b006dc19dee745e73e2a6bfb6f93607cd3b02bd5b00797d7c"
 
 [[package]]
 name = "slab"
-version = "0.4.7"
+version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4614a76b2a8be0058caa9dbbaf66d988527d86d003c11a94fbd335d7661edcef"
+checksum = "6528351c9bc8ab22353f9d776db39a20288e8d6c37ef8cfe3317cf875eecfc2d"
 dependencies = [
  "autocfg",
 ]
@@ -2275,6 +2276,22 @@ name = "smallvec"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
+
+[[package]]
+name = "smithy-bindgen"
+version = "0.1.0"
+source = "git+https://github.com/wasmcloud/weld?branch=feat/smithy-bindgen#9300f2c7fe0f5fdc726b044957e0e04b66cff786"
+dependencies = [
+ "atelier_json",
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+ "tracing",
+ "weld-codegen 0.6.1 (git+https://github.com/wasmcloud/weld?branch=feat/smithy-bindgen)",
+]
 
 [[package]]
 name = "socket2"
@@ -2524,9 +2541,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-stream"
-version = "0.1.11"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d660770404473ccd7bc9f8b28494a811bc18542b915c0855c51e8f419d5223ce"
+checksum = "8fb52b74f05dbf495a8fba459fdc331812b96aa086d9eb78101fa0d4569c3313"
 dependencies = [
  "futures-core",
  "pin-project-lite",
@@ -3117,7 +3134,7 @@ dependencies = [
 
 [[package]]
 name = "wasmcloud-provider-httpserver"
-version = "0.17.2"
+version = "0.17.1"
 dependencies = [
  "assert_matches",
  "async-trait",
@@ -3142,12 +3159,13 @@ dependencies = [
  "warp",
  "wasmbus-rpc",
  "wasmcloud-test-util",
- "weld-codegen 0.6.1",
+ "weld-codegen 0.6.1 (git+https://github.com/wasmcloud/weld?rev=5635c0ec47fba97700af3224588d94b141362c5a)",
 ]
 
 [[package]]
 name = "wasmcloud-test-util"
 version = "0.6.5"
+source = "git+https://github.com/wasmcloud/wasmcloud-test?rev=8171ee40fc4e91507366f804b3e39786e3af0c20#8171ee40fc4e91507366f804b3e39786e3af0c20"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -3160,11 +3178,11 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
+ "smithy-bindgen",
  "termcolor",
  "tokio",
  "toml 0.5.11",
  "wasmbus-rpc",
- "weld-codegen 0.6.1",
 ]
 
 [[package]]
@@ -3223,6 +3241,35 @@ dependencies = [
  "tempfile",
  "thiserror",
  "toml 0.5.11",
+]
+
+[[package]]
+name = "weld-codegen"
+version = "0.6.1"
+source = "git+https://github.com/wasmcloud/weld?branch=feat/smithy-bindgen#9300f2c7fe0f5fdc726b044957e0e04b66cff786"
+dependencies = [
+ "Inflector",
+ "anyhow",
+ "atelier_assembler",
+ "atelier_core",
+ "atelier_json",
+ "atelier_smithy",
+ "bytes",
+ "cfg-if",
+ "clap",
+ "directories",
+ "downloader",
+ "handlebars",
+ "lazy_static",
+ "lexical-sort",
+ "reqwest",
+ "rustc-hash",
+ "semver",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "toml 0.7.2",
 ]
 
 [[package]]
