@@ -23,10 +23,24 @@ const ENV_NATS_CLIENT_SEED: &str = "CLIENT_SEED";
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // handle lattice control messages and forward rpc to the provider dispatch
     // returns when provider receives a shutdown control message
-    provider_main(
-        NatsMessagingProvider::default(),
-        Some("Nats Messaging Provider".to_string()),
-    )?;
+    let host_data = load_host_data()?;
+    let provider = if let Some(c) = host_data.config_json.as_ref() {
+        // fall back to the safe default if the JSON is bad
+        let config: ConnectionConfig = match serde_json::from_str(c) {
+            Ok(c) => c,
+            Err(e) => {
+                error!("Failed to parse host data config JSON: {e:?}");
+                ConnectionConfig::default()
+            }
+        };
+        NatsMessagingProvider {
+            default_config: config,
+            ..Default::default()
+        }
+    } else {
+        NatsMessagingProvider::default()
+    };
+    provider_main(provider, Some("Nats Messaging Provider".to_string()))?;
 
     eprintln!("Nats-messaging provider exiting");
     Ok(())
@@ -34,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 /// Configuration for connecting a nats client.
 /// More options are available if you use the json than variables in the values string map.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct ConnectionConfig {
     /// list of topics to subscribe to
     #[serde(default)]
@@ -49,6 +63,18 @@ struct ConnectionConfig {
     /// ping interval in seconds
     #[serde(default)]
     ping_interval_sec: Option<u16>,
+}
+
+impl Default for ConnectionConfig {
+    fn default() -> ConnectionConfig {
+        ConnectionConfig {
+            subscriptions: vec![],
+            cluster_uris: vec!["nats://127.0.0.1:4222".to_string()],
+            auth_jwt: None,
+            auth_seed: None,
+            ping_interval_sec: None,
+        }
+    }
 }
 
 impl ConnectionConfig {
@@ -97,7 +123,9 @@ impl ConnectionConfig {
 struct NatsMessagingProvider {
     // store nats connection client per actor
     actors: Arc<RwLock<HashMap<String, async_nats::Client>>>,
+    default_config: ConnectionConfig,
 }
+
 // use default implementations of provider message handlers
 impl ProviderDispatch for NatsMessagingProvider {}
 
@@ -216,7 +244,12 @@ impl ProviderHandler for NatsMessagingProvider {
     /// If the link is allowed, return true, otherwise return false to deny the link.
     #[instrument(level = "debug", skip(self, ld), fields(actor_id = %ld.actor_id))]
     async fn put_link(&self, ld: &LinkDefinition) -> RpcResult<bool> {
-        let config = ConnectionConfig::new_from(&ld.values)?;
+        // If the link definition values are empty, use the default connection configuration
+        let config = if ld.values.is_empty() {
+            self.default_config.clone()
+        } else {
+            ConnectionConfig::new_from(&ld.values)?
+        };
         let conn = self.connect(config, ld).await?;
 
         let mut update_map = self.actors.write().await;
@@ -308,5 +341,29 @@ impl Messaging for NatsMessagingProvider {
                 subject: resp.subject,
             }),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::ConnectionConfig;
+
+    #[test]
+    fn test_default_connection_serialize() {
+        // test to verify that we can default a config with partial input
+        let input = r#"
+{
+    "cluster_uris": ["nats://soyvuh"],
+    "auth_jwt": "authy",
+    "auth_seed": "seedy"
+}        
+"#;
+
+        let config: ConnectionConfig = serde_json::from_str(&input).unwrap();
+        assert_eq!(config.auth_jwt.unwrap(), "authy");
+        assert_eq!(config.auth_seed.unwrap(), "seedy");
+        assert_eq!(config.cluster_uris, ["nats://soyvuh"]);
+        assert!(config.subscriptions.is_empty());
+        assert!(config.ping_interval_sec.is_none());
     }
 }
