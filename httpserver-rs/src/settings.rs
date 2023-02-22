@@ -38,11 +38,11 @@ const CORS_EXPOSED_HEADERS: &[&str] = &[];
 const CORS_DEFAULT_MAX_AGE_SECS: u64 = 300;
 // Maximum content length. Can be overridden in settings or link definition
 // Syntax: number, or number followed by 'K', 'M', or 'G'
-// Default value is 10M (10*1024*1024)
-pub const DEFAULT_MAX_CONTENT_LEN: u64 = 10 * 1024 * 1024;
+// Default value is 100M (100*1024*1024)
+pub const DEFAULT_MAX_CONTENT_LEN: u64 = 100 * 1024 * 1024;
 // max possible value of content length. If sending to wasm32, memory is limited to 2GB,
-// practically this should be quite a bit smaller. Setting to 500MB for now.
-pub const CONTENT_LEN_LIMIT: u64 = 500 * 1024 * 1024;
+// practically this should be quite a bit smaller. Setting to 1GB for now.
+pub const CONTENT_LEN_LIMIT: u64 = 1024 * 1024 * 1024;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ServiceSettings {
