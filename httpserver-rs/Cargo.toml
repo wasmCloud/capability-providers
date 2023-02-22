@@ -1,6 +1,6 @@
 [package]
 name = "wasmcloud-provider-httpserver"
-version = "0.17.2"
+version = "0.17.1"
 edition = "2021"
 
 [dependencies]
@@ -23,18 +23,15 @@ tracing = "0.1.34"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 warp = { version="0.3", features=["tls"] }
 wasmbus-rpc = { git = "https://github.com/wasmcloud/weld", rev="4faec462d1dd41efbfe95c9e2d2061a9a40f2fcc", features = [ "otel" ] }
-#wasmbus-rpc = { path = "../../weld/rpc-rs" }
 
 [build-dependencies]
 weld-codegen = { git= "https://github.com/wasmcloud/weld", rev="5635c0ec47fba97700af3224588d94b141362c5a" }
-#weld-codegen = { path = "../../weld/codegen" }
 
 [dev-dependencies]
 assert_matches = "1.5"
 blake2 = "0.10.4"
 reqwest = { version = "0.11", features = ["json"]}
-#wasmcloud-test-util = "0.6"
-wasmcloud-test-util = { path = "../../wasmcloud-test/wasmcloud-test-util" }
+wasmcloud-test-util = { git = "https://github.com/wasmcloud/wasmcloud-test", rev="8171ee40fc4e91507366f804b3e39786e3af0c20" }
 
 [lib]
 name = "wasmcloud_provider_httpserver"
