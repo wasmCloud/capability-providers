@@ -25,7 +25,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // returns when provider receives a shutdown control message
     let host_data = load_host_data()?;
     let provider = if let Some(c) = host_data.config_json.as_ref() {
-        let config: ConnectionConfig = serde_json::from_str(c)?;
+        let config: ConnectionConfig = serde_json::from_str(c)
+            .expect("JSON deserialization from connection config should have worked");
         NatsMessagingProvider {
             default_config: config,
             ..Default::default()
