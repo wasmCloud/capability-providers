@@ -25,8 +25,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // returns when provider receives a shutdown control message
     let host_data = load_host_data()?;
     let provider = if let Some(c) = host_data.config_json.as_ref() {
-        let config: ConnectionConfig = serde_json::from_str(c)
-            .expect("JSON deserialization from connection config should have worked");
+        // sanitize in case we receive escaped JSON with literal quotes and backslashes
+        let c = unescape::unescape(c).unwrap(); // we want to panic here if we can't do this
+        let config: ConnectionConfig = serde_json::from_str(&c).expect(&format!(
+            "JSON deserialization from connection config should have worked: {c}"
+        ));
         NatsMessagingProvider {
             default_config: config,
             ..Default::default()
@@ -372,6 +375,8 @@ impl Messaging for NatsMessagingProvider {
 
 #[cfg(test)]
 mod test {
+    use unescape::unescape;
+
     use crate::ConnectionConfig;
 
     #[test]
@@ -391,6 +396,25 @@ mod test {
         assert_eq!(config.cluster_uris, ["nats://soyvuh"]);
         assert!(config.subscriptions.is_empty());
         assert!(config.ping_interval_sec.is_none());
+    }
+
+    #[test]
+    fn test_handles_escaped_json() {
+        let raw = r###"{\n    \"cluster_uris\": [\"nats://127.0.0.1:5222\"],\n    \"auth_jwt\": \"floofadoof\",\n    \"auth_seed\": \"SUVGDV6TZR2MT7EJMVNXFAVS6JPLQK5OJPUHDOOJSLWA6H4PZQ3FNSTZFE\"\n}"###;
+        let ue_raw = unescape(raw).unwrap();
+        let input = r#"
+        {
+            "cluster_uris": ["nats://soyvuh"],
+            "auth_jwt": "authy",
+            "auth_seed": "seedy"
+        }        
+        "#;
+        let ue_input = unescape(input).unwrap();
+        let config: ConnectionConfig = serde_json::from_str(&ue_raw).unwrap();
+        // make sure it still works with already unescaped JSON
+        let _config: ConnectionConfig = serde_json::from_str(&ue_input).unwrap();
+
+        assert_eq!(config.auth_jwt.unwrap(), "floofadoof");
     }
 
     #[test]

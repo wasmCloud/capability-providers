@@ -1,6 +1,6 @@
 [package]
 name = "wasmcloud-provider-nats"
-version = "0.16.0"
+version = "0.16.1"
 edition = "2021"
 
 [dependencies]
@@ -11,6 +11,7 @@ base64 = "0.13"
 bytes = "1.0"
 chrono = "0.4"
 crossbeam="0.8"
+unescape = "0.1.0"
 futures = "0.3"
 once_cell = "1.8"
 rmp-serde = "1.1.0"
