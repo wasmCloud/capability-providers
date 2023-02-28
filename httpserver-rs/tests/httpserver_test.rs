@@ -19,10 +19,9 @@ use std::time::Instant;
 use wasmbus_rpc::{core::InvocationResponse, provider::prelude::*};
 use wasmcloud_provider_httpserver::wasmcloud_interface_httpserver::{HttpRequest, HttpResponse};
 use wasmcloud_test_util::{
-    check, cli::print_test_results, provider_test::test_provider, testing::TestOptions,
+    check, cli::print_test_results, provider_test::test_provider, run_selected, run_selected_spawn,
+    testing, testing::TestOptions,
 };
-#[allow(unused_imports)]
-use wasmcloud_test_util::{run_selected, run_selected_spawn, testing};
 
 /// HTTP host and port for this test.
 /// Port number should match value in provider_test_config.toml
