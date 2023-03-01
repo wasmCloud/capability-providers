@@ -4,7 +4,7 @@
 use std::{convert::Infallible, sync::Arc};
 
 use async_trait::async_trait;
-use tracing::{error, trace, warn};
+use tracing::{error, instrument, trace, warn};
 use wasmbus_rpc::{
     core::LinkDefinition, error::RpcError, provider::prelude::*, provider::ProviderTransport,
 };
@@ -83,7 +83,7 @@ impl ProviderHandler for HttpServerProvider {
 }
 
 /// forward HttpRequest to actor.
-//#[instrument(level = "debug", skip(_lattice_id, ld, req, timeout), fields(actor_id = %ld.actor_id))]
+#[instrument(level = "debug", skip(_lattice_id, ld, req, timeout), fields(actor_id = %ld.actor_id))]
 async fn call_actor(
     _lattice_id: String,
     ld: Arc<LinkDefinition>,
