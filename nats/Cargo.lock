@@ -2858,6 +2858,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasmcloud-interface-testing"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07cda5358bdc6d7739a8510aa5ea264d3930b239ffdd6eee8c39fbae2577dd76"
+dependencies = [
+ "async-trait",
+ "regex",
+ "rmp-serde",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "wasmbus-rpc",
+ "weld-codegen 0.5.0",
+]
+
+[[package]]
 name = "wasmcloud-provider-nats"
 version = "0.16.3"
 dependencies = [
@@ -2884,6 +2900,30 @@ dependencies = [
  "wascap",
  "wasmbus-rpc",
  "wasmcloud-interface-messaging",
+ "wasmcloud-test-util",
+]
+
+[[package]]
+name = "wasmcloud-test-util"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e61ffa428b4c302c24802180cd406039c632091dcd9c0952ffa4d9283b0e55b8"
+dependencies = [
+ "anyhow",
+ "async-nats",
+ "async-trait",
+ "base64",
+ "futures",
+ "log",
+ "nkeys",
+ "regex",
+ "serde",
+ "serde_json",
+ "termcolor",
+ "tokio",
+ "toml",
+ "wasmbus-rpc",
+ "wasmcloud-interface-testing",
 ]
 
 [[package]]
