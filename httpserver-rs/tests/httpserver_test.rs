@@ -19,8 +19,8 @@ use std::time::Instant;
 use wasmbus_rpc::{core::InvocationResponse, provider::prelude::*};
 use wasmcloud_provider_httpserver::wasmcloud_interface_httpserver::{HttpRequest, HttpResponse};
 use wasmcloud_test_util::{
-    check, cli::print_test_results, provider_test::test_provider, run_selected, run_selected_spawn,
-    testing, testing::TestOptions,
+    check, cli::print_test_results, provider_test::test_provider, run_selected_spawn,
+    testing::TestOptions,
 };
 
 /// HTTP host and port for this test.
@@ -256,7 +256,6 @@ async fn test_timeout(_: &TestOptions) -> RpcResult<()> {
         .await;
     let elapsed = start_time.elapsed();
     eprintln!("GET /sleep returned in {} ms", &elapsed.as_millis());
-    eprintln!("DEBUG /sleep response after timeout: {:#?}", &resp);
 
     assert!(resp.is_ok(), "expect ok response");
     let resp = resp.unwrap();
