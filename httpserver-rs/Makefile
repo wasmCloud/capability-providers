@@ -13,7 +13,7 @@ oci_insecure = --insecure
 
 include ../build/makefiles/provider.mk
 
-ifeq ($(shell nc -czt -w1 127.0.0.1 4222 || echo fail),fail)
+ifeq ($(shell nc -zt -w1 127.0.0.1 4222 || echo fail),fail)
 test::
 	@echo To run these tests, you need a wamcloud host and nats server running
 	exit 2
