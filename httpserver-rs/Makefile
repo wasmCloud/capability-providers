@@ -15,8 +15,9 @@ include ../build/makefiles/provider.mk
 
 ifeq ($(shell nc -zt -w1 127.0.0.1 4222 || echo fail),fail)
 test::
-	@echo To run these tests, you need a wamcloud host and nats server running
-	exit 2
+	docker run --rm -d --name nats-provider-test -p 127.0.0.1:4222:4222 nats:2.9 -js
+	cargo test -- --nocapture
+	docker stop nats-provider-test
 else
 test::
 	cargo test -- --nocapture
