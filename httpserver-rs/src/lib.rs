@@ -145,7 +145,7 @@ impl HttpServerCore {
                           req: HttpRequest,
                           timeout: Option<Duration>| {
                         let call_actor_fn = call_actor_fn.clone();
-                        Box::pin(async move { call_actor_fn(lattice, ld, req, timeout).await })
+                        Box::pin(call_actor_fn(lattice, ld, req, timeout))
                     },
                 )),
             }),
@@ -271,7 +271,7 @@ impl HttpServerCore {
                         error!(error = %e, "shutting down httpserver listener");
                     }
                 });
-            handle.spawn(async move { fut.await })
+            handle.spawn(fut)
         } else {
             let (_, fut) = server
                 .try_bind_with_graceful_shutdown(addr, async move {
@@ -286,7 +286,7 @@ impl HttpServerCore {
                         e
                     ))
                 })?;
-            handle.spawn(async move { fut.await })
+            handle.spawn(fut)
         };
 
         Ok(join)
