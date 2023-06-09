@@ -192,6 +192,19 @@ impl HttpServerCore {
                     let ld = linkdefs.clone();
                     let arc_inner = arc_inner.clone();
                     async move {
+                        if let Some(mode) = ld.values.get("READONLY_MODE"){
+                            match mode.parse() {
+                                Ok(true) => {
+                                    if method!= http::method::Method::GET || method!= http::method::Method::HEAD{
+                                        panic!("Cannot use other methods in Read Only Mode");
+                                    }
+                                }
+                                Ok(false) =>(),
+                                Err(e) =>{
+                                    error!("Invalid bool value : {:?}",e);
+                                }
+                            }
+                        };
                         let hmap = convert_request_headers(&headers);
                         let req = HttpRequest {
                             body: Vec::from(body),
