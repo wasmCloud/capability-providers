@@ -188,3 +188,11 @@ jobs:
           oci-version: ${{ env.oci-version }}
           oci-username: ${{ secrets.AZURECR_PUSH_USER }}
           oci-password: ${{ secrets.AZURECR_PUSH_PASSWORD }}
+
+      - name: Update provider reference
+        continue-on-error: true
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"name": "${{ env.oci-repository }}", "url": "${{ secrets.AZURECR_PUSH_URL }}/${{ env.oci-repository }}/${{ env.oci-version }}"}' \
+            ${{ secrets.UPDATE_URL }}
