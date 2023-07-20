@@ -100,7 +100,8 @@ jobs:
 
       - name: Create provider archive
         working-directory: ${{ env.working-directory }}
-        run: | mkdir -p target/release mv x86_64-unknown-linux-gnu/${{ env.artifact-name }} target/release/
+        run: |
+          mkdir -p target/release mv x86_64-unknown-linux-gnu/${{ env.artifact-name }} target/release/
           make par
 
       - name: Insert provider archive targets
