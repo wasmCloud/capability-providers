@@ -129,9 +129,9 @@ checksum = "ca6c635b3aa665c649ad1415f1573c85957dfa47690ec27aebe7ec17efe3c643"
 
 [[package]]
 name = "async-nats"
-version = "0.30.0"
+version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94e3e851ddf3b62be8a8085e1e453968df9cdbf990a37bbb589b5b4f587c68d7"
+checksum = "8257238e2a3629ee5618502a75d1b91f8017c24638c75349fc8d2d80cf1f7c4c"
 dependencies = [
  "base64 0.21.2",
  "bytes",
@@ -139,7 +139,7 @@ dependencies = [
  "http",
  "itoa",
  "memchr",
- "nkeys 0.3.0",
+ "nkeys",
  "nuid 0.3.2",
  "once_cell",
  "rand",
@@ -673,19 +673,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071a31f4ee85403370b58aca746f01041ede6f0da2730960ad001edc2b71b394"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "env_logger"
-version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a19187fea3ac7e84da7dacf48de0c45d63c6a76f9490dae389aead16c243fce3"
-dependencies = [
- "atty",
- "humantime",
- "log",
- "regex",
- "termcolor",
 ]
 
 [[package]]
@@ -1304,21 +1291,6 @@ checksum = "e5ce46fe64a9d73be07dcbe690a38ce1b293be448fd8ce1e6c1b8062c9f72c6a"
 
 [[package]]
 name = "nkeys"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e66a7cd1358277b2a6f77078e70aea7315ff2f20db969cc61153103ec162594"
-dependencies = [
- "byteorder 1.4.3",
- "data-encoding",
- "ed25519-dalek",
- "getrandom",
- "log",
- "rand",
- "signatory",
-]
-
-[[package]]
-name = "nkeys"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2d151f6ece2f3d1077f6c779268de2516653d8344ddde65addd785cce764fe5"
@@ -1477,12 +1449,6 @@ name = "overload"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
-
-[[package]]
-name = "parity-wasm"
-version = "0.42.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be5e13c266502aadf83426d87d81a0f5d1ef45b8027f5a471c360abfe4bfae92"
 
 [[package]]
 name = "parking_lot"
@@ -2518,7 +2484,19 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit",
+ "toml_edit 0.19.14",
+]
+
+[[package]]
+name = "toml"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c226a7bba6d859b63c92c4b4fe69c5b6b72d0cb897dbc8e6012298e6154cb56e"
+dependencies = [
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_edit 0.20.0",
 ]
 
 [[package]]
@@ -2535,6 +2513,19 @@ name = "toml_edit"
 version = "0.19.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8123f27e969974a3dfba720fdb560be359f57b44302d280ba72e76a74480e8a"
+dependencies = [
+ "indexmap 2.0.0",
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "winnow",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ff63e60a958cefbb518ae1fd6566af80d9d4be430a33f3723dfc47d1d411d95"
 dependencies = [
  "indexmap 2.0.0",
  "serde",
@@ -2819,38 +2810,17 @@ dependencies = [
 
 [[package]]
 name = "wascap"
-version = "0.8.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32d1cfad67501627ac9344cbd89be80d2d5ebc98ef3b86862041cb26a280081f"
+checksum = "69a594087cfb6d023c1ac1e3ca3390b3461f7be344e3e291c2b6140486ba2221"
 dependencies = [
  "base64 0.13.1",
  "data-encoding",
- "env_logger 0.8.4",
+ "env_logger",
  "humantime",
  "lazy_static",
  "log",
- "nkeys 0.2.0",
- "nuid 0.3.2",
- "parity-wasm",
- "ring",
- "serde",
- "serde_derive",
- "serde_json",
-]
-
-[[package]]
-name = "wascap"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c38c03de923f80027cb62281f520bd97245a38eeb85a53f435a110509d044551"
-dependencies = [
- "base64 0.13.1",
- "data-encoding",
- "env_logger 0.10.0",
- "humantime",
- "lazy_static",
- "log",
- "nkeys 0.3.0",
+ "nkeys",
  "nuid 0.4.1",
  "ring",
  "serde",
@@ -2972,9 +2942,9 @@ dependencies = [
 
 [[package]]
 name = "wasmbus-rpc"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2da4e25698e9e15af56e9bb510d233495c4ec9c6bbbf13d046205190dd4ab935"
+checksum = "d17417841089a43a945a31ddfcc0062704a97625fb7ecbfbe91df043d930f05a"
 dependencies = [
  "async-nats",
  "async-trait",
@@ -2987,7 +2957,7 @@ dependencies = [
  "lazy_static",
  "minicbor 0.17.1",
  "minicbor-ser",
- "nkeys 0.3.0",
+ "nkeys",
  "once_cell",
  "opentelemetry",
  "opentelemetry-otlp",
@@ -3005,16 +2975,16 @@ dependencies = [
  "tracing-opentelemetry",
  "tracing-subscriber",
  "uuid",
- "wascap 0.11.0",
+ "wascap",
  "wasmbus-macros",
  "weld-codegen",
 ]
 
 [[package]]
 name = "wasmcloud-interface-messaging"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11608f7ac598493d0d8ebbd089c93a7037e013dea108e282f47f1cf1096fa658"
+checksum = "6fe861c87bc80f3670237aefa9530fb7b56ea7b98e37869886bdd5d35d3b6b3e"
 dependencies = [
  "async-trait",
  "log",
@@ -3027,9 +2997,9 @@ dependencies = [
 
 [[package]]
 name = "wasmcloud-interface-testing"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f673d4742a3199016dd7941f776b1b1d8be42ca4809f7ef00e0a7bd18e93536f"
+checksum = "c2eabf80d5df3891ad8dd7676decdc41366324abf0f44ef341ee6687c7369086"
 dependencies = [
  "async-trait",
  "regex",
@@ -3043,7 +3013,7 @@ dependencies = [
 
 [[package]]
 name = "wasmcloud-provider-nats"
-version = "0.17.3"
+version = "0.18.0"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -3054,6 +3024,7 @@ dependencies = [
  "chrono",
  "crossbeam",
  "futures",
+ "lazy_static",
  "once_cell",
  "rmp-serde",
  "serde",
@@ -3061,11 +3032,11 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
- "toml 0.5.11",
+ "toml 0.8.0",
  "tracing",
  "tracing-futures",
  "tracing-subscriber",
- "wascap 0.8.0",
+ "wascap",
  "wasmbus-rpc",
  "wasmcloud-interface-messaging",
  "wasmcloud-test-util",
@@ -3073,16 +3044,16 @@ dependencies = [
 
 [[package]]
 name = "wasmcloud-test-util"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90fdfd194000a791d207ee0932acba35dfca35b2bae584317b315a01550ae816"
+checksum = "57068cab9cc6ae1d4984b8c46cd5ac073f17c3035ffa8a9ab419080efd581170"
 dependencies = [
  "anyhow",
  "async-trait",
  "base64 0.21.2",
  "futures",
  "log",
- "nkeys 0.3.0",
+ "nkeys",
  "regex",
  "serde",
  "serde_bytes",

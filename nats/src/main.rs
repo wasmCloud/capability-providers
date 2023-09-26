@@ -1,10 +1,12 @@
 //! Nats implementation for wasmcloud:messaging.
 //!
-use std::{collections::HashMap, convert::Infallible, sync::Arc, time::Duration};
 
+use async_nats::service::{Service, ServiceExt};
+use bytes::Bytes;
 use futures::StreamExt;
-use serde::{Deserialize, Serialize};
-use tokio::sync::{OwnedSemaphorePermit, RwLock, Semaphore};
+use services::is_request_waiting;
+use std::{collections::HashMap, convert::Infallible, sync::Arc, time::Duration};
+use tokio::sync::{oneshot, OwnedSemaphorePermit, RwLock, Semaphore};
 use tokio::task::JoinHandle;
 use tracing::{debug, error, instrument, warn};
 use tracing_futures::Instrument;
@@ -19,11 +21,10 @@ use wasmcloud_interface_messaging::{
     ReplyMessage, RequestMessage, SubMessage,
 };
 
-const DEFAULT_NATS_URI: &str = "0.0.0.0:4222";
-const ENV_NATS_SUBSCRIPTION: &str = "SUBSCRIPTION";
-const ENV_NATS_URI: &str = "URI";
-const ENV_NATS_CLIENT_JWT: &str = "CLIENT_JWT";
-const ENV_NATS_CLIENT_SEED: &str = "CLIENT_SEED";
+mod config;
+mod services;
+
+use config::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // handle lattice control messages and forward rpc to the provider dispatch
@@ -51,103 +52,6 @@ fn generate_provider(host_data: HostData) -> NatsMessagingProvider {
         }
     } else {
         NatsMessagingProvider::default()
-    }
-}
-
-/// Configuration for connecting a nats client.
-/// More options are available if you use the json than variables in the values string map.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-struct ConnectionConfig {
-    /// list of topics to subscribe to
-    #[serde(default)]
-    subscriptions: Vec<String>,
-    #[serde(default)]
-    cluster_uris: Vec<String>,
-    #[serde(default)]
-    auth_jwt: Option<String>,
-    #[serde(default)]
-    auth_seed: Option<String>,
-
-    /// ping interval in seconds
-    #[serde(default)]
-    ping_interval_sec: Option<u16>,
-}
-
-impl ConnectionConfig {
-    fn merge(&self, extra: &ConnectionConfig) -> ConnectionConfig {
-        let mut out = self.clone();
-        if !extra.subscriptions.is_empty() {
-            out.subscriptions = extra.subscriptions.clone();
-        }
-        // If the default configuration has a URL in it, and then the link definition
-        // also provides a URL, the assumption is to replace/override rather than combine
-        // the two into a potentially incompatible set of URIs
-        if !extra.cluster_uris.is_empty() {
-            out.cluster_uris = extra.cluster_uris.clone();
-        }
-        if extra.auth_jwt.is_some() {
-            out.auth_jwt = extra.auth_jwt.clone()
-        }
-        if extra.auth_seed.is_some() {
-            out.auth_seed = extra.auth_seed.clone()
-        }
-        if extra.ping_interval_sec.is_some() {
-            out.ping_interval_sec = extra.ping_interval_sec.clone()
-        }
-        out
-    }
-}
-
-impl Default for ConnectionConfig {
-    fn default() -> ConnectionConfig {
-        ConnectionConfig {
-            subscriptions: vec![],
-            cluster_uris: vec![DEFAULT_NATS_URI.to_string()],
-            auth_jwt: None,
-            auth_seed: None,
-            ping_interval_sec: None,
-        }
-    }
-}
-
-impl ConnectionConfig {
-    fn new_from(values: &HashMap<String, String>) -> RpcResult<ConnectionConfig> {
-        let mut config = if let Some(config_b64) = values.get("config_b64") {
-            let bytes = base64::decode(config_b64.as_bytes()).map_err(|e| {
-                RpcError::InvalidParameter(format!("invalid base64 encoding: {}", e))
-            })?;
-            serde_json::from_slice::<ConnectionConfig>(&bytes)
-                .map_err(|e| RpcError::InvalidParameter(format!("corrupt config_b64: {}", e)))?
-        } else if let Some(config) = values.get("config_json") {
-            serde_json::from_str::<ConnectionConfig>(config)
-                .map_err(|e| RpcError::InvalidParameter(format!("corrupt config_json: {}", e)))?
-        } else {
-            ConnectionConfig::default()
-        };
-
-        if let Some(sub) = values.get(ENV_NATS_SUBSCRIPTION) {
-            config
-                .subscriptions
-                .extend(sub.split(',').map(|s| s.to_string()));
-        }
-        if let Some(url) = values.get(ENV_NATS_URI) {
-            config.cluster_uris = url.split(',').map(String::from).collect();
-        }
-        if let Some(jwt) = values.get(ENV_NATS_CLIENT_JWT) {
-            config.auth_jwt = Some(jwt.clone());
-        }
-        if let Some(seed) = values.get(ENV_NATS_CLIENT_SEED) {
-            config.auth_seed = Some(seed.clone());
-        }
-        if config.auth_jwt.is_some() && config.auth_seed.is_none() {
-            return Err(RpcError::InvalidParameter(
-                "if you specify jwt, you must also specify a seed".to_string(),
-            ));
-        }
-        if config.cluster_uris.is_empty() {
-            config.cluster_uris.push(DEFAULT_NATS_URI.to_string());
-        }
-        Ok(config)
     }
 }
 
@@ -187,8 +91,9 @@ impl NatsMessagingProvider {
     async fn connect(
         &self,
         cfg: ConnectionConfig,
-        ld: &LinkDefinition,
+        link_def: &LinkDefinition,
     ) -> Result<NatsClientBundle, RpcError> {
+        eprintln!("CONNECTING");
         let opts = match (cfg.auth_jwt, cfg.auth_seed) {
             (Some(jwt), Some(seed)) => {
                 let key_pair = std::sync::Arc::new(
@@ -217,8 +122,35 @@ impl NatsMessagingProvider {
             .await
             .map_err(|e| RpcError::ProviderInit(format!("NATS connection to {}: {}", url, e)))?;
 
-        // Connections
         let mut sub_handles = Vec::new();
+
+        // Every service subscribes on {service}.{endpoint}
+        if cfg.service_name.is_some() {
+            let service_name = cfg.service_name.unwrap_or("default".to_string());
+            let mut svc = client
+                .service_builder()
+                .description(cfg.service_description.unwrap_or("Unknown".to_string()))
+                .start(
+                    service_name.clone(),
+                    cfg.service_version.unwrap_or("0.0.1".to_string()),
+                )
+                .await
+                .map_err(|e| RpcError::ProviderInit(format!("service start failed: {}", e)))?;
+            eprintln!("MADE SERVICE CLIENT");
+            if let Some(ref eps) = cfg.service_endpoints {
+                for ep in eps {
+                    let subject = format!("{}.{}", service_name, ep);
+                    sub_handles.push((
+                        subject.to_string(),
+                        self.service_subscribe(&mut svc, link_def, subject, ep.to_string())
+                            .await?,
+                    ));
+                }
+            }
+        }
+
+        // Connections
+
         for sub in cfg.subscriptions.iter().filter(|s| !s.is_empty()) {
             let (sub, queue) = match sub.split_once('|') {
                 Some((sub, queue)) => (sub, Some(queue.to_string())),
@@ -227,7 +159,8 @@ impl NatsMessagingProvider {
 
             sub_handles.push((
                 sub.to_string(),
-                self.subscribe(&client, ld, sub.to_string(), queue).await?,
+                self.subscribe(&client, link_def, sub.to_string(), queue)
+                    .await?,
             ));
         }
 
@@ -290,6 +223,61 @@ impl NatsMessagingProvider {
 
         Ok(join_handle)
     }
+
+    async fn service_subscribe(
+        &self,
+        svc: &mut Service,
+        ld: &LinkDefinition,
+        subject: String,
+        endpoint: String,
+    ) -> RpcResult<JoinHandle<()>> {
+        eprintln!("STARTING SUBSCRIPTION FOR {endpoint}");
+
+        let mut endpoint = svc
+            .endpoint_builder()
+            .name(endpoint.to_string())
+            .add(subject)
+            .await
+            .map_err(|e| RpcError::ProviderInit(format!("service start failed: {}", e)))?;
+
+        let ld = ld.clone();
+        let join_handle = tokio::spawn(async move {
+            let semaphore = Arc::new(Semaphore::new(75));
+            while let Some(req) = endpoint.next().await {
+                let msg = req.message.clone();
+
+                let (tx, rx) = oneshot::channel::<Bytes>();
+                services::add_request_waiter(
+                    &req.message.reply.clone().unwrap_or("default".to_string()),
+                    tx,
+                )
+                .await;
+
+                //Set up tracing context for the NATS message
+                let span = tracing::debug_span!("handle_service_request", actor_id = %ld.actor_id);
+                span.in_scope(|| {
+                    wasmbus_rpc::otel::attach_span_context(&msg);
+                });
+
+                let permit = match semaphore.clone().acquire_owned().await {
+                    Ok(p) => p,
+                    Err(_) => {
+                        warn!("Work pool has been closed, exiting queue subscribe");
+                        break;
+                    }
+                };
+
+                tokio::spawn(dispatch_msg(ld.clone(), msg, permit).instrument(span));
+                if let Ok(raw) = rx.await {
+                    let _ = req.respond(Ok(raw)).await;
+                } else {
+                    warn!("Sender for service request dropped without sending.");
+                }
+            }
+        });
+
+        Ok(join_handle)
+    }
 }
 
 #[instrument(level = "debug", skip_all, fields(actor_id = %link_def.actor_id, subject = %nats_msg.subject, reply_to = ?nats_msg.reply))]
@@ -322,6 +310,7 @@ impl ProviderHandler for NatsMessagingProvider {
     #[instrument(level = "debug", skip(self, ld), fields(actor_id = %ld.actor_id))]
     async fn put_link(&self, ld: &LinkDefinition) -> RpcResult<bool> {
         // If the link definition values are empty, use the default connection configuration
+        eprintln!("CONFIG: {ld:?}");
         let config = if ld.values.is_empty() {
             self.default_config.clone()
         } else {
@@ -388,6 +377,11 @@ impl Messaging for NatsMessagingProvider {
         drop(_rd);
 
         let headers = OtelHeaderInjector::default_with_span().into();
+        // Is this publish actually a reply to a request?
+        if is_request_waiting(&msg.subject).await {
+            let _ = services::dispatch_request_waiter(&msg.subject, msg.body.clone().into()).await;
+            return Ok(());
+        }
 
         let res = match msg.reply_to.clone() {
             Some(reply_to) => if should_strip_headers(&msg.subject) {
