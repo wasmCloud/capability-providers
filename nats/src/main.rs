@@ -93,7 +93,6 @@ impl NatsMessagingProvider {
         cfg: ConnectionConfig,
         link_def: &LinkDefinition,
     ) -> Result<NatsClientBundle, RpcError> {
-        eprintln!("CONNECTING");
         let opts = match (cfg.auth_jwt, cfg.auth_seed) {
             (Some(jwt), Some(seed)) => {
                 let key_pair = std::sync::Arc::new(
@@ -136,7 +135,6 @@ impl NatsMessagingProvider {
                 )
                 .await
                 .map_err(|e| RpcError::ProviderInit(format!("service start failed: {}", e)))?;
-            eprintln!("MADE SERVICE CLIENT");
             if let Some(ref eps) = cfg.service_endpoints {
                 for ep in eps {
                     let subject = format!("{}.{}", service_name, ep);
@@ -231,8 +229,6 @@ impl NatsMessagingProvider {
         subject: String,
         endpoint: String,
     ) -> RpcResult<JoinHandle<()>> {
-        eprintln!("STARTING SUBSCRIPTION FOR {endpoint}");
-
         let mut endpoint = svc
             .endpoint_builder()
             .name(endpoint.to_string())
