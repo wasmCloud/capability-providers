@@ -40,12 +40,12 @@ use std::{
 
 use bytes::Bytes;
 use flume::{bounded, Receiver, Sender};
-use futures::Future;
+use futures::{Future, StreamExt, TryStreamExt};
 use http::header::HeaderMap;
 use thiserror::Error as ThisError;
 use tokio::task::JoinHandle;
 use tracing::{debug, error, info, trace, Instrument};
-use warp::{filters::cors::Builder, path::FullPath, Filter};
+use warp::{filters::cors::Builder, path::FullPath, Filter, ws};
 use wasmbus_rpc::{core::LinkDefinition, error::RpcResult};
 use wasmcloud_interface_httpserver::{HttpRequest, HttpResponse};
 
@@ -175,7 +175,7 @@ impl HttpServerCore {
         let linkdefs = ld.clone();
         let trace_ld = ld.clone();
         let arc_inner = self.inner.clone();
-        let route = warp::any()
+        let http_route = warp::any()
             .and(warp::header::headers_cloned())
             .and(warp::method())
             .and(warp::body::bytes())
@@ -262,6 +262,34 @@ impl HttpServerCore {
                 span
             }));
 
+        let ws_route = warp::any()
+            .and(warp::ws())
+            .and_then(
+                |
+                    ws: ws::Ws
+                |
+                    {     let span = tracing::debug_span!("ws request");
+
+                        ws.on_upgrade( move |websocket| async {
+                            let (tx, mut rx) = websocket.split();
+                            while let Some(result) = rx.next().await{
+                                   // TODO - call the actor
+                            }
+                        });
+
+                        async move {
+                            let http_builder = http::Response::builder();
+                            let mut http_response = http_builder.body("").unwrap();
+                            return Ok::<_, warp::Rejection>(http_response)
+                        }
+                    })
+            .with(
+                warp::trace( |_|{
+                    let span = tracing::debug_span!("request");
+                    span
+                })
+            );
+
         let addr = self.settings.address.unwrap();
         info!(
             %addr,
@@ -271,7 +299,7 @@ impl HttpServerCore {
 
         // add Cors configuration, if enabled, and spawn either TlsServer or Server
         let cors = cors_filter(&self.settings)?;
-        let server = warp::serve(route.with(cors));
+        let server = warp::serve(http_route.or(ws_route).with(cors));
         let handle = tokio::runtime::Handle::current();
         let shutdown_rx = self.shutdown_rx.clone();
         let join = if self.settings.tls.is_set() {
