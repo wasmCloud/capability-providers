@@ -4,13 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - "lattice-controller/**"
+      - 'lattice-controller/**'
     tags:
-      - "lattice-controller-v*"
+      - 'lattice-controller-v*'
   pull_request:
     branches: [main]
     paths:
-      - "lattice-controller/**"
+      - 'lattice-controller/**'
 
 env:
   CARGO_TERM_COLOR: always
@@ -42,34 +42,34 @@ jobs:
           # old versions. But if we build on the old version, it is compatible with the newer
           # versions running in ubuntu 22 and its ilk
           - {
-              os: "ubuntu-20.04",
-              arch: "amd64",
-              extension: "",
-              targetPath: "target/release/",
+              os: 'ubuntu-20.04',
+              arch: 'amd64',
+              extension: '',
+              targetPath: 'target/release/',
             }
           - {
-              os: "ubuntu-20.04",
-              arch: "aarch64",
-              extension: "",
-              targetPath: "target/aarch64-unknown-linux-gnu/release/",
+              os: 'ubuntu-20.04',
+              arch: 'aarch64',
+              extension: '',
+              targetPath: 'target/aarch64-unknown-linux-gnu/release/',
             }
           - {
-              os: "macos-latest",
-              arch: "amd64",
-              extension: "",
-              targetPath: "target/release/",
+              os: 'macos-latest',
+              arch: 'amd64',
+              extension: '',
+              targetPath: 'target/release/',
             }
           - {
-              os: "windows-latest",
-              arch: "amd64",
-              extension: ".exe",
-              targetPath: "target/release/",
+              os: 'windows-latest',
+              arch: 'amd64',
+              extension: '.exe',
+              targetPath: 'target/release/',
             }
           - {
-              os: "macos-latest",
-              arch: "aarch64",
-              extension: "",
-              targetPath: "target/aarch64-apple-darwin/release/",
+              os: 'macos-latest',
+              arch: 'aarch64',
+              extension: '',
+              targetPath: 'target/aarch64-apple-darwin/release/',
             }
     runs-on: ${{ matrix.config.os }}
     steps:
@@ -118,17 +118,17 @@ jobs:
       - name: build release
         working-directory: ${{ env.working-directory }}
         if: matrix.config.arch != 'aarch64'
-        run: "cargo build --release"
+        run: 'cargo build --release'
 
       - name: build release
         working-directory: ${{ env.working-directory }}
         if: matrix.config.arch == 'aarch64' && matrix.config.os == 'macos-latest'
-        run: "cargo build --release --target aarch64-apple-darwin"
+        run: 'cargo build --release --target aarch64-apple-darwin'
 
       - name: build release
         working-directory: ${{ env.working-directory }}
         if: matrix.config.arch == 'aarch64' && matrix.config.os == 'ubuntu-20.04'
-        run: "cargo build --release --target aarch64-unknown-linux-gnu"
+        run: 'cargo build --release --target aarch64-unknown-linux-gnu'
 
       - name: Determine artifact name
         shell: bash
@@ -148,7 +148,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - uses: wasmcloud/common-actions/install-wash@main
+      - name: Install wash 0.26
+        run: |
+          curl -s https://packagecloud.io/install/repositories/wasmCloud/core/script.deb.sh | bash
+          apt install wash=0.26.0
       # Downloads all artifacts
       - uses: actions/download-artifact@v3
         with:
