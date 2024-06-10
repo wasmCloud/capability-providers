@@ -1,12 +1,12 @@
 > [!IMPORTANT]
-> The providers in this repository are based off interfaces defined in Smithy and are used for RPC between actors over the [stable ABI](https://wasmcloud.com/docs/hosts/abis/wasmbus/). For new providers and component actors, interfaces are defined using [WIT](https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md), and codegen is accomplished via the [wasmcloud-provider-wit-bindgen macro](https://github.com/wasmCloud/wasmCloud/tree/main/crates/provider-wit-bindgen). Note that support for WIT is considered **experimental** at this time.
+> The providers in this repository are based off interfaces defined in Smithy and are used for RPC between actors over the [pre-1.0 ABI](https://wasmcloud.com/docs/hosts/abis/wasmbus/). For new providers and components, interfaces are defined using [WIT](https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md), and codegen is accomplished via the [wit-bindgen-wrpc](https://crates.io/crates/wit-bindgen-wrpc) crate.
+>
+> This repository is archived as the capability providers here are only usable in pre-1.0 versions of wasmCloud. See the [wasmCloud/wasmCloud](https://github.com/wasmCloud/wasmCloud) repository for the up-to-date versions of these capability providers.
 
 # Capability Providers
 
 This repository contains capability providers for wasmCloud. The providers
-in the root level of this repository are _only_ compatible with version `0.50`
-and _newer_ of wasmCloud. All of the pre-existing capability providers compatible
-with `0.18` (aka "pre-OTP") or earlier can be found in the [pre-otp](./pre-otp) folder.
+in the root level of this repository are _only_ compatible with wasmCloud versions less than `1.0.0`.
 
 ## Finding the Latest Provider
 
@@ -61,4 +61,4 @@ The following is a list of community supported capability providers developed by
 
 ## Additional Examples
 
-Additional capability provider examples and sample code can be found in the [wasmCloud examples](https://github.com/wasmCloud/examples) repository.
+Additional capability provider examples and sample code can be found in the [wasmCloud examples](https://github.com/wasmCloud/wasmCloud/tree/main/examples) repository.
